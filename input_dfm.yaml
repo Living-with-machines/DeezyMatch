@@ -1,0 +1,66 @@
+general:
+  use_gpu: True # only if available
+
+preprocessing:
+  uni2ascii: True
+  lowercase: True
+  strip: True
+  only_latin_letters: False
+
+# --- GRU/LSTM architecture/misc info
+gru_lstm:
+  # main_architecture: gru or lstm (not implemented)?
+  # mode: char or word, character or word-level tokenization?
+  # bidirectional: f True, becomes a bidirectional GRU/LSTM
+  # num_layers: number of recurrent layers. E.g., setting num_layers=2 would mean stacking two GRU/LSTMs together to form a stacked GRU/LSTM,
+  #             with the second GRU/LSTM taking in outputs of the first GRU/LSTM and computing the final results.
+  # fc1_out_dim: number of dimensions of the first fully connected network
+  # pooling_mode: available options are 'attention', 'average', 'maximum', 'context'
+  # dropout: if non-zero, introduces a Dropout layer on the outputs of each LSTM/GRU layer except the last layer, with dropout probability equal to dropout.
+  # bias: XXX
+  # rnn_hidden_dim: XXX
+  # max_seq_len: XXX 
+  # embedding_dim: XXX
+  # output_dim: XXX
+  # learning_rate: XXX
+  # optimizer: XXX
+  # epochs: XXX
+  # batch_size: XXX 
+  # dl_shuffle: shuffle when creating DataLoader
+  # random_seed: XXX
+  # training: train a new model?
+  # validation: validate after each epoch using the validation set?
+  # train_proportion: XXX
+  # val_proportion: XXX
+  # test_proportion: XXX
+  # create_tensor_board: False or path to the directory
+
+  main_architecture: "gru"
+  mode: "char"
+  bidirectional: True
+  num_layers: 2
+  fc1_out_dim: 60
+  pooling_mode: 'attention'
+  dropout: 0.5
+  bias: True
+
+  rnn_hidden_dim: 60
+  max_seq_len: 120
+  embedding_dim: 60
+  output_dim: 2
+
+  learning_rate: 1e-3
+  optimizer: adam
+  epochs: 10
+  batch_size: 256
+  dl_shuffle: True 
+  random_seed: 64
+
+  training: True
+  validation: True
+  train_proportion: 0.7
+  val_proportion: 0.15
+  test_proportion: 0.15
+
+  #create_tensor_board: "./tb_gru_test" 
+  create_tensor_board: False
