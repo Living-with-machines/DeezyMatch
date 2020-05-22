@@ -1,22 +1,21 @@
 # DeezyMatch (Deep Fuzzy Match)
 
-## A Deep Neural Network framework for fuzzy string matching
+## A flexible Deep Neural Network framework for fuzzy string matching
 
-DeezyMatch aims to provide a set of methods for fuzzy string matching with a focus on:
+DeezyMatch has been applied to the following problems:
 
 - toponym matching
-- XXX
 
 Credits:
 
-- This project extensively uses the codes published in https://github.com/ruipds/Toponym-Matching.
+- This project extensively uses the codes published in https://github.com/ruipds/Toponym-Matching. 
 
 ---
 
 Run DeezyMatch:
 
 ```bash
-python DeezyMatch.py input_dfm.yaml dataset/dataset-string-similarity_test.txt
+python DeezyMatch.py input_dfm.yaml dataset/dataset-string-similarity_test.txt model_name
 ```
 
 ---
@@ -44,7 +43,7 @@ For testing, you can change `nb_epoch=20` to `nb_epoch=2` in deepneuralnetwork.p
 (from the original github repo https://github.com/ruipds/Toponym-Matching):
 
 
-* In `deepneuralnetwork.py`, I had to change the `call` function: (changes are based on https://github.com/richliao/textClassifier/issues/13)
+* In `deepneuralnetwork.py`, we had to change the `call` function: (changes are based on https://github.com/richliao/textClassifier/issues/13)
 
 ```
     def call(self, x, mask=None):
