@@ -39,10 +39,9 @@ if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['evaluation']:
         mode=dl_inputs['gru_lstm']['mode'])
     
     # --- store vocab
-    vocab_path = os.path.join('Vocabs', model_name + '.pickle')
-    if not os.path.isdir("Vocabs"):
-        os.makedirs("Vocabs")
-    
+    vocab_path = os.path.join('vocabs', model_name + '.pickle')
+    if not os.path.isdir("vocabs"):
+        os.makedirs("vocabs")
     with open(vocab_path, 'wb') as handle:
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     

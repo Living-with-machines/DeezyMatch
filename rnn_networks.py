@@ -100,7 +100,9 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
 
     # --- save the model
     cprint('[INFO]', bc.lgreen, 'saving the model')
-    model_path = os.path.join('Models', model_name + '.model')
+    model_path = os.path.join('models', model_name + '.model')
+    if not os.path.isdir("models"):
+        os.makedirs("models")
     torch.save(model_gru_cat_pool, model_path)
 
     """
