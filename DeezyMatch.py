@@ -38,8 +38,10 @@ if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['evaluation']:
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'])
     
-    #store vocab
+    # --- store vocab
     vocab_path = os.path.join('Vocabs', model_name + '.pickle')
+    if not os.path.isdir("Vocabs"):
+        os.makedirs("Vocabs")
     
     with open(vocab_path, 'wb') as handle:
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
