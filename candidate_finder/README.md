@@ -1,5 +1,21 @@
 ## Generate vectors
 
+1. Set the `query_candidate_mode` to `c` (i.e., candidate mode) in the input file.
+2. Generate vectprs for all candidates:
+
+```bash
+python modelInference.py ../models/test_001.model.model ./candidates/uniqueAltnamesGeonames.csv ../vocabs/test_001.model.pickle ../input_dfm.yaml 100
+```
+
+3. repeat step 2 with `query_candidate_mode: "q"`
+4. combine vectors
+
+
+--
+
+# OLD README FILE
+
+
 ### Generate vectors for all candidates (note "c" at the very end of the command! which will be changed in the next version):
 ```bash
 python TestModel.py Models/testme.model candidate_selection/new_set/uniqueAltnamesGeonames.csv Vocabs/testme.pickle input_testme.yaml 1000 c

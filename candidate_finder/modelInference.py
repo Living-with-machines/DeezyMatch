@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+# Add parent path so we can import modules
 import sys
 sys.path.insert(0,'..')
 
@@ -8,37 +9,35 @@ import argparse
 from data_processing import test_tokenize
 from evaluation import test_model
 import pickle
-from utils import read_test_command, read_input_file
+
+from utils import read_inference_command, read_input_file
 from utils import cprint, bc
 
 import torch
+
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
-mode = 'generate_vectors'    # choices: test, generate_vectors
+
+# ==== Model inference
 
 # --- read command args
-model_path, dataset_path, train_vocab_path, input_file, test_cutoff, run_type = read_test_command()
-
-if run_type in ["c"]:
-    print("Candidates mode")
-    # XXX MOVE THIS INTO INPUT FILE!!!!
-    path_output_vectors = './embed_candidates/rnn'
-    path_save_test_class = "./candidates.df"
-elif run_type in ['q']:
-    print("Queries mode")
-    path_output_vectors = './embed_queries/rnn'
-    path_save_test_class = "./queries.df"
-
-if mode.lower() in ['test']:
-    output_state_vectors = False
-else:
-    output_state_vectors = path_output_vectors
-
+model_path, dataset_path, train_vocab_path, input_file, test_cutoff = \
+    read_inference_command()
 
 # --- read input file
 dl_inputs = read_input_file(input_file)
+
+if dl_inputs["inference"]["mode"].lower() in ['test']:
+    output_state_vectors = False
+else:
+    if dl_inputs["inference"]["query_candidate_mode"] in ["c"]:
+        output_state_vectors = dl_inputs["inference"]["candidate_mode"]["output_vectors"]
+        path_save_test_class = dl_inputs["inference"]["candidate_mode"]["output_test_class"]
+    elif dl_inputs["inference"]["query_candidate_mode"] in ["q"]:
+        output_state_vectors = dl_inputs["inference"]["query_mode"]["output_vectors"]
+        path_save_test_class = dl_inputs["inference"]["query_mode"]["output_test_class"]
 
 # --- load torch model, send it to the device (CPU/GPU)
 model = torch.load(model_path, map_location=dl_inputs['general']['device'])
@@ -48,6 +47,7 @@ model = torch.load(model_path, map_location=dl_inputs['general']['device'])
 # read vocabulary
 with open(train_vocab_path, 'rb') as handle:
     train_vocab = pickle.load(handle)
+
 # create the actual class here
 test_dc = test_tokenize(
     dataset_path, train_vocab,

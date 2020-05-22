@@ -87,6 +87,25 @@ def read_test_command():
     
     return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, query_candid_mode
 
+# ------------------- read_inference_command --------------------
+def read_inference_command():
+    """
+    read inputs from the command line
+    :return:
+    """
+    
+    cprint('[INFO]', bc.dgreen, 'read inputs from the command')
+    try:
+        model_path = sys.argv[1]
+        dataset_path = sys.argv[2]
+        train_vocab_path = sys.argv[3]
+        input_file = sys.argv[4]
+        test_cutoff = int(sys.argv[5])
+    except IndexError as error:
+        cprint('[syntax error]', bc.red, 'syntax: python <modelInference.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff')
+        sys.exit("[ERROR] {}".format(error))
+    
+    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):
