@@ -66,7 +66,7 @@ def read_inputs_command():
                     help="add the name of the model to be fine-tuned (model and vocab should be located in models and vocabs folders), a new version of the model will be saved")
 
     parser.add_argument("-n", "--number-training-examples",
-                    help="the number of training example to be used (optional)")
+                    help="the number of training examples to be used (optional)")
     
     parser.add_argument("-p", "--pretrained-embeddings",
                     help="the path to the pretrained char embeddings (optional)")
