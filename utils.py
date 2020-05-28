@@ -93,10 +93,10 @@ def read_inputs_command():
                 parser.exit("ERROR: model or vocab file not found: they should be inside models and vocabs folders.")               
         else:
             if pretrained_embs:
-                return input_file_path,dataset_path,model_name,None,None,None,pretrained_embs
+                return input_file_path,dataset_path,model_name,None,None,n_train_examples,pretrained_embs
                             
             else:
-                return input_file_path,dataset_path,model_name,None,None,None,None
+                return input_file_path,dataset_path,model_name,None,None,n_train_examples,None
     else:
         parser.exit("ERROR: Input file or dataset not found.")
 

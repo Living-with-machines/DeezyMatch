@@ -23,23 +23,25 @@ input_file_path, dataset_path, model_name, pretrained_model_path,pretrained_mode
 # --- read input file
 dl_inputs = read_input_file(input_file_path)
 
-if pretrained_embs:
-    model = gensim.models.KeyedVectors.load_word2vec_format(pretrained_embs)
-    pretrained_embs_weights = torch.FloatTensor(model.vectors)
-    pretrained_embs_vocab = model.vocab
-else:
-    pretrained_embs_weights = None
-    pretrained_embs_vocab = None
+# we are not using it yet
+#if pretrained_embs:
+#    model = gensim.models.KeyedVectors.load_word2vec_format(pretrained_embs)
+#    pretrained_embs_weights = torch.FloatTensor(model.vectors)
+#    pretrained_embs_vocab = model.vocab
+#else:
+#    pretrained_embs_weights = None
+#    pretrained_embs_vocab = None
 
 
 # --- various!!! methods for Fuzzy String Matching
 if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['evaluation']:
+        
     # --- read dataset and split into train/val/test sets
     train_prop = dl_inputs['gru_lstm']['train_proportion']
     val_prop = dl_inputs['gru_lstm']['val_proportion']
     test_prop = dl_inputs['gru_lstm']['test_proportion']
     train_dc, valid_dc, test_dc, dataset_vocab = csv_split_tokenize(
-        dataset_path, train_prop, val_prop, test_prop,
+        dataset_path, n_train_examples,train_prop, val_prop, test_prop,
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
@@ -54,5 +56,9 @@ if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['evaluation']:
     with open(vocab_path, 'wb') as handle:
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
-    # --- bidirectional_gru
-    gru_lstm_network(dl_inputs=dl_inputs, model_name=model_name, train_dc=train_dc, valid_dc=valid_dc, test_dc=test_dc)
+    # if we have a pretrained model to fine-tune
+    if pretrained_model_path:
+        fine_tuning(pretrained_model_path=pretrained_model_path,dl_inputs=dl_inputs, model_name=model_name, train_dc=train_dc, valid_dc=valid_dc, test_dc=test_dc)
+    else:
+    # we train the bidirectional_gru from scratch
+        gru_lstm_network(dl_inputs=dl_inputs, model_name=model_name, train_dc=train_dc, valid_dc=valid_dc, test_dc=test_dc)
