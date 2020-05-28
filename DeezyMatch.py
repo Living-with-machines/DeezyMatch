@@ -7,7 +7,7 @@ from utils import cprint, bc
 from rnn_networks import gru_lstm_network
 from data_processing import csv_split_tokenize
 
-import pickle,os
+import pickle,os,gensim,torch
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -22,6 +22,15 @@ input_file_path, dataset_path, model_name, pretrained_model_path,pretrained_mode
 
 # --- read input file
 dl_inputs = read_input_file(input_file_path)
+
+if pretrained_embs:
+    model = gensim.models.KeyedVectors.load_word2vec_format(pretrained_embs)
+    pretrained_embs_weights = torch.FloatTensor(model.vectors)
+    pretrained_embs_vocab = model.vocab
+else:
+    pretrained_embs_weights = None
+    pretrained_embs_vocab = None
+
 
 # --- various!!! methods for Fuzzy String Matching
 if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['evaluation']:
