@@ -76,7 +76,7 @@ def read_inputs_command():
     dataset_path = args.dataset_path
     model_name = args.model_name
     fine_tuning_model = args.fine_tuning
-    train_examples = args.number_training_examples
+    n_train_examples = args.number_training_examples
     pretrained_embs = args.pretrained_embeddings
     
     if input_file_path is None or dataset_path is None or model_name is None:
@@ -88,7 +88,7 @@ def read_inputs_command():
             fine_tuning_model_vocab_path = os.path.join('vocabs', fine_tuning_model + '.pickle')
             fine_tuning_model_path = os.path.join('models', fine_tuning_model + '.model')
             if os.path.exists(fine_tuning_model_path) and os.path.exists(fine_tuning_model_vocab_path):
-                return input_file_path,dataset_path,model_name,fine_tuning_model_path,fine_tuning_model_vocab_path,train_examples,None
+                return input_file_path,dataset_path,model_name,fine_tuning_model_path,fine_tuning_model_vocab_path,n_train_examples,None
             else:
                 parser.exit("ERROR: model or vocab file not found: they should be inside models and vocabs folders.")               
         else:
