@@ -11,6 +11,7 @@ import socket
 import time
 import unicodedata
 import yaml
+from argparse import ArgumentParser
 
 import torch
 from torch.nn.modules.module import _addindent
@@ -49,21 +50,55 @@ def read_inputs_command():
     """
     read inputs from the command line
     :return:
-    """
-    cprint('[INFO]', bc.dgreen, 'read inputs from the command')
-    try:
-        input_file_path = sys.argv[1]
-        dataset_path = sys.argv[2]
-        model_name = sys.argv[3]
-        if not os.path.isfile(input_file_path):
-            raise FileNotFoundError
-    except IndexError as error:
-        cprint('[syntax error]', bc.red, 'syntax: python DeezyMatch.py /path/to/input/file /path/to/dataset model_name')
-        sys.exit("[ERROR] {}".format(error))
-    except FileNotFoundError as error:
-        cprint("[ERROR]", bc.red, "{} file was not found. Expect a YAML file as input.".format(input_file_path))
-        sys.exit("[ERROR] {}".format(error))
-    return input_file_path, dataset_path,model_name
+    """    
+    parser = ArgumentParser()
+    
+    parser.add_argument("-i", "--input-file-path",
+                    help="add the path of the input file")
+    
+    parser.add_argument("-d", "--dataset-path",
+                    help="add the path of the dataset")
+    
+    parser.add_argument("-m", "--model-name",
+                    help="add the name of the model")
+    
+    parser.add_argument("-f", "--fine-tuning",
+                    help="add the name of the model to be fine-tuned (model and vocab should be located in models and vocabs folders), a new version of the model will be saved")
+
+    parser.add_argument("-n", "--number-training-examples",
+                    help="the number of training example to be used (optional)")
+    
+    parser.add_argument("-p", "--pretrained-embeddings",
+                    help="the path to the pretrained char embeddings (optional)")
+    args = parser.parse_args()
+        
+    input_file_path = args.input_file_path
+    dataset_path = args.dataset_path
+    model_name = args.model_name
+    fine_tuning_model = args.fine_tuning
+    train_examples = args.number_training_examples
+    pretrained_embs = args.pretrained_embeddings
+    
+    if input_file_path is None or dataset_path is None or model_name is None:
+        parser.print_help()
+        parser.exit("ERROR: Missing input arguments.")
+        
+    if os.path.exists(input_file_path) and os.path.exists(dataset_path):
+        if fine_tuning_model:
+            fine_tuning_model_vocab_path = os.path.join('vocabs', fine_tuning_model + '.pickle')
+            fine_tuning_model_path = os.path.join('models', fine_tuning_model + '.model')
+            if os.path.exists(fine_tuning_model_path) and os.path.exists(fine_tuning_model_vocab_path):
+                return input_file_path,dataset_path,model_name,fine_tuning_model_path,fine_tuning_model_vocab_path,train_examples,None
+            else:
+                parser.exit("ERROR: model or vocab file not found: they should be inside models and vocabs folders.")               
+        else:
+            if pretrained_embs:
+                return input_file_path,dataset_path,model_name,None,None,None,pretrained_embs
+                            
+            else:
+                return input_file_path,dataset_path,model_name,None,None,None,None
+    else:
+        parser.exit("ERROR: Input file or dataset not found.")
 
 
 # ------------------- read_test_command --------------------
