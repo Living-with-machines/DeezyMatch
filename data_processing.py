@@ -20,7 +20,7 @@ set_seed_everywhere(1364)
 
 
 # ------------------- csv_split_tokenize --------------------
-def csv_split_tokenize(dataset_path, train_prop=0.7, val_prop=0.15, test_prop=0.15,
+def csv_split_tokenize(dataset_path, n_train_examples=None,train_prop=0.7, val_prop=0.15, test_prop=0.15,
                        preproc_steps=(True, True, True, False), max_seq_len=100, mode="char"):
 
     # --- read CSV file (dataset)
@@ -48,15 +48,24 @@ def csv_split_tokenize(dataset_path, train_prop=0.7, val_prop=0.15, test_prop=0.
         rows_one_label = dataset_pd.loc[dataset_pd['label'] == label].copy()
         rows_one_label.reset_index(inplace=True)
         n_total = len(rows_one_label)
-        n_train = int(train_prop * n_total)
+        
+        if n_train_examples:
+            # number of positive examples
+            n_pos = round(int(n_train_examples)/2)
+            n_train = n_pos
+        else:
+            n_train = int(train_prop * n_total)
+            
         n_val = int(val_prop * n_total)
         n_test = int(test_prop * n_total)
 
         rows_one_label.loc[:n_train, "split"] = "train"
         rows_one_label.loc[n_train:n_train+n_val, "split"] = "val"
         rows_one_label.loc[n_train+n_val:n_train+n_val+n_test, "split"] = "test"
-        # if any remainder, assign to train
-        rows_one_label.loc[rows_one_label["split"] == 'not_assigned', "split"] = "train"
+        if n_train_examples is None:
+            # if any remainder, assign to train
+            rows_one_label.loc[rows_one_label["split"] == 'not_assigned', "split"] = "train"
+            
         dataset_split = dataset_split.append(rows_one_label)
     cprint('[INFO]', bc.dgreen, "finish splitting the Dataset. User time: {}".format((time.time() - t1)))
     cprint('[INFO]', bc.lgreen, "splits are as follow:\n{}".format(dataset_split["split"].value_counts()))
