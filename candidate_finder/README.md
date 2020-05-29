@@ -20,6 +20,23 @@ python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv
 python compare_embeddings.py
 ```
 
+Depending on your model, the results may significantly differ from what we report here:
+
+```bash
+                       string to compare,                         reference string, l2_norm
+                                  London,                                   London, 0.0
+                                  Londan,                                   London, 0.046379465609788895
+                                  nodnol,                                   London, 0.8457154035568237
+                                  Lndoon,                                   London, 0.25316423177719116
+                            Ban Pho Tinh,                                   London, 1.9595017433166504
+                              Storey Bay,                                   London, 2.2820239067077637
+                          Desa Sukmajaya,                                   London, 2.0710322856903076
+                  Hotel Pine House Hotel,                                   London, 1.3341679573059082
+           Jonesville Lock Landing Strip,                                   London, 1.1363288164138794
+                      Letnik Kara-Kochku,                                   London, 1.0316883325576782
+                     Leonards Beach Pond,                                   London, 0.49187901616096497
+```
+
 # --- continue here (candidates)
 
 2. Generate vectors for all candidates: (Note that `-qc c` which sets the `query_candidate_mode` to `candidate`)
