@@ -156,6 +156,9 @@ def test_tokenize(dataset_path, train_vocab,
 
     if save_test_class:
         cprint('[INFO]', bc.dgreen, 'save test-data-class: {}'.format(save_test_class))
+        abs_path = os.path.abspath(save_test_class)
+        if not os.path.isdir(os.path.dirname(abs_path)):
+            os.makedirs(os.path.dirname(abs_path))
         test_dc.df.to_pickle(save_test_class)
 
     return test_dc 

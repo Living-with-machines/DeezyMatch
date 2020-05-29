@@ -68,8 +68,8 @@ gru_lstm:
 inference:
  candidate_mode:
   output_vectors: "./embed_candidates/rnn"
-  output_test_class: "./candidates.df" # XXX rename test_class
+  output_test_class: "./df/candidates.df" # XXX rename test_class
 
  query_mode:
   output_vectors: "./embed_queries/rnn"
-  output_test_class: "./queries.df" # XXX rename test_class
+  output_test_class: "./df/queries.df" # XXX rename test_class
