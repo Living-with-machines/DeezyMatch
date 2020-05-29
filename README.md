@@ -15,7 +15,17 @@ Credits:
 Run DeezyMatch:
 
 ```bash
-python DeezyMatch.py input_dfm.yaml dataset/dataset-string-similarity_test.txt model_name
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test_model
+
+```
+
+---
+
+Fine-Tune a previously trained DeezyMatch model (using, for instance, only 100 training instances):
+
+```bash
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f test_model -n 100 -m finetuned_model
+
 ```
 
 ---
