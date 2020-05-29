@@ -1,15 +1,32 @@
 ## Generate vectors
 
-1. Set the `query_candidate_mode` to `c` (i.e., candidate mode) in the input file.
-2. Generate vectprs for all candidates:
+### Test the embeddings
+
+To test the embeddings learned by DeezyMatch:
+
+1. We create a simple dataset and call it `tests.csv` (already located in `./candidates/tests.csv`)
+
+Note that column 2 and 3 are omitted in the process. This will be changed in the next version of DeezyMatch (XXX).
+
+2. Generate vectors for all queries: (Note that `-qc q` which sets the `query_candidate_mode` to `query`)
 
 ```bash
-python modelInference.py ../models/test_001.model.model ./candidates/uniqueAltnamesGeonames.csv ../vocabs/test_001.model.pickle ../input_dfm.yaml 100
+python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -n 10000 -mode generate_vectors -qc q
+``` 
+
+3. compare the embeddings (the inputs can be changed in the header):
+
+```bash
+python compare_embeddings.py
 ```
 
-3. repeat step 2 with `query_candidate_mode: "q"`
-4. combine vectors
+# --- continue here (candidates)
 
+2. Generate vectors for all candidates: (Note that `-qc c` which sets the `query_candidate_mode` to `candidate`)
+
+```bash
+python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -n 10000 -mode generate_vectors -qc c
+``` 
 
 --
 
