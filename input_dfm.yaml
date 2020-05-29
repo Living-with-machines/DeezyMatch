@@ -66,9 +66,6 @@ gru_lstm:
   create_tensor_board: False
 
 inference:
- mode: "generate_vectors"  # "test" a model or "generate_vectors"
- query_candidate_mode: "q"  # c: candidate mode; q: query mode
-
  candidate_mode:
   output_vectors: "./embed_candidates/rnn"
   output_test_class: "./candidates.df" # XXX rename test_class
