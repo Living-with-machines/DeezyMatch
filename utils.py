@@ -124,16 +124,29 @@ def read_inference_command():
     
     cprint('[INFO]', bc.dgreen, 'read inputs from the command')
     try:
-        model_path = sys.argv[1]
-        dataset_path = sys.argv[2]
-        train_vocab_path = sys.argv[3]
-        input_file = sys.argv[4]
-        test_cutoff = int(sys.argv[5])
+        parser = ArgumentParser()
+        parser.add_argument("-m", "--model_path")
+        parser.add_argument("-d", "--dataset_path")
+        parser.add_argument("-v", "--vocabulary_path")
+        parser.add_argument("-i", "--input_file_path")
+        parser.add_argument("-n", "--number_examples")
+        parser.add_argument("-mode", "--inference_mode", default="test")
+        parser.add_argument("-qc", "--query_candidate_mode", default="q")
+        args = parser.parse_args()
+        
+        model_path = args.model_path
+        dataset_path = args.dataset_path
+        train_vocab_path = args.vocabulary_path
+        input_file = args.input_file_path
+        test_cutoff = args.number_examples
+        inference_mode = args.inference_mode
+        query_candidate_mode = args.query_candidate_mode
+
     except IndexError as error:
         cprint('[syntax error]', bc.red, 'syntax: python <modelInference.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff')
         sys.exit("[ERROR] {}".format(error))
     
-    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff
+    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):
