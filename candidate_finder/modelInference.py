@@ -23,19 +23,20 @@ set_seed_everywhere(1364)
 # ==== Model inference
 
 # --- read command args
-model_path, dataset_path, train_vocab_path, input_file, test_cutoff = \
+model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode = \
     read_inference_command()
+test_cutoff = int(test_cutoff)
 
 # --- read input file
 dl_inputs = read_input_file(input_file)
 
-if dl_inputs["inference"]["mode"].lower() in ['test']:
+if inference_mode in ['test']:
     output_state_vectors = False
 else:
-    if dl_inputs["inference"]["query_candidate_mode"] in ["c"]:
+    if query_candidate_mode in ["c"]:
         output_state_vectors = dl_inputs["inference"]["candidate_mode"]["output_vectors"]
         path_save_test_class = dl_inputs["inference"]["candidate_mode"]["output_test_class"]
-    elif dl_inputs["inference"]["query_candidate_mode"] in ["q"]:
+    elif query_candidate_mode in ["q"]:
         output_state_vectors = dl_inputs["inference"]["query_mode"]["output_vectors"]
         path_save_test_class = dl_inputs["inference"]["query_mode"]["output_test_class"]
 
