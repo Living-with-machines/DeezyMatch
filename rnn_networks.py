@@ -114,6 +114,75 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
     # --- print some simple stats on the run
     print_stats(start_time)
 
+    
+def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=False, test_dc=False):
+    """
+    Fine tuning function for further training a model on new data
+    """
+    
+    batch_size = dl_inputs['gru_lstm']['batch_size']
+    dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
+    device=dl_inputs['general']['device']
+    learning_rate = dl_inputs['gru_lstm']['learning_rate']
+    epochs = dl_inputs['gru_lstm']['epochs']
+    pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
+    
+    pretrained_model = torch.load(pretrained_model_path,map_location=torch.device(device))
+    
+#    layers_to_freeze = ["emb","gru","fc1","fc2","attn"]
+    layers_to_freeze = []
+    
+    for name, param in pretrained_model.named_parameters():
+        n = name.split(".")[0].split("_")[0]
+        if n in layers_to_freeze:
+            param.requires_grad = False
+            print (name, param.requires_grad)
+
+    
+    if dl_inputs['gru_lstm']['optimizer'].lower() in ['adam']:
+        opt = optim.Adam(filter(lambda p: p.requires_grad, pretrained_model.parameters()), learning_rate)
+
+
+    start_time = time.time()
+
+    print("\n\n")
+    cprint('[INFO]', bc.magenta,
+           '******************************'.format(dl_inputs['gru_lstm']['main_architecture'].upper()))
+    cprint('[INFO]', bc.magenta,
+           '**** (Bi-directional) {} ****'.format(dl_inputs['gru_lstm']['main_architecture'].upper()))
+    cprint('[INFO]', bc.magenta,
+           '******************************'.format(dl_inputs['gru_lstm']['main_architecture'].upper()))
+
+    
+    train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
+    valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
+    fit(model=pretrained_model,
+        train_dl=train_dl, 
+        valid_dl=valid_dl,
+        loss_fn=F.nll_loss,  # The negative log likelihood loss
+        opt=opt,
+        epochs=epochs,
+        pooling_mode=pooling_mode,
+        device=dl_inputs['general']['device'], 
+        tboard_path=dl_inputs['gru_lstm']['create_tensor_board']
+        )
+
+    # --- save the model
+    cprint('[INFO]', bc.lgreen, 'saving the model')
+    model_path = os.path.join('models', model_name + '.model')
+    if not os.path.isdir("models"):
+        os.makedirs("models")
+    torch.save(pretrained_model, model_path)
+
+    """
+    model = TheModelClass(*args, **kwargs)
+    model.load_state_dict(torch.load(PATH))
+    model.eval()
+    """
+
+    # --- print some simple stats on the run
+    print_stats(start_time)
+    
 # ------------------- fit  --------------------
 def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attention', device='cpu', tboard_path=False):
 
