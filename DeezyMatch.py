@@ -4,7 +4,7 @@
 from utils import read_inputs_command, read_input_file
 from utils import cprint, bc
 
-from rnn_networks import gru_lstm_network
+from rnn_networks import gru_lstm_network,fine_tuning
 from data_processing import csv_split_tokenize
 
 import pickle,os,gensim,torch
