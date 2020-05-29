@@ -88,10 +88,8 @@ dependencies:
   - pip:
     - absl-py==0.9.0
     - annoy==1.16.3
-    - apex==0.1
     - astor==0.8.1
     - beautifulsoup4==4.9.0
-    - bert-sklearn==0.3.1
     - blis==0.4.1
     - boto==2.49.0
     - boto3==1.11.0
@@ -111,8 +109,6 @@ dependencies:
     - deprecated==1.2.7
     - dill==0.3.1.1
     - docutils==0.15.2
-    - en-core-web-lg==2.2.5
-    - en-core-web-sm==2.2.5
     - fastai==1.0.61
     - fastprogress==0.2.3
     - filelock==3.0.12
@@ -192,8 +188,6 @@ dependencies:
     - spacy-langdetect==0.1.2
     - sqlitedict==1.6.0
     - srsly==1.0.2
-    - sudachidict-core==20190927
-    - sudachipy==0.4.2
     - syntok==1.2.2
     - tabulate==0.8.6
     - tensorboard==1.13.1
