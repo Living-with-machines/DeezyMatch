@@ -68,8 +68,6 @@ def read_inputs_command():
     parser.add_argument("-n", "--number-training-examples",
                     help="the number of training examples to be used (optional)")
     
-    parser.add_argument("-p", "--pretrained-embeddings",
-                    help="the path to the pretrained char embeddings (optional)")
     args = parser.parse_args()
         
     input_file_path = args.input_file_path
@@ -77,7 +75,6 @@ def read_inputs_command():
     model_name = args.model_name
     fine_tuning_model = args.fine_tuning
     n_train_examples = args.number_training_examples
-    pretrained_embs = args.pretrained_embeddings
     
     if input_file_path is None or dataset_path is None or model_name is None:
         parser.print_help()
@@ -88,15 +85,15 @@ def read_inputs_command():
             fine_tuning_model_vocab_path = os.path.join('vocabs', fine_tuning_model + '.pickle')
             fine_tuning_model_path = os.path.join('models', fine_tuning_model + '.model')
             if os.path.exists(fine_tuning_model_path) and os.path.exists(fine_tuning_model_vocab_path):
-                return input_file_path,dataset_path,model_name,fine_tuning_model_path,fine_tuning_model_vocab_path,n_train_examples,None
+                return input_file_path,dataset_path,model_name,fine_tuning_model_path,fine_tuning_model_vocab_path,n_train_examples
             else:
                 parser.exit("ERROR: model or vocab file not found: they should be inside models and vocabs folders.")               
         else:
             if pretrained_embs:
-                return input_file_path,dataset_path,model_name,None,None,n_train_examples,pretrained_embs
+                return input_file_path,dataset_path,model_name,None,None,n_train_examples
                             
             else:
-                return input_file_path,dataset_path,model_name,None,None,n_train_examples,None
+                return input_file_path,dataset_path,model_name,None,None,n_train_examples
     else:
         parser.exit("ERROR: Input file or dataset not found.")
 

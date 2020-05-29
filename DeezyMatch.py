@@ -7,7 +7,7 @@ from utils import cprint, bc
 from rnn_networks import gru_lstm_network,fine_tuning
 from data_processing import csv_split_tokenize
 
-import pickle,os,gensim,torch
+import pickle,os
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -18,19 +18,10 @@ set_seed_everywhere(1364)
 # ===== DeezyMatch
 
 # --- read command args
-input_file_path, dataset_path, model_name, pretrained_model_path,pretrained_model_vocab_path,n_train_examples,pretrained_embs = read_inputs_command()
+input_file_path, dataset_path, model_name, pretrained_model_path,pretrained_model_vocab_path,n_train_examples = read_inputs_command()
 
 # --- read input file
 dl_inputs = read_input_file(input_file_path)
-
-# we are not using it yet
-#if pretrained_embs:
-#    model = gensim.models.KeyedVectors.load_word2vec_format(pretrained_embs)
-#    pretrained_embs_weights = torch.FloatTensor(model.vectors)
-#    pretrained_embs_vocab = model.vocab
-#else:
-#    pretrained_embs_weights = None
-#    pretrained_embs_vocab = None
 
 
 # --- various!!! methods for Fuzzy String Matching
