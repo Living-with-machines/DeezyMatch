@@ -64,6 +64,25 @@ NOTE: currently, the user needs to open the candidateFinder source code and chan
 python candidateFinder.py -fd 0.8 -n 10 -o test_candidates_deezymatch -sz 4
 ```
 
+File `test_candidates_deezymatch.pkl` contains the results, e.g.,
+
+```bash
+                          toponym                                     faiss_distance                             candidate_original_ids  query_original_id  num_all_searches
+id
+0                          london  {'london': 0.0, 'lndoon': 0.3271, 'londan': 0....  {'london': 0, 'lndoon': 4, 'londan': 1, 'londo...                  0                12
+1                          londan                  {'londan': 0.0, 'london': 0.4662}                         {'londan': 1, 'london': 0}                  1                12
+2                           londo  {'londo': 0.0, 'london': 0.5321, 'lndoon': 0.7...             {'londo': 2, 'london': 0, 'lndoon': 4}                  2                12
+3                          nodnol                                    {'nodnol': 0.0}                                      {'nodnol': 3}                  3                12
+4                          lndoon  {'lndoon': 0.0, 'london': 0.3271, 'londo': 0.7...             {'lndoon': 4, 'london': 0, 'londo': 2}                  4                12
+5                    ban pho tinh                              {'ban pho tinh': 0.0}                                {'ban pho tinh': 5}                  5                12
+6                      storey bay                                {'storey bay': 0.0}                                  {'storey bay': 6}                  6                12
+7                  desa sukmajaya                            {'desa sukmajaya': 0.0}                              {'desa sukmajaya': 7}                  7                12
+8          hotel pine house hotel                    {'hotel pine house hotel': 0.0}                      {'hotel pine house hotel': 8}                  8                12
+9   jonesville lock landing strip             {'jonesville lock landing strip': 0.0}               {'jonesville lock landing strip': 9}                  9                12
+10             letnik kara-kochku                        {'letnik kara-kochku': 0.0}                         {'letnik kara-kochku': 10}                 10                12
+11            leonards beach pond                       {'leonards beach pond': 0.0}                        {'leonards beach pond': 11}                 11                12
+```
+
 ---
 
 * I get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`.
