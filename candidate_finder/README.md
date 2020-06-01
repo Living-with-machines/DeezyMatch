@@ -56,52 +56,11 @@ python combineVecs.py -p embed_queries/rnn_fwd* -p_id embed_queries/rnn_indxs_0 
 python combineVecs.py -p embed_queries/rnn_bwd* -p_id embed_queries/rnn_indxs_0 -df df/queries.df -n queries_bwd -o combined
 ```
 
+4. Find candidates:
 
-
---
-
-# OLD README FILE
-
-
-### Generate vectors for all candidates (note "c" at the very end of the command! which will be changed in the next version):
-```bash
-python TestModel.py Models/testme.model candidate_selection/new_set/uniqueAltnamesGeonames.csv Vocabs/testme.pickle input_testme.yaml 1000 c
-```
-
-### Generate vectors for queries (note the ugly "q" at the very end):
-```bash
-python TestModel.py Models/testme.model candidate_selection/new_set/uniqueAltnamesGeonames.csv Vocabs/testme.pickle input_testme.yaml 32 q
-```
-
-## Combine all vectors
-
-### Candidates
-```bash
-python CombineVecs.py c
-```
-
-### Queries
-```bash
-python CombineVecs.py q
-```
-
-## Candidate finder:
-First change the inputs at the top of the file, e.g.,
-
-```python
-# --- inputs
-output_filename = "test"
-num_desired_candidates = 10
-min_threshold_deezy = 0.8
-input_file = "./input_testme.yaml"
-train_vocab_path = "Vocabs/testme.pickle"
-model_path = "Models/testme.model"
-# set number of neighbours to use in search 
-search_size = 25
-```
-
-Run:
+NOTE: currently, the user needs to open the candidateFinder source code and change `# ----- COMBINE VECTORS, USER` section. There are many ways to combined the vectors, and we will move this to a function once we are happy with the process.
 
 ```bash
-python CandidateFinder.py
+python candidateFinder.py -fd 0.8 -n 10 -o test_candidates_deezymatch -sz 4
 ```
+

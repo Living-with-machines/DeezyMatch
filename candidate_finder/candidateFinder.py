@@ -45,7 +45,7 @@ def read_command():
 start_time = time.time()
 output_filename, max_faiss_distance, search_size, num_candidates = read_command()
 
-# ----- COMBINE VECTORS
+# ----- COMBINE VECTORS, USER
 par_dir = "./combined"
 path1_combined = os.path.join(par_dir, "candidates_fwd.pt")
 path2_combined = os.path.join(par_dir, "candidates_bwd.pt")
@@ -140,7 +140,7 @@ for iq in range(len(vecs_query)):
     output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
        
 output_pd = output_pd.set_index("id")
-output_pd.to_pickle(output_filename + "_candidates_deezymatch.pkl")
+output_pd.to_pickle(output_filename + ".pkl")
 elapsed = time.time() - start_time
 print("TOTAL TIME: %s" % elapsed)
-import ipdb; ipdb.set_trace()
+#import ipdb; ipdb.set_trace()
