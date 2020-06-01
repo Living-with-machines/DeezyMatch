@@ -113,7 +113,7 @@ def csv_split_tokenize(dataset_path, n_train_examples=None,train_prop=0.7, val_p
 def test_tokenize(dataset_path, train_vocab, 
                   preproc_steps=(True, True, True, False), 
                   max_seq_len=100, mode="char",
-                  cutoff=1000, 
+                  cutoff=None, 
                   save_test_class="./test_dc.df",
                   dataframe_input=False
                   ):
@@ -125,6 +125,7 @@ def test_tokenize(dataset_path, train_vocab,
         cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
         dataset_pd = pd.read_csv(dataset_path, sep="\t", header=None, usecols=[0, 1, 2])
         dataset_pd = dataset_pd.rename(columns={0: "s1", 1: "s2", 2: "label"})
+
     # XXX remove faulty rows
     dataset_pd = dataset_pd.drop(dataset_pd[~dataset_pd['label'].astype(str).str.contains("true|false", case=False)].index)
     dataset_pd.label.replace("(?i)TRUE", True, inplace=True, regex=True)
@@ -135,6 +136,8 @@ def test_tokenize(dataset_path, train_vocab,
     cprint('[INFO]', bc.lgreen, 'number of labels, True: {} and False: {}'.format(num_true, num_false))
 
     # instead of processing the entire dataset we first consider double the amount of the cutoff
+    if cutoff == None:
+        cutoff = len(dataset_pd)
     dataset_pd = dataset_pd[:cutoff*2]
     dataset_pd["s1_unicode"] = dataset_pd["s1"].apply(normalizeString, args=preproc_steps)
     dataset_pd["s2_unicode"] = dataset_pd["s2"].apply(normalizeString, args=preproc_steps)

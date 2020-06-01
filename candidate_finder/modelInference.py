@@ -25,7 +25,8 @@ set_seed_everywhere(1364)
 # --- read command args
 model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode = \
     read_inference_command()
-test_cutoff = int(test_cutoff)
+if type(test_cutoff) == int:
+    test_cutoff = int(test_cutoff)
 
 # --- read input file
 dl_inputs = read_input_file(input_file)

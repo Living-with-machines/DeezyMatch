@@ -38,13 +38,13 @@ Depending on your model, the results may significantly differ from what we repor
 1. Generate vectors for all queries: (Note that `-qc q` which sets the `query_candidate_mode` to `query`).
 
 ```bash
-python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -n 10000 -mode generate_vectors -qc q
+python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -mode generate_vectors -qc q
 ``` 
 
 2. Generate vectors for all candidates: (Note that `-qc c` which sets the `query_candidate_mode` to `candidate`)
 
 ```bash
-python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -n 10000 -mode generate_vectors -qc c
+python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -mode generate_vectors -qc c
 ``` 
 
 3. Combine vectors. This step is required if candidates or queries are distributed on several files (e.g., candidates are in 5 separate files. For each file, steps 1-2 should be repeated. This results in 5 fwd and bwd embeddings). At this step, we combined those vectors.
@@ -64,3 +64,14 @@ NOTE: currently, the user needs to open the candidateFinder source code and chan
 python candidateFinder.py -fd 0.8 -n 10 -o test_candidates_deezymatch -sz 4
 ```
 
+---
+
+* I get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`.
+
+- One way to solve this issue is by:
+
+```bash
+pip install faiss-cpu --no-cache
+```
+
+Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).

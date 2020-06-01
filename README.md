@@ -10,20 +10,44 @@ Credits:
 
 - This project extensively uses the codes published in https://github.com/ruipds/Toponym-Matching. 
 
----
+### Run DeezyMatch
 
-Run DeezyMatch:
+After installing DeezyMatch on your machine, a new classifier can be trained by:
 
 ```bash
-python DeezyMatch.py input_dfm.yaml dataset/dataset-string-similarity_test.txt model_name
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test_model
 ```
 
----
+To fine-tune an existing model:
 
-Installation:
+```bash
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f test_model -n 100 -m finetuned_model
+```
+
+After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `candidate_finder` directory for more information.
+
+### Installation
+
+We strongly recommend installation via Anaconda:
+
+1. Refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/).
+
+2. Create a new environment for DeezyMatch
+
+```bash
+conda create -n py37deezy python=3.7
+```
+
+3. Activate the environment:
+
+```bash
+conda activate py37deezy
+```
+
+3. Install DeezyMatch dependencies:
 
 ```
-conda env create -f environment.yaml
+pip install -r requirements.txt
 ```
 
 ---
