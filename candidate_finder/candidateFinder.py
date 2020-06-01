@@ -5,6 +5,7 @@
 import sys
 sys.path.insert(0,'..')
 
+from argparse import ArgumentParser
 import faiss
 import glob
 import numpy as np
@@ -19,16 +20,32 @@ import torch
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
-start_time = time.time()
-# --- inputs
-# XXX Seriously! Move these to an input file!!!!
-output_filename = "test"
-num_desired_candidates = 10
-min_threshold_deezy = 0.8
-# set number of neighbours to use in search 
-search_size = 4
+def read_command():
+    parser = ArgumentParser()
 
-# --- path to fwd and bwd saved vectors
+    parser.add_argument("-fd", "--max_faiss_distance",
+                        help="max FAISS distance", default=0.8)
+
+    parser.add_argument("-n", "--num_candidates",
+                        help="Number of candidates", default=10)
+
+    parser.add_argument("-o", "--output_filename",
+                        help="output filename")
+
+    parser.add_argument("-sz", "--search_size",
+                        help="search size", default=4)
+
+    args = parser.parse_args()
+    num_candidates = int(args.num_candidates)
+    output_filename = args.output_filename
+    max_faiss_distance = float(args.max_faiss_distance)
+    search_size = int(args.search_size)
+    return output_filename, max_faiss_distance, search_size, num_candidates 
+
+start_time = time.time()
+output_filename, max_faiss_distance, search_size, num_candidates = read_command()
+
+# ----- COMBINE VECTORS
 par_dir = "./combined"
 path1_combined = os.path.join(par_dir, "candidates_fwd.pt")
 path2_combined = os.path.join(par_dir, "candidates_bwd.pt")
@@ -52,6 +69,8 @@ vecs_items_query = np.load(path_items_combined, allow_pickle=True)
 vecs1_query = torch.load(path1_combined)
 vecs2_query = torch.load(path2_combined)
 vecs_query = torch.cat([vecs1_query, vecs2_query], dim=1)
+# ----- END COMBINED VECTORS
+
 
 # --- start FAISS
 faiss_id_candis = faiss.IndexFlatL2(vecs_candidates.size()[1])   # build the index
@@ -66,7 +85,7 @@ for iq in range(len(vecs_query)):
     # start with 0:seach_size, increase later
     id_0_neigh = 0
     id_1_neigh = search_size
-    while (num_found_candidates < num_desired_candidates):
+    while (num_found_candidates < num_candidates):
         if id_1_neigh > len(vecs_candidates):
             id_1_neigh = len(vecs_candidates)
         if id_0_neigh == id_1_neigh:
@@ -89,7 +108,7 @@ for iq in range(len(vecs_query)):
         query_candidate_pd['s1_orig_ids'] = orig_id_queries 
         query_candidate_pd['s2_orig_ids'] = orig_id_candis 
 
-        query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["faiss_dist"] <= min_threshold_deezy]
+        query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["faiss_dist"] <= max_faiss_distance]
         num_found_candidates += len(query_candidate_filtered_pd)
         print("ID: %s/%s -- Number of found candidates so far: %s, search span: 0, %s" % (iq, len(vecs_query), num_found_candidates, id_1_neigh))
 
@@ -97,7 +116,7 @@ for iq in range(len(vecs_query)):
             collect_neigh_pd = collect_neigh_pd.append(query_candidate_filtered_pd)
 
         # Go to the next zone    
-        if (num_found_candidates < num_desired_candidates):
+        if (num_found_candidates < num_candidates):
             id_0_neigh, id_1_neigh = id_1_neigh, id_1_neigh + search_size
 
     

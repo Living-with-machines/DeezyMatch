@@ -17,9 +17,6 @@ import torch
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
-# XXX move this to an input file or a better design
-run_type = sys.argv[1]
-
 def read_command():
     parser = ArgumentParser()
 
@@ -42,16 +39,16 @@ def read_command():
     path2vecs = args.path_vectors
     path2ids = args.path_ids
     outputpath = args.output_dir
-    name_vectors = args.name_combined
+    name_combined = args.name_combined
     path_df = args.path_df
-    return path2vecs, path2ids, outputpath, name_vectors, path_df
+    return path2vecs, path2ids, outputpath, name_combined, path_df
 
-path2vecs, path2ids, outputpath, name_vectors, path_df = read_command()
+path2vecs, path2ids, outputpath, name_combined, path_df = read_command()
 
 # paths to create tensors/arrays
-path_vec_combined = os.path.join(outputpath, f"{name_vectors}.pt")
-path_id_combined = os.path.join(outputpath, f"{name_vectors}_id.pt")
-path_items_combined = os.path.join(outputpath, f"{name_vectors}_items.npy")
+path_vec_combined = os.path.join(outputpath, f"{name_combined}.pt")
+path_id_combined = os.path.join(outputpath, f"{name_combined}_id.pt")
+path_items_combined = os.path.join(outputpath, f"{name_combined}_items.npy")
 
 if not os.path.isdir(outputpath):
     os.makedirs(outputpath)
