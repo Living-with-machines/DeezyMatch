@@ -1,11 +1,14 @@
 general:
   use_gpu: True # only if available
+  models_dir: "./models"
 
 preprocessing:
   uni2ascii: True
   lowercase: True
   strip: True
   only_latin_letters: False
+  # separation in the input CSV file
+  csv_sep: "\t"
 
 # --- GRU/LSTM architecture/misc info
 gru_lstm:

@@ -7,7 +7,7 @@ To test the embeddings learned by DeezyMatch:
 2. Generate vectors for all queries: (Note that `-qc q` which sets the `query_candidate_mode` to `query`).
 
 ```bash
-python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -n 10000 -mode generate_vectors -qc q
+python modelInference.py -m ../models/finetuned_test001/finetuned_test001.model -d ./candidates/tests.csv -v ../models/finetuned_test001/finetuned_test001.vocab -i ../input_dfm.yaml -mode generate_vectors -qc q
 ``` 
 
 3. compare the embeddings (the inputs can be changed in the header):
@@ -38,13 +38,13 @@ Depending on your model, the results may significantly differ from what we repor
 1. Generate vectors for all queries: (Note that `-qc q` which sets the `query_candidate_mode` to `query`).
 
 ```bash
-python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -mode generate_vectors -qc q
+python modelInference.py -m ../models/finetuned_test001/finetuned_test001.model -d ./candidates/tests.csv -v ../models/finetuned_test001/finetuned_test001.vocab -i ../input_dfm.yaml -mode generate_vectors -qc q
 ``` 
 
 2. Generate vectors for all candidates: (Note that `-qc c` which sets the `query_candidate_mode` to `candidate`)
 
 ```bash
-python modelInference.py -m ../models/test_model.model -d ./candidates/tests.csv -v ../vocabs/test_model.pickle -i ../input_dfm.yaml -mode generate_vectors -qc c
+python modelInference.py -m ../models/finetuned_test001/finetuned_test001.model -d ./candidates/tests.csv -v ../models/finetuned_test001/finetuned_test001.vocab -i ../input_dfm.yaml -mode generate_vectors -qc c
 ``` 
 
 3. Combine vectors. This step is required if candidates or queries are distributed on several files (e.g., candidates are in 5 separate files. For each file, steps 1-2 should be repeated. This results in 5 fwd and bwd embeddings). At this step, we combined those vectors.

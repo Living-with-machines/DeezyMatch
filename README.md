@@ -15,16 +15,43 @@ Credits:
 After installing DeezyMatch on your machine, a new classifier can be trained by:
 
 ```bash
-python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test_model
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
+```
+
+DeezyMatch stores both the model and vocabulary used in the following directory structure:
+
+```bash
+models
+└── test001
+    ├── test001.model
+    └── test001.vocab
 ```
 
 To fine-tune an existing model:
 
 ```bash
-python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f test_model -n 100 -m finetuned_model
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f ./models/test001/test001.model -m finetuned_test001
 ```
 
-After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `candidate_finder` directory for more information.
+It is also possible to fine-tune on a limited number of rows (note `-n 100`)
+
+```bash
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f ./models/test001/test001.model -n 100 -m finetuned_test001
+```
+
+After fine-tuning, there are two models in the `models` directory:
+
+```bash
+models
+├── finetuned_test001
+│   ├── finetuned_test001.model
+│   └── finetuned_test001.vocab
+└── test001
+    ├── test001.model
+    └── test001.vocab
+```
+
+After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `inference_candidate_finder` directory for more information.
 
 ### Installation
 

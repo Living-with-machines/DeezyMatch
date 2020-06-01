@@ -53,24 +53,23 @@ def read_inputs_command():
     """    
     parser = ArgumentParser()
     
-    parser.add_argument("-i", "--input-file-path",
+    parser.add_argument("-i", "--input_file_path",
                     help="add the path of the input file")
     
-    parser.add_argument("-d", "--dataset-path",
+    parser.add_argument("-d", "--dataset_path",
                     help="add the path of the dataset")
     
-    parser.add_argument("-m", "--model-name",
+    parser.add_argument("-m", "--model_name",
                     help="add the name of the model")
     
-    parser.add_argument("-f", "--fine-tuning",
+    parser.add_argument("-f", "--fine_tuning",
                     help="add the name of the model to be fine-tuned (model and vocab should be located in models and vocabs folders), a new version of the model will be saved")
 
-    parser.add_argument("-n", "--number-training-examples",
+    parser.add_argument("-n", "--number_training_examples",
                     help="the number of training examples to be used (optional)", 
                     default=None)
     
     args = parser.parse_args()
-        
     input_file_path = args.input_file_path
     dataset_path = args.dataset_path
     model_name = args.model_name
@@ -82,15 +81,13 @@ def read_inputs_command():
         parser.exit("ERROR: Missing input arguments.")
         
     if os.path.exists(input_file_path) and os.path.exists(dataset_path):
+        fine_tuning_model_path = None
         if fine_tuning_model:
-            fine_tuning_model_vocab_path = os.path.join('vocabs', fine_tuning_model + '.pickle')
-            fine_tuning_model_path = os.path.join('models', fine_tuning_model + '.model')
-            if os.path.exists(fine_tuning_model_path) and os.path.exists(fine_tuning_model_vocab_path):
-                return input_file_path,dataset_path,model_name,fine_tuning_model_path,fine_tuning_model_vocab_path,n_train_examples
+            if os.path.exists(fine_tuning_model):
+                fine_tuning_model_path = fine_tuning_model
             else:
-                parser.exit("ERROR: model or vocab file not found: they should be inside models and vocabs folders.")               
-        else:
-                return input_file_path,dataset_path,model_name,None,None,n_train_examples
+                parser.exit(f"ERROR: model {fine_tuning_model} not found!")               
+        return input_file_path, dataset_path, model_name, fine_tuning_model_path, n_train_examples
     else:
         parser.exit("ERROR: Input file or dataset not found.")
 

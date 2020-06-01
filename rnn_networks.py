@@ -100,9 +100,11 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
 
     # --- save the model
     cprint('[INFO]', bc.lgreen, 'saving the model')
-    model_path = os.path.join('models', model_name + '.model')
-    if not os.path.isdir("models"):
-        os.makedirs("models")
+    model_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                              model_name,
+                              model_name + '.model')
+    if not os.path.isdir(os.path.dirname(model_path)):
+        os.makedirs(os.path.dirname(model_path))
     torch.save(model_gru_cat_pool, model_path)
 
     """
@@ -113,13 +115,13 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
 
     # --- print some simple stats on the run
     print_stats(start_time)
-
     
-def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=False, test_dc=False):
+# ------------------- fine_tuning --------------------
+def fine_tuning(pretrained_model_path, dl_inputs, model_name, 
+                train_dc, valid_dc=False, test_dc=False):
     """
     Fine tuning function for further training a model on new data
     """
-    
     batch_size = dl_inputs['gru_lstm']['batch_size']
     dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
     device=dl_inputs['general']['device']
@@ -127,9 +129,9 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
     epochs = dl_inputs['gru_lstm']['epochs']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
     
-    pretrained_model = torch.load(pretrained_model_path,map_location=torch.device(device))
+    pretrained_model = torch.load(pretrained_model_path, map_location=torch.device(device))
     
-#    layers_to_freeze = ["emb","gru","fc1","fc2","attn"]
+    # XXX layers_to_freeze = ["emb","gru","fc1","fc2","attn"]
     layers_to_freeze = []
     
     for name, param in pretrained_model.named_parameters():
@@ -137,11 +139,9 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
         if n in layers_to_freeze:
             param.requires_grad = False
             print (name, param.requires_grad)
-
     
     if dl_inputs['gru_lstm']['optimizer'].lower() in ['adam']:
         opt = optim.Adam(filter(lambda p: p.requires_grad, pretrained_model.parameters()), learning_rate)
-
 
     start_time = time.time()
 
@@ -152,7 +152,6 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
            '**** (Bi-directional) {} ****'.format(dl_inputs['gru_lstm']['main_architecture'].upper()))
     cprint('[INFO]', bc.magenta,
            '******************************'.format(dl_inputs['gru_lstm']['main_architecture'].upper()))
-
     
     train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
@@ -169,9 +168,11 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
 
     # --- save the model
     cprint('[INFO]', bc.lgreen, 'saving the model')
-    model_path = os.path.join('models', model_name + '.model')
-    if not os.path.isdir("models"):
-        os.makedirs("models")
+    model_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                              model_name,
+                              model_name + '.model')
+    if not os.path.isdir(os.path.dirname(model_path)):
+        os.makedirs(os.path.dirname(model_path))
     torch.save(pretrained_model, model_path)
 
     """
