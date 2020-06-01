@@ -83,11 +83,7 @@ id
 11            leonards beach pond                       {'leonards beach pond': 0.0}                        {'leonards beach pond': 11}                 11                12
 ```
 
----
-
-* I get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`.
-
-- One way to solve this issue is by:
+If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
 
 ```bash
 pip install faiss-cpu --no-cache
