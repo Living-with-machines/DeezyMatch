@@ -97,7 +97,8 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
         epochs=epochs,
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
-        tboard_path=dl_inputs['gru_lstm']['create_tensor_board']
+        tboard_path=os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board']),
+        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name)
         )
 
     # --- save the model
@@ -187,7 +188,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     print_stats(start_time)
     
 # ------------------- fit  --------------------
-def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attention', device='cpu', tboard_path=False):
+def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attention', device='cpu', tboard_path=False, model_path=False):
 
     num_batch_train = len(train_dl)
     num_batch_valid = len(valid_dl)
@@ -324,6 +325,14 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 tboard_writer.add_scalar('Valid/Recall', valid_rec, epoch)
                 tboard_writer.add_scalar('Valid/F1', valid_f1, epoch)
                 tboard_writer.flush()
+
+        if model_path:
+            # --- save the model
+            cprint('[INFO]', bc.lgreen, 'saving the model')
+            checkpoint_path = os.path.join(model_path, f'checkpoint{epoch:05d}.model')
+            if not os.path.isdir(os.path.dirname(checkpoint_path)):
+                os.makedirs(os.path.dirname(checkpoint_path))
+            torch.save(model, checkpoint_path)
 
 
 # ------------------- two_parallel_rnns  --------------------

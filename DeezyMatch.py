@@ -9,6 +9,7 @@ import pickle, os
 
 from data_processing import csv_split_tokenize
 from rnn_networks import gru_lstm_network, fine_tuning
+import shutil
 from utils import read_inputs_command, read_input_file
 from utils import cprint, bc
 # --- set seed for reproducibility
@@ -48,6 +49,7 @@ if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['validation']:
         os.makedirs(os.path.dirname(vocab_path))
     with open(vocab_path, 'wb') as handle:
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    shutil.copy2(input_file_path, os.path.dirname(vocab_path))
     
     if pretrained_model_path:
         # Fine-tune a pretrained model
