@@ -3,6 +3,12 @@
 To use an already trained model for inference/prediction:
 
 ```bash
+python modelInference.py -m ../models/finetuned_test001/finetuned_test001.model -d ./candidates/tests.csv -v ../models/finetuned_test001/finetuned_test001.vocab -i ../input_dfm.yaml -mode test
+```
+
+we can also use absolute paths:
+
+```bash
 python modelInference.py -m <path>/githubCode/DeezyMatch/models/gb1900.model -v <path>/githubCode/DeezyMatch/vocabs/gb1900.pickle -i <path>/githubCode/DeezyMatch/input_dfm.yaml -mode test -d <path>/githubCode/DeezyMatch/dataset/gb1900_test.txt
 ```
 
