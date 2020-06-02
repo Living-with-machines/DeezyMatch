@@ -1,4 +1,4 @@
-### Model inference
+## Model inference
 
 To use an already trained model for inference/prediction:
 
@@ -6,7 +6,7 @@ To use an already trained model for inference/prediction:
 python modelInference.py -m <path>/githubCode/DeezyMatch/models/gb1900.model -v <path>/githubCode/DeezyMatch/vocabs/gb1900.pickle -i <path>/githubCode/DeezyMatch/input_dfm.yaml -mode test -d <path>/githubCode/DeezyMatch/dataset/gb1900_test.txt
 ```
 
-# Candidate selection
+## Candidate selection
 
 1. Generate vectors for all queries: (Note that `-qc q` which sets the `query_candidate_mode` to `query`).
 
