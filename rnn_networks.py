@@ -252,10 +252,6 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 total_loss_train += loss.data
 
                 wtrain_counter += 1
-                if tboard_writer:
-                    # Record loss
-                    tboard_writer.add_scalar('Train/Loss', loss.item(), wtrain_counter)
-                    tboard_writer.flush()
 
             train_acc = accuracy_score(y_true_train, y_pred_train)
             train_pre = precision_score(y_true_train, y_pred_train)
@@ -267,12 +263,15 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                        epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1))
 
             if tboard_writer:    
+                # Record loss
+                tboard_writer.add_scalar('Train/Loss', loss.item(), wtrain_counter)
                 # Record accuracy
                 tboard_writer.add_scalar('Train/Accuracy', train_acc, epoch)
                 tboard_writer.flush()
                 # XXX not working at this point, but the results can be plotted here: https://projector.tensorflow.org/
                 # XXX TODO: change the metadata to the string name, plot embeddings derived for evaluation or test dataset
-                #tboard_writer.add_embedding(torch.tensor(x1, dtype=torch.float64), global_step=epoch, metadata=range(len(x1)), tag="Embedding")
+                tboard_writer.add_embedding(torch.tensor(x1, dtype=torch.float64), global_step=epoch, metadata=range(len(x1)), tag="Embedding")
+                tboard_writer.flush()
 
         if valid_dl:
             model.eval()
@@ -304,10 +303,6 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 total_loss_valid += loss.data
 
                 wvalid_counter += 1
-                if tboard_writer:
-                    # Record loss
-                    tboard_writer.add_scalar('Valid/Loss', loss.item(), wvalid_counter)
-                    tboard_writer.flush()
 
             valid_acc = accuracy_score(y_true_valid, y_pred_valid)
             valid_pre = precision_score(y_true_valid, y_pred_valid)
@@ -319,6 +314,8 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                        epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1))
 
             if tboard_writer:
+                # Record loss
+                tboard_writer.add_scalar('Valid/Loss', loss.item(), wvalid_counter)
                 # Record Accuracy, precision, recall, F1 on validation set 
                 tboard_writer.add_scalar('Valid/Accuracy', valid_acc, epoch)
                 tboard_writer.add_scalar('Valid/Precision', valid_pre, epoch)
