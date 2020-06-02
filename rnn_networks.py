@@ -66,8 +66,10 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
     learning_rate = dl_inputs['gru_lstm']['learning_rate']
     rnn_n_layers = dl_inputs['gru_lstm']['num_layers']
     bidirectional = dl_inputs['gru_lstm']['bidirectional']
-    rnn_drop_prob = dl_inputs['gru_lstm']['dropout']
+    rnn_drop_prob = dl_inputs['gru_lstm']['gru_dropout']
     rnn_bias = dl_inputs['gru_lstm']['bias']
+    fc_dropout = dl_inputs['gru_lstm']['fc_dropout']
+    att_dropout = dl_inputs['gru_lstm']['att_dropout']
     fc1_out_features = dl_inputs['gru_lstm']['fc1_out_dim']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
     dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
@@ -77,7 +79,7 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
     # XXX change the name to something more generic, eg model_torch
     model_gru_cat_pool = two_parallel_rnns(vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
                                            rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
-                                           fc1_out_features)
+                                           fc1_out_features, fc_dropout, att_dropout)
     model_gru_cat_pool.to(dl_inputs['general']['device'])
 
     # --- optimisation
@@ -328,7 +330,8 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
 class two_parallel_rnns(nn.Module):
     def __init__(self, vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
                  rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
-                 fc1_out_features, fc1_dropout=0.5, fc2_dropout=0.5, maxpool_kernel_size=2):
+                 fc1_out_features, fc_dropout=[0.5, 0.5], att_dropout=[0.5, 0.5], 
+                 maxpool_kernel_size=2):
         # XXX Hardcoded: fc1_dropout=0.2, fc2_dropout=0.2, maxpool_kernel_size=2 
         super().__init__()
         self.vocab_size = vocab_size
@@ -342,8 +345,11 @@ class two_parallel_rnns(nn.Module):
         self.rnn_drop_prob = rnn_drop_prob
         self.rnn_bias = rnn_bias
         self.fc1_out_features = fc1_out_features
-        self.fc1_dropout = fc1_dropout
-        self.fc2_dropout = fc2_dropout
+        self.fc1_dropout = fc_dropout[0]
+        self.fc2_dropout = fc_dropout[1]
+        self.att1_dropout = att_dropout[0]
+        self.att2_dropout = att_dropout[1]
+
         self.maxpool_kernel_size = maxpool_kernel_size
 
         if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'context']:
@@ -404,8 +410,8 @@ class two_parallel_rnns(nn.Module):
             attn_weight_array = False
             for i_nhs in range(np.shape(gru_out_1)[0]):
                 # XXX Hard coded, 0.5
-                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_1[i_nhs], 0.5)))
-                attn_weight = self.attn_step2(F.dropout(attn_weight, 0.5))
+                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_1[i_nhs], self.att1_dropout)))
+                attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
                     attn_weight_array = attn_weight
                     attn_weight_flag = True
@@ -434,8 +440,8 @@ class two_parallel_rnns(nn.Module):
             attn_weight_array = False
             for i_nhs in range(np.shape(gru_out_2)[0]):
                 # XXX Hard coded, 0.5
-                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_2[i_nhs], 0.5)))
-                attn_weight = self.attn_step2(F.dropout(attn_weight, 0.5))
+                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_2[i_nhs], self.att1_dropout)))
+                attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
                     attn_weight_array = attn_weight
                     attn_weight_flag = True

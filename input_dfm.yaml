@@ -44,7 +44,9 @@ gru_lstm:
   num_layers: 2
   fc1_out_dim: 60
   pooling_mode: 'attention'
-  dropout: 0.5
+  gru_dropout: 0.5
+  fc_dropout: [0.5, 0.5]  # fully-connected layers dropout depends on the number of fc layers (currently there are two)
+  att_dropout: [0.5, 0.5] # attention layer dropout depends on the number of attention layers (currently there are two)
   bias: True
 
   rnn_hidden_dim: 60
@@ -72,7 +74,9 @@ inference:
  candidate_mode:
   output_vectors: "./embed_candidates/rnn"
   output_test_class: "./df/candidates.df" # XXX rename test_class
+  overwrite: True
 
  query_mode:
   output_vectors: "./embed_queries/rnn"
   output_test_class: "./df/queries.df" # XXX rename test_class
+  overwrite: True

@@ -8,7 +8,9 @@ sys.path.insert(0,'..')
 import argparse
 from data_processing import test_tokenize
 from evaluation import test_model
+import os
 import pickle
+import shutil
 
 from utils import read_inference_command, read_input_file
 from utils import cprint, bc
@@ -38,9 +40,21 @@ else:
     if query_candidate_mode in ["c"]:
         output_state_vectors = dl_inputs["inference"]["candidate_mode"]["output_vectors"]
         path_save_test_class = dl_inputs["inference"]["candidate_mode"]["output_test_class"]
+        if dl_inputs["inference"]["candidate_mode"]["overwrite"]:
+            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
+            if os.path.isdir(parent_dir):
+                shutil.rmtree(parent_dir)
+            if os.path.isfile(path_save_test_class):
+                os.remove(path_save_test_class)
     elif query_candidate_mode in ["q"]:
         output_state_vectors = dl_inputs["inference"]["query_mode"]["output_vectors"]
         path_save_test_class = dl_inputs["inference"]["query_mode"]["output_test_class"]
+        if dl_inputs["inference"]["query_mode"]["overwrite"]:
+            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
+            if os.path.isdir(parent_dir):
+                shutil.rmtree(parent_dir)
+            if os.path.isfile(path_save_test_class):
+                os.remove(path_save_test_class)
 
 # --- load torch model, send it to the device (CPU/GPU)
 model = torch.load(model_path, map_location=dl_inputs['general']['device'])
