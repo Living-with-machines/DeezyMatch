@@ -33,6 +33,7 @@ dl_inputs = read_input_file(input_file)
 
 if inference_mode in ['test']:
     output_state_vectors = False
+    path_save_test_class = False
 else:
     if query_candidate_mode in ["c"]:
         output_state_vectors = dl_inputs["inference"]["candidate_mode"]["output_vectors"]
