@@ -251,6 +251,21 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 y_pred_train += list(pred_idx.cpu().data.numpy())
                 total_loss_train += loss.data
 
+                # if tboard_writer:    
+                #     # XXX not working at this point, but the results can be plotted here: https://projector.tensorflow.org/
+                #     # XXX TODO: change the metadata to the string name, plot embeddings derived for evaluation or test dataset
+                #     s1s2_strings = train_dl.dataset.df[train_dl.dataset.df["index"].isin(train_indxs.tolist())]["s1"].to_list()
+                #     s1s2_strings.extend(train_dl.dataset.df[train_dl.dataset.df["index"].isin(train_indxs.tolist())]["s2"].to_list())
+                #     x1x2_tensors = torch.cat((x1.T, x2.T))
+                #     try:
+                #         tboard_writer.add_embedding(x1x2_tensors,
+                #                                     global_step=wtrain_counter, 
+                #                                     metadata=s1s2_strings,
+                #                                     tag="Embedding")
+                #         tboard_writer.flush()
+                #     except:
+                #         continue
+
                 wtrain_counter += 1
 
             train_acc = accuracy_score(y_true_train, y_pred_train)
@@ -264,13 +279,9 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
 
             if tboard_writer:    
                 # Record loss
-                tboard_writer.add_scalar('Train/Loss', loss.item(), wtrain_counter)
+                tboard_writer.add_scalar('Train/Loss', loss.item(), epoch)
                 # Record accuracy
                 tboard_writer.add_scalar('Train/Accuracy', train_acc, epoch)
-                tboard_writer.flush()
-                # XXX not working at this point, but the results can be plotted here: https://projector.tensorflow.org/
-                # XXX TODO: change the metadata to the string name, plot embeddings derived for evaluation or test dataset
-                tboard_writer.add_embedding(torch.tensor(x1, dtype=torch.float64), global_step=epoch, metadata=range(len(x1)), tag="Embedding")
                 tboard_writer.flush()
 
         if valid_dl:
@@ -315,7 +326,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
 
             if tboard_writer:
                 # Record loss
-                tboard_writer.add_scalar('Valid/Loss', loss.item(), wvalid_counter)
+                tboard_writer.add_scalar('Valid/Loss', loss.item(), epoch)
                 # Record Accuracy, precision, recall, F1 on validation set 
                 tboard_writer.add_scalar('Valid/Accuracy', valid_acc, epoch)
                 tboard_writer.add_scalar('Valid/Precision', valid_pre, epoch)
