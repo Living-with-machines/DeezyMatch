@@ -76,15 +76,14 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
 
     # --- create the model
     cprint('[INFO]', bc.dgreen, 'create a two_parallel_rnns model')
-    # XXX change the name to something more generic, eg model_torch
-    model_gru_cat_pool = two_parallel_rnns(vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
-                                           rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
-                                           fc1_out_features, fc_dropout, att_dropout)
-    model_gru_cat_pool.to(dl_inputs['general']['device'])
+    model_gru = two_parallel_rnns(vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
+                                  rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
+                                  fc1_out_features, fc_dropout, att_dropout)
+    model_gru.to(dl_inputs['general']['device'])
 
     # --- optimisation
     if dl_inputs['gru_lstm']['optimizer'].lower() in ['adam']:
-        opt = optim.Adam(model_gru_cat_pool.parameters(), learning_rate)
+        opt = optim.Adam(model_gru.parameters(), learning_rate)
 
     cprint('[INFO]', bc.lgreen, 'start fitting parameters')
     train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
@@ -95,7 +94,7 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
     else:
         tboard_path = None
 
-    fit(model=model_gru_cat_pool,
+    fit(model=model_gru,
         train_dl=train_dl, 
         valid_dl=valid_dl,
         loss_fn=F.nll_loss,  # The negative log likelihood loss
@@ -114,7 +113,7 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
                               model_name + '.model')
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
-    torch.save(model_gru_cat_pool, model_path)
+    torch.save(model_gru, model_path)
 
     """
     model = TheModelClass(*args, **kwargs)
@@ -243,7 +242,6 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                     torch_summarize(model)
                     print_summary = False
                 # step 3. compute the loss
-                # XXX recheck loss_fn
                 loss = loss_fn(pred, y)
                 # step 4. use loss to produce gradients
                 loss.backward()
@@ -357,7 +355,6 @@ class two_parallel_rnns(nn.Module):
                  rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
                  fc1_out_features, fc_dropout=[0.5, 0.5], att_dropout=[0.5, 0.5], 
                  maxpool_kernel_size=2):
-        # XXX Hardcoded: fc1_dropout=0.2, fc2_dropout=0.2, maxpool_kernel_size=2 
         super().__init__()
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
@@ -443,7 +440,7 @@ class two_parallel_rnns(nn.Module):
                     attn_weight_flag = True
                 else:
                     attn_weight_array = torch.cat((attn_weight_array, attn_weight), dim=1)
-            attn_weight_array = F.log_softmax(attn_weight_array, dim=1)
+            attn_weight_array = F.softmax(attn_weight_array, dim=1)
             attn_vect_1 = torch.squeeze(torch.bmm(gru_out_1.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
         elif pooling_mode in ['average']:
             pool_1 = F.adaptive_avg_pool1d(gru_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
@@ -477,7 +474,6 @@ class two_parallel_rnns(nn.Module):
             attn_weight_flag = False
             attn_weight_array = False
             for i_nhs in range(np.shape(gru_out_2)[0]):
-                # XXX Hard coded, 0.5
                 attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_2[i_nhs], self.att1_dropout)))
                 attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
@@ -485,7 +481,7 @@ class two_parallel_rnns(nn.Module):
                     attn_weight_flag = True
                 else:
                     attn_weight_array = torch.cat((attn_weight_array, attn_weight), dim=1)
-            attn_weight_array = F.log_softmax(attn_weight_array, dim=1)
+            attn_weight_array = F.softmax(attn_weight_array, dim=1)
             attn_vect_2 = torch.squeeze(torch.bmm(gru_out_2.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
         elif pooling_mode in ['average']:
             pool_2 = F.adaptive_avg_pool1d(gru_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
@@ -507,7 +503,7 @@ class two_parallel_rnns(nn.Module):
                     context_2_bwd = torch.cat((context_2_bwd, context_2_fwd_bwd[rlayer, 1]), dim=1)
                 context_2 = torch.cat((context_2, context_2_bwd), dim=1)
 
-        # XXX here we work with the outputs from GRU1 and GRU2
+        # Combine outputs from GRU1 and GRU2
         if pooling_mode in ['attention']:
             attn_vec_cat = torch.cat((attn_vect_1, attn_vect_2), dim=1)
             attn_vec_mul = attn_vect_1 * attn_vect_2
@@ -539,5 +535,4 @@ class two_parallel_rnns(nn.Module):
         first_dim = self.rnn_n_layers
         if self.bidirectional:
             first_dim *= 2
-        # XXX zero or random
         return Variable(torch.zeros((first_dim, batch_size, self.rnn_hidden_dim)).to(device))
