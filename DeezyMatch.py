@@ -10,8 +10,9 @@ import pickle, os
 from data_processing import csv_split_tokenize
 from rnn_networks import gru_lstm_network, fine_tuning
 import shutil
+import sys
 from utils import read_inputs_command, read_input_file
-from utils import cprint, bc
+from utils import cprint, bc, log_message
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -22,6 +23,16 @@ input_file_path, dataset_path, model_name, pretrained_model_path, n_train_exampl
     read_inputs_command()
 # --- read input file
 dl_inputs = read_input_file(input_file_path)
+
+# --- log current directory and command line
+cur_dir = os.path.abspath(os.path.curdir)
+msg = "Current directory: " + cur_dir + "\n"
+log_message(msg, mode="w")
+
+input_command_line = f"python"
+for one_arg in sys.argv:
+    input_command_line += f" {one_arg}"
+log_message(input_command_line + "\n", mode="a")
 
 # --- Methods for Fuzzy String Matching
 if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['validation']:

@@ -176,6 +176,12 @@ def read_input_file(input_file_path):
         cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
     return dl_inputs
 
+# ------------------- log_message --------------------
+def log_message(msg2push, filename="./log.txt", mode="w"):
+    """log messages into a file"""
+    log_fio = open(filename, mode)
+    log_fio.writelines(msg2push)
+    log_fio.close()
 
 # ------------------- bc --------------------
 class bc:

@@ -32,7 +32,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import glob
 import numpy as np
 
-from utils import cprint, bc
+from utils import cprint, bc, log_message
 from utils import print_stats
 from utils import torch_summarize
 from utils import create_parent_dir
@@ -89,6 +89,12 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
     cprint('[INFO]', bc.lgreen, 'start fitting parameters')
     train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
+
+    if dl_inputs['gru_lstm']['create_tensor_board']:
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+    else:
+        tboard_path = None
+
     fit(model=model_gru_cat_pool,
         train_dl=train_dl, 
         valid_dl=valid_dl,
@@ -97,7 +103,7 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
         epochs=epochs,
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
-        tboard_path=os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board']),
+        tboard_path=tboard_path,
         model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name)
         )
 
@@ -273,9 +279,10 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
             train_rec = recall_score(y_true_train, y_pred_train)
             train_f1 = f1_score(y_true_train, y_pred_train, average='weighted')
             train_loss = total_loss_train / len(train_dl)
-            cprint('[INFO]', bc.orange,
-                   'Epoch: {}/{}; train loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                       epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1))
+            epoch_log = 'Epoch: {}/{}; train loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+                       epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
+            cprint('[INFO]', bc.orange, epoch_log)
+            log_message(epoch_log + "\n", mode="a")
 
             if tboard_writer:    
                 # Record loss
@@ -320,9 +327,10 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
             valid_rec = recall_score(y_true_valid, y_pred_valid)
             valid_f1 = f1_score(y_true_valid, y_pred_valid, average='weighted')
             valid_loss = total_loss_valid / len(valid_dl)
-            cprint('[INFO]', bc.lred,
-                   'Epoch: {}/{}; valid loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                       epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1))
+            epoch_log = 'Epoch: {}/{}; valid loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+                       epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1)
+            cprint('[INFO]', bc.lred, epoch_log)
+            log_message(epoch_log + "\n", mode="a")
 
             if tboard_writer:
                 # Record loss
