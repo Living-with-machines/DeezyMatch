@@ -379,6 +379,8 @@ class two_parallel_rnns(nn.Module):
 
         if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'context']:
             fc1_multiplier = 4
+        elif self.pooling_mode in ["context_layers"]:
+            fc1_multiplier = 8
         else:
             fc1_multiplier = 4
 
@@ -434,7 +436,6 @@ class two_parallel_rnns(nn.Module):
             attn_weight_flag = False
             attn_weight_array = False
             for i_nhs in range(np.shape(gru_out_1)[0]):
-                # XXX Hard coded, 0.5
                 attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_1[i_nhs], self.att1_dropout)))
                 attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
@@ -453,6 +454,16 @@ class two_parallel_rnns(nn.Module):
             context_1 = context_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_1 = torch.cat((context_1, context_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
+        elif pooling_mode in ['context_layers']:
+            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, gru_out_1.shape[1], self.rnn_hidden_dim)
+            context_1 = context_1_fwd_bwd[0, 0]
+            for rlayer in range(1, self.rnn_n_layers):
+                context_1 = torch.cat((context_1, context_1_fwd_bwd[rlayer, 0]), dim=1)
+            if self.bidirectional:
+                context_1_bwd = context_1_fwd_bwd[0, 1]
+                for rlayer in range(1, self.rnn_n_layers):
+                    context_1_bwd = torch.cat((context_1_bwd, context_1_fwd_bwd[rlayer, 1]), dim=1)
+                context_1 = torch.cat((context_1, context_1_bwd), dim=1)
 
         self.h2 = self.init_hidden(x2_seq.size(1), device)
         x2_embs_not_packed = self.emb(x2_seq)
@@ -485,6 +496,16 @@ class two_parallel_rnns(nn.Module):
             context_2 = context_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_2 = torch.cat((context_2, context_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
+        elif pooling_mode in ['context_layers']:
+            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, gru_out_2.shape[1], self.rnn_hidden_dim)
+            context_2 = context_2_fwd_bwd[0, 0]
+            for rlayer in range(1, self.rnn_n_layers):
+                context_2 = torch.cat((context_2, context_2_fwd_bwd[rlayer, 0]), dim=1)
+            if self.bidirectional:
+                context_2_bwd = context_2_fwd_bwd[0, 1]
+                for rlayer in range(1, self.rnn_n_layers):
+                    context_2_bwd = torch.cat((context_2_bwd, context_2_fwd_bwd[rlayer, 1]), dim=1)
+                context_2 = torch.cat((context_2, context_2_bwd), dim=1)
 
         # XXX here we work with the outputs from GRU1 and GRU2
         if pooling_mode in ['attention']:
@@ -501,7 +522,7 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((pool_rnn_cat,
                                          pool_rnn_mul,
                                          pool_rnn_dif), dim=1)
-        elif pooling_mode in ['context']:
+        elif pooling_mode in ['context', 'context_layers']:
             context_rnn_cat = torch.cat((context_1, context_2), dim=1)
             context_rnn_mul = context_1 * context_2
             context_rnn_dif = context_1 - context_2
