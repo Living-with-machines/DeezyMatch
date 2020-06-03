@@ -1,5 +1,6 @@
 general:
   use_gpu: True # only if available
+  gpu_device: "cuda:0"
   models_dir: "./models"
 
 preprocessing:

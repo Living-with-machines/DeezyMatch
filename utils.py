@@ -167,7 +167,7 @@ def read_input_file(input_file_path):
             # returns a Boolean True if a GPU is available, else it'll return False
             is_cuda = torch.cuda.is_available()
             if is_cuda:
-                device = torch.device("cuda")
+                device = torch.device(dl_inputs["general"]["gpu_device"])
                 dl_inputs['general']['is_cuda'] = True
             else:
                 cprint('[INFO]', bc.lred, 'GPU was requested but not available.')
