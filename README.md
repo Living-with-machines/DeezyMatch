@@ -18,6 +18,14 @@ After installing DeezyMatch on your machine, a new classifier can be trained by:
 python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
+---
+
+Fine-Tune a previously trained DeezyMatch model (using, for instance, only 100 training instances):
+
+```bash
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f test001 -n 100 -m finetuned_model
+```
+
 DeezyMatch stores both the model and vocabulary used in the following directory structure:
 
 ```bash
