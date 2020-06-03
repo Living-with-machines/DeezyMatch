@@ -19,6 +19,7 @@ Others:
 import time, os
 from tqdm import tqdm, tnrange
 
+from datetime import datetime
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -277,10 +278,13 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
             train_rec = recall_score(y_true_train, y_pred_train)
             train_f1 = f1_score(y_true_train, y_pred_train, average='weighted')
             train_loss = total_loss_train / len(train_dl)
-            epoch_log = 'Epoch: {}/{}; train loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                       epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
+            epoch_log = '{} -- Epoch: {}/{}; train loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
             cprint('[INFO]', bc.orange, epoch_log)
-            log_message(epoch_log + "\n", mode="a")
+            if model_path:
+                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+            else:
+                log_message(epoch_log + "\n", mode="a+")
 
             if tboard_writer:    
                 # Record loss
@@ -325,10 +329,13 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
             valid_rec = recall_score(y_true_valid, y_pred_valid)
             valid_f1 = f1_score(y_true_valid, y_pred_valid, average='weighted')
             valid_loss = total_loss_valid / len(valid_dl)
-            epoch_log = 'Epoch: {}/{}; valid loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                       epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1)
+            epoch_log = '{} -- Epoch: {}/{}; valid loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1)
             cprint('[INFO]', bc.lred, epoch_log)
-            log_message(epoch_log + "\n", mode="a")
+            if model_path:
+                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+            else:
+                log_message(epoch_log + "\n", mode="a+")
 
             if tboard_writer:
                 # Record loss

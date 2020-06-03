@@ -7,6 +7,7 @@ DeezyMatch main code
 
 import pickle, os
 
+from datetime import datetime
 from data_processing import csv_split_tokenize
 from rnn_networks import gru_lstm_network, fine_tuning
 import shutil
@@ -26,13 +27,9 @@ dl_inputs = read_input_file(input_file_path)
 
 # --- log current directory and command line
 cur_dir = os.path.abspath(os.path.curdir)
-msg = "Current directory: " + cur_dir + "\n"
-log_message(msg, mode="w")
-
 input_command_line = f"python"
 for one_arg in sys.argv:
     input_command_line += f" {one_arg}"
-log_message(input_command_line + "\n", mode="a")
 
 # --- Methods for Fuzzy String Matching
 if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['validation']:
@@ -61,6 +58,11 @@ if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['validation']:
     with open(vocab_path, 'wb') as handle:
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     shutil.copy2(input_file_path, os.path.dirname(vocab_path))
+
+    msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
+    msg += "\nCurrent directory: " + cur_dir + "\n"
+    log_message(msg, mode="w", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+    log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
     
     if pretrained_model_path:
         # Fine-tune a pretrained model
