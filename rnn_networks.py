@@ -386,9 +386,9 @@ class two_parallel_rnns(nn.Module):
                             bias=self.rnn_bias, dropout=self.rnn_drop_prob,
                             bidirectional=self.bidirectional)
 
-        self.gru_2 = nn.GRU(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
-                            bias=self.rnn_bias, dropout=self.rnn_drop_prob,
-                            bidirectional=self.bidirectional)
+        #self.gru_2 = nn.GRU(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
+        #                    bias=self.rnn_bias, dropout=self.rnn_drop_prob,
+        #                    bidirectional=self.bidirectional)
 
         self.attn_step1 = nn.Linear(self.rnn_hidden_dim * self.num_directions, self.embedding_dim)
         self.attn_step2 = nn.Linear(self.embedding_dim, 1)
@@ -449,7 +449,9 @@ class two_parallel_rnns(nn.Module):
         self.h2 = self.init_hidden(x2_seq.size(1), device)
         x2_embs_not_packed = self.emb(x2_seq)
         x2_embs = pack_padded_sequence(x2_embs_not_packed, len2, enforce_sorted=False)
-        gru_out_2, self.h2 = self.gru_2(x2_embs, self.h2)
+        # Share parameters between two GRUs
+        # Previously, we had gru_out_2, self.h2 = self.gru_2(x2_embs, self.h2)
+        gru_out_2, self.h2 = self.gru_1(x2_embs, self.h2)
         gru_out_2, len2 = pad_packed_sequence(gru_out_2)
 
         if pooling_mode in ['attention']:
