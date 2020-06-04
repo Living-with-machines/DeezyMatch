@@ -64,7 +64,7 @@ def read_inputs_command():
                     help="add the name of the model")
     
     parser.add_argument("-f", "--fine_tuning",
-                    help="add the name of the model to be fine-tuned (model and vocab should be located in models and vocabs folders), a new version of the model will be saved")
+                    help="add the name of the model to be fine-tuned (model and vocab are in one directory), the fine-tuned model will be saved")
 
     parser.add_argument("-n", "--number_training_examples",
                     help="the number of training examples to be used (optional)", 
