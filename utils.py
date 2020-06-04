@@ -28,6 +28,7 @@ def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin
     if only_latin_letters:
         s = re.sub(r"([.!?])", r" \1", s)
         s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
+    #return "|" + s + "|"
     return s
 
 
@@ -53,23 +54,23 @@ def read_inputs_command():
     """    
     parser = ArgumentParser()
     
-    parser.add_argument("-i", "--input-file-path",
+    parser.add_argument("-i", "--input_file_path",
                     help="add the path of the input file")
     
-    parser.add_argument("-d", "--dataset-path",
+    parser.add_argument("-d", "--dataset_path",
                     help="add the path of the dataset")
     
-    parser.add_argument("-m", "--model-name",
+    parser.add_argument("-m", "--model_name",
                     help="add the name of the model")
     
-    parser.add_argument("-f", "--fine-tuning",
-                    help="add the name of the model to be fine-tuned (model and vocab should be located in models and vocabs folders), a new version of the model will be saved")
+    parser.add_argument("-f", "--fine_tuning",
+                    help="add the name of the model to be fine-tuned (model and vocab are in one directory), the fine-tuned model will be saved")
 
-    parser.add_argument("-n", "--number-training-examples",
-                    help="the number of training examples to be used (optional)")
+    parser.add_argument("-n", "--number_training_examples",
+                    help="the number of training examples to be used (optional)", 
+                    default=None)
     
     args = parser.parse_args()
-        
     input_file_path = args.input_file_path
     dataset_path = args.dataset_path
     model_name = args.model_name
@@ -81,15 +82,13 @@ def read_inputs_command():
         parser.exit("ERROR: Missing input arguments.")
         
     if os.path.exists(input_file_path) and os.path.exists(dataset_path):
+        fine_tuning_model_path = None
         if fine_tuning_model:
-            fine_tuning_model_vocab_path = os.path.join('vocabs', fine_tuning_model + '.pickle')
-            fine_tuning_model_path = os.path.join('models', fine_tuning_model + '.model')
-            if os.path.exists(fine_tuning_model_path) and os.path.exists(fine_tuning_model_vocab_path):
-                return input_file_path,dataset_path,model_name,fine_tuning_model_path,fine_tuning_model_vocab_path,n_train_examples
+            if os.path.exists(fine_tuning_model):
+                fine_tuning_model_path = fine_tuning_model
             else:
-                parser.exit("ERROR: model or vocab file not found: they should be inside models and vocabs folders.")               
-        else:
-                return input_file_path,dataset_path,model_name,None,None,n_train_examples
+                parser.exit(f"ERROR: model {fine_tuning_model} not found!")               
+        return input_file_path, dataset_path, model_name, fine_tuning_model_path, n_train_examples
     else:
         parser.exit("ERROR: Input file or dataset not found.")
 
@@ -115,6 +114,38 @@ def read_test_command():
     
     return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, query_candid_mode
 
+# ------------------- read_inference_command --------------------
+def read_inference_command():
+    """
+    read inputs from the command line
+    :return:
+    """
+    
+    cprint('[INFO]', bc.dgreen, 'read inputs from the command')
+    try:
+        parser = ArgumentParser()
+        parser.add_argument("-m", "--model_path")
+        parser.add_argument("-d", "--dataset_path")
+        parser.add_argument("-v", "--vocabulary_path")
+        parser.add_argument("-i", "--input_file_path")
+        parser.add_argument("-n", "--number_examples")
+        parser.add_argument("-mode", "--inference_mode", default="test")
+        parser.add_argument("-qc", "--query_candidate_mode", default="q")
+        args = parser.parse_args()
+        
+        model_path = args.model_path
+        dataset_path = args.dataset_path
+        train_vocab_path = args.vocabulary_path
+        input_file = args.input_file_path
+        test_cutoff = args.number_examples
+        inference_mode = args.inference_mode
+        query_candidate_mode = args.query_candidate_mode
+
+    except IndexError as error:
+        cprint('[syntax error]', bc.red, 'syntax: python <modelInference.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff')
+        sys.exit("[ERROR] {}".format(error))
+    
+    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):
@@ -136,7 +167,7 @@ def read_input_file(input_file_path):
             # returns a Boolean True if a GPU is available, else it'll return False
             is_cuda = torch.cuda.is_available()
             if is_cuda:
-                device = torch.device("cuda")
+                device = torch.device(dl_inputs["general"]["gpu_device"])
                 dl_inputs['general']['is_cuda'] = True
             else:
                 cprint('[INFO]', bc.lred, 'GPU was requested but not available.')
@@ -145,6 +176,12 @@ def read_input_file(input_file_path):
         cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
     return dl_inputs
 
+# ------------------- log_message --------------------
+def log_message(msg2push, filename="./log.txt", mode="w"):
+    """log messages into a file"""
+    log_fio = open(filename, mode)
+    log_fio.writelines(msg2push)
+    log_fio.close()
 
 # ------------------- bc --------------------
 class bc:

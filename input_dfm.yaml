@@ -1,11 +1,15 @@
 general:
   use_gpu: True # only if available
+  gpu_device: "cuda" # specify CUDA device, these are 0-indexed, e.g., cuda:0, cuda:1 or others. "cuda" is the default CUDA device
+  models_dir: "./models"
 
 preprocessing:
   uni2ascii: True
   lowercase: True
   strip: True
   only_latin_letters: False
+  # separation in the input CSV file
+  csv_sep: "\t"
 
 # --- GRU/LSTM architecture/misc info
 gru_lstm:
@@ -39,9 +43,11 @@ gru_lstm:
   mode: "char"
   bidirectional: True
   num_layers: 2
-  fc1_out_dim: 60
-  pooling_mode: 'attention'
-  dropout: 0.5
+  fc1_out_dim: 120
+  pooling_mode: 'context'
+  gru_dropout: 0.2
+  fc_dropout: [0.2, 0.2]  # fully-connected layers dropout depends on the number of fc layers (currently there are two)
+  att_dropout: [0.2, 0.2] # attention layer dropout depends on the number of attention layers (currently there are two)
   bias: True
 
   rnn_hidden_dim: 60
@@ -49,12 +55,12 @@ gru_lstm:
   embedding_dim: 60
   output_dim: 2
 
-  learning_rate: 1e-3
+  learning_rate: 0.001
   optimizer: adam
-  epochs: 4
+  epochs: 5
   batch_size: 256
   dl_shuffle: True 
-  random_seed: 64
+  random_seed: 123
 
   training: True
   validation: True
@@ -64,3 +70,14 @@ gru_lstm:
 
   #create_tensor_board: "./tb_gru_test" 
   create_tensor_board: False
+
+inference:
+ candidate_mode:
+  output_vectors: "./embed_candidates/rnn"
+  output_test_class: "./df/candidates.df" # XXX rename test_class
+  overwrite: True
+
+ query_mode:
+  output_vectors: "./embed_queries/rnn"
+  output_test_class: "./df/queries.df" # XXX rename test_class
+  overwrite: True

@@ -19,6 +19,7 @@ Others:
 import time, os
 from tqdm import tqdm, tnrange
 
+from datetime import datetime
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -32,7 +33,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import glob
 import numpy as np
 
-from utils import cprint, bc
+from utils import cprint, bc, log_message
 from utils import print_stats
 from utils import torch_summarize
 from utils import create_parent_dir
@@ -66,28 +67,35 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
     learning_rate = dl_inputs['gru_lstm']['learning_rate']
     rnn_n_layers = dl_inputs['gru_lstm']['num_layers']
     bidirectional = dl_inputs['gru_lstm']['bidirectional']
-    rnn_drop_prob = dl_inputs['gru_lstm']['dropout']
+    rnn_drop_prob = dl_inputs['gru_lstm']['gru_dropout']
     rnn_bias = dl_inputs['gru_lstm']['bias']
+    fc_dropout = dl_inputs['gru_lstm']['fc_dropout']
+    att_dropout = dl_inputs['gru_lstm']['att_dropout']
     fc1_out_features = dl_inputs['gru_lstm']['fc1_out_dim']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
     dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
 
     # --- create the model
     cprint('[INFO]', bc.dgreen, 'create a two_parallel_rnns model')
-    # XXX change the name to something more generic, eg model_torch
-    model_gru_cat_pool = two_parallel_rnns(vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
-                                           rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
-                                           fc1_out_features)
-    model_gru_cat_pool.to(dl_inputs['general']['device'])
+    model_gru = two_parallel_rnns(vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
+                                  rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
+                                  fc1_out_features, fc_dropout, att_dropout)
+    model_gru.to(dl_inputs['general']['device'])
 
     # --- optimisation
     if dl_inputs['gru_lstm']['optimizer'].lower() in ['adam']:
-        opt = optim.Adam(model_gru_cat_pool.parameters(), learning_rate)
+        opt = optim.Adam(model_gru.parameters(), learning_rate)
 
     cprint('[INFO]', bc.lgreen, 'start fitting parameters')
     train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
-    fit(model=model_gru_cat_pool,
+
+    if dl_inputs['gru_lstm']['create_tensor_board']:
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+    else:
+        tboard_path = None
+
+    fit(model=model_gru,
         train_dl=train_dl, 
         valid_dl=valid_dl,
         loss_fn=F.nll_loss,  # The negative log likelihood loss
@@ -95,15 +103,18 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
         epochs=epochs,
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
-        tboard_path=dl_inputs['gru_lstm']['create_tensor_board']
+        tboard_path=tboard_path,
+        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name)
         )
 
     # --- save the model
     cprint('[INFO]', bc.lgreen, 'saving the model')
-    model_path = os.path.join('models', model_name + '.model')
-    if not os.path.isdir("models"):
-        os.makedirs("models")
-    torch.save(model_gru_cat_pool, model_path)
+    model_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                              model_name,
+                              model_name + '.model')
+    if not os.path.isdir(os.path.dirname(model_path)):
+        os.makedirs(os.path.dirname(model_path))
+    torch.save(model_gru, model_path)
 
     """
     model = TheModelClass(*args, **kwargs)
@@ -113,13 +124,13 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
 
     # --- print some simple stats on the run
     print_stats(start_time)
-
     
-def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=False, test_dc=False):
+# ------------------- fine_tuning --------------------
+def fine_tuning(pretrained_model_path, dl_inputs, model_name, 
+                train_dc, valid_dc=False, test_dc=False):
     """
     Fine tuning function for further training a model on new data
     """
-    
     batch_size = dl_inputs['gru_lstm']['batch_size']
     dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
     device=dl_inputs['general']['device']
@@ -127,9 +138,9 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
     epochs = dl_inputs['gru_lstm']['epochs']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
     
-    pretrained_model = torch.load(pretrained_model_path,map_location=torch.device(device))
+    pretrained_model = torch.load(pretrained_model_path, map_location=torch.device(device))
     
-#    layers_to_freeze = ["emb","gru","fc1","fc2","attn"]
+    # XXX layers_to_freeze = ["emb","gru","fc1","fc2","attn"]
     layers_to_freeze = []
     
     for name, param in pretrained_model.named_parameters():
@@ -137,11 +148,9 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
         if n in layers_to_freeze:
             param.requires_grad = False
             print (name, param.requires_grad)
-
     
     if dl_inputs['gru_lstm']['optimizer'].lower() in ['adam']:
         opt = optim.Adam(filter(lambda p: p.requires_grad, pretrained_model.parameters()), learning_rate)
-
 
     start_time = time.time()
 
@@ -152,7 +161,6 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
            '**** (Bi-directional) {} ****'.format(dl_inputs['gru_lstm']['main_architecture'].upper()))
     cprint('[INFO]', bc.magenta,
            '******************************'.format(dl_inputs['gru_lstm']['main_architecture'].upper()))
-
     
     train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
@@ -169,9 +177,11 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
 
     # --- save the model
     cprint('[INFO]', bc.lgreen, 'saving the model')
-    model_path = os.path.join('models', model_name + '.model')
-    if not os.path.isdir("models"):
-        os.makedirs("models")
+    model_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                              model_name,
+                              model_name + '.model')
+    if not os.path.isdir(os.path.dirname(model_path)):
+        os.makedirs(os.path.dirname(model_path))
     torch.save(pretrained_model, model_path)
 
     """
@@ -184,7 +194,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,train_dc, valid_dc=
     print_stats(start_time)
     
 # ------------------- fit  --------------------
-def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attention', device='cpu', tboard_path=False):
+def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attention', device='cpu', tboard_path=False, model_path=False):
 
     num_batch_train = len(train_dl)
     num_batch_valid = len(valid_dl)
@@ -233,7 +243,6 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                     torch_summarize(model)
                     print_summary = False
                 # step 3. compute the loss
-                # XXX recheck loss_fn
                 loss = loss_fn(pred, y)
                 # step 4. use loss to produce gradients
                 loss.backward()
@@ -247,28 +256,42 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 y_pred_train += list(pred_idx.cpu().data.numpy())
                 total_loss_train += loss.data
 
+                # if tboard_writer:    
+                #     # XXX not working at this point, but the results can be plotted here: https://projector.tensorflow.org/
+                #     # XXX TODO: change the metadata to the string name, plot embeddings derived for evaluation or test dataset
+                #     s1s2_strings = train_dl.dataset.df[train_dl.dataset.df["index"].isin(train_indxs.tolist())]["s1"].to_list()
+                #     s1s2_strings.extend(train_dl.dataset.df[train_dl.dataset.df["index"].isin(train_indxs.tolist())]["s2"].to_list())
+                #     x1x2_tensors = torch.cat((x1.T, x2.T))
+                #     try:
+                #         tboard_writer.add_embedding(x1x2_tensors,
+                #                                     global_step=wtrain_counter, 
+                #                                     metadata=s1s2_strings,
+                #                                     tag="Embedding")
+                #         tboard_writer.flush()
+                #     except:
+                #         continue
+
                 wtrain_counter += 1
-                if tboard_writer:
-                    # Record loss
-                    tboard_writer.add_scalar('Train/Loss', loss.item(), wtrain_counter)
-                    tboard_writer.flush()
 
             train_acc = accuracy_score(y_true_train, y_pred_train)
             train_pre = precision_score(y_true_train, y_pred_train)
             train_rec = recall_score(y_true_train, y_pred_train)
             train_f1 = f1_score(y_true_train, y_pred_train, average='weighted')
             train_loss = total_loss_train / len(train_dl)
-            cprint('[INFO]', bc.orange,
-                   'Epoch: {}/{}; train loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                       epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1))
+            epoch_log = '{} -- Epoch: {}/{}; train loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
+            cprint('[INFO]', bc.orange, epoch_log)
+            if model_path:
+                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+            else:
+                log_message(epoch_log + "\n", mode="a+")
 
             if tboard_writer:    
+                # Record loss
+                tboard_writer.add_scalar('Train/Loss', loss.item(), epoch)
                 # Record accuracy
                 tboard_writer.add_scalar('Train/Accuracy', train_acc, epoch)
                 tboard_writer.flush()
-                # XXX not working at this point, but the results can be plotted here: https://projector.tensorflow.org/
-                # XXX TODO: change the metadata to the string name, plot embeddings derived for evaluation or test dataset
-                #tboard_writer.add_embedding(torch.tensor(x1, dtype=torch.float64), global_step=epoch, metadata=range(len(x1)), tag="Embedding")
 
         if valid_dl:
             model.eval()
@@ -300,21 +323,23 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 total_loss_valid += loss.data
 
                 wvalid_counter += 1
-                if tboard_writer:
-                    # Record loss
-                    tboard_writer.add_scalar('Valid/Loss', loss.item(), wvalid_counter)
-                    tboard_writer.flush()
 
             valid_acc = accuracy_score(y_true_valid, y_pred_valid)
             valid_pre = precision_score(y_true_valid, y_pred_valid)
             valid_rec = recall_score(y_true_valid, y_pred_valid)
             valid_f1 = f1_score(y_true_valid, y_pred_valid, average='weighted')
             valid_loss = total_loss_valid / len(valid_dl)
-            cprint('[INFO]', bc.lred,
-                   'Epoch: {}/{}; valid loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                       epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1))
+            epoch_log = '{} -- Epoch: {}/{}; valid loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1)
+            cprint('[INFO]', bc.lred, epoch_log)
+            if model_path:
+                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+            else:
+                log_message(epoch_log + "\n", mode="a+")
 
             if tboard_writer:
+                # Record loss
+                tboard_writer.add_scalar('Valid/Loss', loss.item(), epoch)
                 # Record Accuracy, precision, recall, F1 on validation set 
                 tboard_writer.add_scalar('Valid/Accuracy', valid_acc, epoch)
                 tboard_writer.add_scalar('Valid/Precision', valid_pre, epoch)
@@ -322,13 +347,21 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 tboard_writer.add_scalar('Valid/F1', valid_f1, epoch)
                 tboard_writer.flush()
 
+        if model_path:
+            # --- save the model
+            cprint('[INFO]', bc.lgreen, 'saving the model')
+            checkpoint_path = os.path.join(model_path, f'checkpoint{epoch:05d}.model')
+            if not os.path.isdir(os.path.dirname(checkpoint_path)):
+                os.makedirs(os.path.dirname(checkpoint_path))
+            torch.save(model, checkpoint_path)
+
 
 # ------------------- two_parallel_rnns  --------------------
 class two_parallel_rnns(nn.Module):
     def __init__(self, vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
                  rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
-                 fc1_out_features, fc1_dropout=0.5, fc2_dropout=0.5, maxpool_kernel_size=2):
-        # XXX Hardcoded: fc1_dropout=0.2, fc2_dropout=0.2, maxpool_kernel_size=2 
+                 fc1_out_features, fc_dropout=[0.5, 0.5], att_dropout=[0.5, 0.5], 
+                 maxpool_kernel_size=2):
         super().__init__()
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
@@ -341,12 +374,17 @@ class two_parallel_rnns(nn.Module):
         self.rnn_drop_prob = rnn_drop_prob
         self.rnn_bias = rnn_bias
         self.fc1_out_features = fc1_out_features
-        self.fc1_dropout = fc1_dropout
-        self.fc2_dropout = fc2_dropout
+        self.fc1_dropout = fc_dropout[0]
+        self.fc2_dropout = fc_dropout[1]
+        self.att1_dropout = att_dropout[0]
+        self.att2_dropout = att_dropout[1]
+
         self.maxpool_kernel_size = maxpool_kernel_size
 
         if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'context']:
             fc1_multiplier = 4
+        elif self.pooling_mode in ["context_layers"]:
+            fc1_multiplier = 8
         else:
             fc1_multiplier = 4
 
@@ -362,9 +400,9 @@ class two_parallel_rnns(nn.Module):
                             bias=self.rnn_bias, dropout=self.rnn_drop_prob,
                             bidirectional=self.bidirectional)
 
-        self.gru_2 = nn.GRU(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
-                            bias=self.rnn_bias, dropout=self.rnn_drop_prob,
-                            bidirectional=self.bidirectional)
+        #self.gru_2 = nn.GRU(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
+        #                    bias=self.rnn_bias, dropout=self.rnn_drop_prob,
+        #                    bidirectional=self.bidirectional)
 
         self.attn_step1 = nn.Linear(self.rnn_hidden_dim * self.num_directions, self.embedding_dim)
         self.attn_step2 = nn.Linear(self.embedding_dim, 1)
@@ -402,15 +440,14 @@ class two_parallel_rnns(nn.Module):
             attn_weight_flag = False
             attn_weight_array = False
             for i_nhs in range(np.shape(gru_out_1)[0]):
-                # XXX Hard coded, 0.5
-                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_1[i_nhs], 0.5)))
-                attn_weight = self.attn_step2(F.dropout(attn_weight, 0.5))
+                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_1[i_nhs], self.att1_dropout)))
+                attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
                     attn_weight_array = attn_weight
                     attn_weight_flag = True
                 else:
                     attn_weight_array = torch.cat((attn_weight_array, attn_weight), dim=1)
-            attn_weight_array = F.log_softmax(attn_weight_array, dim=1)
+            attn_weight_array = F.softmax(attn_weight_array, dim=1)
             attn_vect_1 = torch.squeeze(torch.bmm(gru_out_1.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
         elif pooling_mode in ['average']:
             pool_1 = F.adaptive_avg_pool1d(gru_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
@@ -421,26 +458,37 @@ class two_parallel_rnns(nn.Module):
             context_1 = context_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_1 = torch.cat((context_1, context_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
+        elif pooling_mode in ['context_layers']:
+            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, gru_out_1.shape[1], self.rnn_hidden_dim)
+            context_1 = context_1_fwd_bwd[0, 0]
+            for rlayer in range(1, self.rnn_n_layers):
+                context_1 = torch.cat((context_1, context_1_fwd_bwd[rlayer, 0]), dim=1)
+            if self.bidirectional:
+                context_1_bwd = context_1_fwd_bwd[0, 1]
+                for rlayer in range(1, self.rnn_n_layers):
+                    context_1_bwd = torch.cat((context_1_bwd, context_1_fwd_bwd[rlayer, 1]), dim=1)
+                context_1 = torch.cat((context_1, context_1_bwd), dim=1)
 
         self.h2 = self.init_hidden(x2_seq.size(1), device)
         x2_embs_not_packed = self.emb(x2_seq)
         x2_embs = pack_padded_sequence(x2_embs_not_packed, len2, enforce_sorted=False)
-        gru_out_2, self.h2 = self.gru_2(x2_embs, self.h2)
+        # Share parameters between two GRUs
+        # Previously, we had gru_out_2, self.h2 = self.gru_2(x2_embs, self.h2)
+        gru_out_2, self.h2 = self.gru_1(x2_embs, self.h2)
         gru_out_2, len2 = pad_packed_sequence(gru_out_2)
 
         if pooling_mode in ['attention']:
             attn_weight_flag = False
             attn_weight_array = False
             for i_nhs in range(np.shape(gru_out_2)[0]):
-                # XXX Hard coded, 0.5
-                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_2[i_nhs], 0.5)))
-                attn_weight = self.attn_step2(F.dropout(attn_weight, 0.5))
+                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_2[i_nhs], self.att1_dropout)))
+                attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
                     attn_weight_array = attn_weight
                     attn_weight_flag = True
                 else:
                     attn_weight_array = torch.cat((attn_weight_array, attn_weight), dim=1)
-            attn_weight_array = F.log_softmax(attn_weight_array, dim=1)
+            attn_weight_array = F.softmax(attn_weight_array, dim=1)
             attn_vect_2 = torch.squeeze(torch.bmm(gru_out_2.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
         elif pooling_mode in ['average']:
             pool_2 = F.adaptive_avg_pool1d(gru_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
@@ -451,8 +499,18 @@ class two_parallel_rnns(nn.Module):
             context_2 = context_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_2 = torch.cat((context_2, context_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
+        elif pooling_mode in ['context_layers']:
+            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, gru_out_2.shape[1], self.rnn_hidden_dim)
+            context_2 = context_2_fwd_bwd[0, 0]
+            for rlayer in range(1, self.rnn_n_layers):
+                context_2 = torch.cat((context_2, context_2_fwd_bwd[rlayer, 0]), dim=1)
+            if self.bidirectional:
+                context_2_bwd = context_2_fwd_bwd[0, 1]
+                for rlayer in range(1, self.rnn_n_layers):
+                    context_2_bwd = torch.cat((context_2_bwd, context_2_fwd_bwd[rlayer, 1]), dim=1)
+                context_2 = torch.cat((context_2, context_2_bwd), dim=1)
 
-        # XXX here we work with the outputs from GRU1 and GRU2
+        # Combine outputs from GRU1 and GRU2
         if pooling_mode in ['attention']:
             attn_vec_cat = torch.cat((attn_vect_1, attn_vect_2), dim=1)
             attn_vec_mul = attn_vect_1 * attn_vect_2
@@ -467,7 +525,7 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((pool_rnn_cat,
                                          pool_rnn_mul,
                                          pool_rnn_dif), dim=1)
-        elif pooling_mode in ['context']:
+        elif pooling_mode in ['context', 'context_layers']:
             context_rnn_cat = torch.cat((context_1, context_2), dim=1)
             context_rnn_mul = context_1 * context_2
             context_rnn_dif = context_1 - context_2
@@ -484,5 +542,4 @@ class two_parallel_rnns(nn.Module):
         first_dim = self.rnn_n_layers
         if self.bidirectional:
             first_dim *= 2
-        # XXX zero or random
         return Variable(torch.zeros((first_dim, batch_size, self.rnn_hidden_dim)).to(device))

@@ -10,13 +10,12 @@ Credits:
 
 - This project extensively uses the codes published in https://github.com/ruipds/Toponym-Matching. 
 
----
+### Run DeezyMatch
 
-Run DeezyMatch:
+After installing DeezyMatch on your machine, a new classifier can be trained by:
 
 ```bash
-python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test_model
-
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
 ---
@@ -24,16 +23,66 @@ python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test
 Fine-Tune a previously trained DeezyMatch model (using, for instance, only 100 training instances):
 
 ```bash
-python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f test_model -n 100 -m finetuned_model
-
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f test001 -n 100 -m finetuned_model
 ```
 
----
+DeezyMatch stores both the model and vocabulary used in the following directory structure:
 
-Installation:
+```bash
+models
+└── test001
+    ├── test001.model
+    └── test001.vocab
+```
+
+To fine-tune an existing model:
+
+```bash
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f ./models/test001/test001.model -m finetuned_test001
+```
+
+It is also possible to fine-tune on a limited number of rows (note `-n 100`)
+
+```bash
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f ./models/test001/test001.model -n 100 -m finetuned_test001
+```
+
+After fine-tuning, there are two models in the `models` directory:
+
+```bash
+models
+├── finetuned_test001
+│   ├── finetuned_test001.model
+│   └── finetuned_test001.vocab
+└── test001
+    ├── test001.model
+    └── test001.vocab
+```
+
+After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `inference_candidate_finder` directory for more information.
+
+### Installation
+
+We strongly recommend installation via Anaconda:
+
+1. Refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/).
+
+2. Create a new environment for DeezyMatch
+
+```bash
+conda create -n py37deezy python=3.7
+```
+
+3. Activate the environment:
+
+```bash
+conda activate py37deezy
+```
+
+3. Install DeezyMatch dependencies:
 
 ```
-conda env create -f environment.yaml
+pip install -r requirements.txt
 ```
 
 ---

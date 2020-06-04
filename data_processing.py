@@ -20,14 +20,16 @@ set_seed_everywhere(1364)
 
 
 # ------------------- csv_split_tokenize --------------------
-def csv_split_tokenize(dataset_path, n_train_examples=None,train_prop=0.7, val_prop=0.15, test_prop=0.15,
-                       preproc_steps=(True, True, True, False), max_seq_len=100, mode="char"):
+def csv_split_tokenize(dataset_path, n_train_examples=None,
+                       train_prop=0.7, val_prop=0.15, test_prop=0.15,
+                       preproc_steps=(True, True, True, False), 
+                       max_seq_len=100, mode="char", csv_sep="\t"):
 
     # --- read CSV file (dataset)
     cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
-    dataset_pd = pd.read_csv(dataset_path, sep="\t", header=None, usecols=[0, 1, 2])
+    dataset_pd = pd.read_csv(dataset_path, sep=csv_sep, header=None, usecols=[0, 1, 2])
     dataset_pd = dataset_pd.rename(columns={0: "s1", 1: "s2", 2: "label"})
-    # XXX remove faulty rows
+    # remove faulty rows
     dataset_pd = dataset_pd.drop(dataset_pd[~dataset_pd['label'].astype(str).str.contains("true|false", case=False)].index)
     dataset_pd.label.replace("(?i)TRUE", True, inplace=True, regex=True)
     dataset_pd.label.replace("(?i)FALSE", False, inplace=True, regex=True)
@@ -51,7 +53,7 @@ def csv_split_tokenize(dataset_path, n_train_examples=None,train_prop=0.7, val_p
         
         if n_train_examples:
             # number of positive examples
-            n_pos = round(int(n_train_examples)/2)
+            n_pos = int(int(n_train_examples)/2)
             n_train = n_pos
         else:
             n_train = int(train_prop * n_total)
@@ -113,7 +115,7 @@ def csv_split_tokenize(dataset_path, n_train_examples=None,train_prop=0.7, val_p
 def test_tokenize(dataset_path, train_vocab, 
                   preproc_steps=(True, True, True, False), 
                   max_seq_len=100, mode="char",
-                  cutoff=1000, 
+                  cutoff=None, 
                   save_test_class="./test_dc.df",
                   dataframe_input=False
                   ):
@@ -125,6 +127,7 @@ def test_tokenize(dataset_path, train_vocab,
         cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
         dataset_pd = pd.read_csv(dataset_path, sep="\t", header=None, usecols=[0, 1, 2])
         dataset_pd = dataset_pd.rename(columns={0: "s1", 1: "s2", 2: "label"})
+
     # XXX remove faulty rows
     dataset_pd = dataset_pd.drop(dataset_pd[~dataset_pd['label'].astype(str).str.contains("true|false", case=False)].index)
     dataset_pd.label.replace("(?i)TRUE", True, inplace=True, regex=True)
@@ -135,6 +138,8 @@ def test_tokenize(dataset_path, train_vocab,
     cprint('[INFO]', bc.lgreen, 'number of labels, True: {} and False: {}'.format(num_true, num_false))
 
     # instead of processing the entire dataset we first consider double the amount of the cutoff
+    if cutoff == None:
+        cutoff = len(dataset_pd)
     dataset_pd = dataset_pd[:cutoff*2]
     dataset_pd["s1_unicode"] = dataset_pd["s1"].apply(normalizeString, args=preproc_steps)
     dataset_pd["s2_unicode"] = dataset_pd["s2"].apply(normalizeString, args=preproc_steps)
@@ -156,6 +161,9 @@ def test_tokenize(dataset_path, train_vocab,
 
     if save_test_class:
         cprint('[INFO]', bc.dgreen, 'save test-data-class: {}'.format(save_test_class))
+        abs_path = os.path.abspath(save_test_class)
+        if not os.path.isdir(os.path.dirname(abs_path)):
+            os.makedirs(os.path.dirname(abs_path))
         test_dc.df.to_pickle(save_test_class)
 
     return test_dc 
