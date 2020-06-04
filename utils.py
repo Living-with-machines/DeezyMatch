@@ -84,10 +84,10 @@ def read_inputs_command():
     if os.path.exists(input_file_path) and os.path.exists(dataset_path):
         fine_tuning_model_path = None
         if fine_tuning_model:
-            if os.path.exists(fine_tuning_model):
-                fine_tuning_model_path = fine_tuning_model
-            else:
-                parser.exit(f"ERROR: model {fine_tuning_model} not found!")               
+            fine_tuning_model_path = os.path.join("models", fine_tuning_model,fine_tuning_model + '.model')            
+            if os.path.exists(fine_tuning_model_path) is False:
+                parser.exit(f"ERROR: model {fine_tuning_model} not found!")     
+                
         return input_file_path, dataset_path, model_name, fine_tuning_model_path, n_train_examples
     else:
         parser.exit("ERROR: Input file or dataset not found.")
