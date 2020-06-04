@@ -1,6 +1,6 @@
 general:
   use_gpu: True # only if available
-  gpu_device: "cuda" # specify CUDA device, these are 0-indexed, e.g., cuda:0, cuda:1 or others.
+  gpu_device: "cuda" # specify CUDA device, these are 0-indexed, e.g., cuda:0, cuda:1 or others. "cuda" is the default CUDA device
   models_dir: "./models"
 
 preprocessing:
