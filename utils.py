@@ -165,6 +165,7 @@ def read_inference_command():
         parser.add_argument("-n", "--number_examples")
         parser.add_argument("-mode", "--inference_mode", default="test")
         parser.add_argument("-qc", "--query_candidate_mode", default="q")
+        parser.add_argument("-sc", "--scenario")
         args = parser.parse_args()
         
         model_path = args.model_path
@@ -174,12 +175,13 @@ def read_inference_command():
         test_cutoff = args.number_examples
         inference_mode = args.inference_mode
         query_candidate_mode = args.query_candidate_mode
+        scenario = args.scenario
 
     except IndexError as error:
         cprint('[syntax error]', bc.red, 'syntax: python <modelInference.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff')
         sys.exit("[ERROR] {}".format(error))
     
-    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode
+    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode, scenario
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):
