@@ -20,7 +20,7 @@ set_seed_everywhere(1364)
 
 # ===== DeezyMatch
 # --- read command args
-input_file_path, dataset_path, model_name, pretrained_model_path, n_train_examples = \
+input_file_path, dataset_path, model_name, pretrained_model_path, pretrained_vocab_path, n_train_examples = \
     read_inputs_command()
 # --- read input file
 dl_inputs = read_input_file(input_file_path)

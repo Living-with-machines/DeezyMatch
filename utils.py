@@ -61,10 +61,12 @@ def read_inputs_command():
                     help="add the path of the dataset")
     
     parser.add_argument("-m", "--model_name",
-                    help="add the name of the model")
+                    help="add the name of the model to be saved")
     
     parser.add_argument("-f", "--fine_tuning",
-                    help="add the name of the model to be fine-tuned (model and vocab are in one directory), the fine-tuned model will be saved")
+                    help="add the path to the folder of the model to be fine-tuned (note: if you use -v, then you should provide here the path to the .model file)")
+    parser.add_argument("-v", "--vocabulary",
+                    help="add the path to the vocabulary to be used when fine-tuning (note: in this case -f should point to the .model file)")
 
     parser.add_argument("-n", "--number_training_examples",
                     help="the number of training examples to be used (optional)", 
@@ -75,6 +77,7 @@ def read_inputs_command():
     dataset_path = args.dataset_path
     model_name = args.model_name
     fine_tuning_model = args.fine_tuning
+    vocab_path = args.vocabulary
     n_train_examples = args.number_training_examples
     
     if input_file_path is None or dataset_path is None or model_name is None:
@@ -84,13 +87,42 @@ def read_inputs_command():
     if os.path.exists(input_file_path) and os.path.exists(dataset_path):
         fine_tuning_model_path = None
         if fine_tuning_model:
-            model_name = os.path.split(fine_tuning_model)[-1]
-            fine_tuning_model_path = os.path.join(fine_tuning_model,model_name + '.model')        
             
-            if os.path.exists(fine_tuning_model_path) is False:
-                parser.exit(f"ERROR: model {fine_tuning_model} not found!")     
+            if vocab_path:
+                if fine_tuning_model.endswith(".model") is False:
+                    parser.exit(f"ERROR: when using -v you need to provide with -f the path to the .model file")     
                 
-        return input_file_path, dataset_path, model_name, fine_tuning_model_path, n_train_examples
+                if vocab_path.endswith(".vocab") is False:
+                    parser.exit(f"ERROR: when using -v you need to provide the path to the .vocab file")     
+                
+                fine_tuning_model_path = fine_tuning_model 
+                if os.path.exists(fine_tuning_model_path) is False:
+                    parser.exit(f"ERROR: model {fine_tuning_model_path} not found!") 
+                
+                if os.path.exists(vocab_path) is False:
+                    parser.exit(f"ERROR: vocab {vocab} not found!")
+            
+            else:
+                fine_tuning_model_name = os.path.split(fine_tuning_model)[-1]
+                if fine_tuning_model_name.endswith(".model"):
+                        parser.exit(f"ERROR: with -f you need to provide the path to the model folder, not the .model file")     
+
+                if os.path.exists(fine_tuning_model) is False:
+                        parser.exit(f"ERROR: model folder {fine_tuning_model} not found!") 
+                
+                fine_tuning_model_path = os.path.join(fine_tuning_model,fine_tuning_model_name + '.model')   
+                vocab_path = os.path.join(fine_tuning_model,fine_tuning_model_name + '.vocab')   
+                    
+                if os.path.exists(fine_tuning_model_path) is False:
+                    parser.exit(f"ERROR: model {fine_tuning_model_path} not found!") 
+
+                if os.path.exists(vocab_path) is False:
+                    parser.exit(f"ERROR: vocab {vocab_path} not found!") 
+
+                    
+                
+                
+        return input_file_path, dataset_path, model_name, fine_tuning_model_path, vocab_path, n_train_examples
     else:
         parser.exit("ERROR: Input file or dataset not found.")
 
