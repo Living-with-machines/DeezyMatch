@@ -172,7 +172,8 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         epochs=epochs,
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
-        tboard_path=dl_inputs['gru_lstm']['create_tensor_board']
+        tboard_path=dl_inputs['gru_lstm']['create_tensor_board'],
+        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name)
         )
 
     # --- save the model
@@ -182,6 +183,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
                               model_name + '.model')
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
+
     torch.save(pretrained_model, model_path)
 
     """
@@ -282,7 +284,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                     datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
             cprint('[INFO]', bc.orange, epoch_log)
             if model_path:
-                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+                log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
             else:
                 log_message(epoch_log + "\n", mode="a+")
 
@@ -333,7 +335,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1)
             cprint('[INFO]', bc.lred, epoch_log)
             if model_path:
-                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+                log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
             else:
                 log_message(epoch_log + "\n", mode="a+")
 
@@ -411,7 +413,14 @@ class two_parallel_rnns(nn.Module):
         self.fc2 = nn.Linear(self.fc1_out_features, self.output_dim)
 
     # ------------------- forward 
-    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='context', device="cpu", output_state_vectors=False):
+    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='context', device="cpu", output_state_vectors=False, evaluation=False):
+
+        if evaluation:
+            # XXX Set dropouts to zero manually
+            self.att1_dropout = 0
+            self.att2_dropout = 0
+            self.fc1_dropout = 0
+            self.fc2_dropout = 0
 
         if output_state_vectors:
             create_parent_dir(output_state_vectors)
