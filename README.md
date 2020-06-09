@@ -20,10 +20,23 @@ python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test
 
 ---
 
-Fine-Tune a previously trained DeezyMatch model (using, for instance, only 100 training instances):
+To fine-tune a previously trained DeezyMatch mode:
+1. Print available layers in the model
 
 ```bash
-python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f test001 -n 100 -m finetuned_model
+python DeezyMatch.py -pm /path/to/model/wikigaz_contlayers_010.model
+```
+
+2. Modify the input file:
+
+```bash
+layers_to_freeze: ["emb", "gru_1", "attn"]
+```
+
+3. Fine-tune on the dataset:
+
+```bash
+python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f ./models/test001 -n 100 -m finetuned_model
 ```
 
 DeezyMatch stores both the model and vocabulary used in the following directory structure:
