@@ -140,14 +140,20 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     
     pretrained_model = torch.load(pretrained_model_path, map_location=torch.device(device))
     
-    # XXX layers_to_freeze = ["emb","gru","fc1","fc2","attn"]
-    layers_to_freeze = []
-    
+    layers_to_freeze = dl_inputs['gru_lstm']['layers_to_freeze']
+    for one_layer in layers_to_freeze:
+        for name, param in pretrained_model.named_parameters():
+            if one_layer in name:
+                param.requires_grad = False
+
+    print("\n")
+    print(20*"===")
+    print(f"List all parameters in the model")
+    print(20*"===")
     for name, param in pretrained_model.named_parameters():
         n = name.split(".")[0].split("_")[0]
-        if n in layers_to_freeze:
-            param.requires_grad = False
-            print (name, param.requires_grad)
+        print(name, param.requires_grad)
+    print(20*"===")
     
     if dl_inputs['gru_lstm']['optimizer'].lower() in ['adam']:
         opt = optim.Adam(filter(lambda p: p.requires_grad, pretrained_model.parameters()), learning_rate)

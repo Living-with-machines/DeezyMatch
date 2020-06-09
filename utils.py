@@ -86,13 +86,23 @@ def read_inputs_command():
     parser.add_argument("-ld", "--log_dataset",
                     help="Name of the dataset for which the log will be plotted. This name is used in the figures. See -lp flag.", 
                     default=None)
+
+    parser.add_argument("-pm", "--print_model_layers",
+                    help="Print all the layers in a saved model.", 
+                    default=None)
     
     args = parser.parse_args()
+
     if args.log_plot:
         if not args.log_dataset:
             parser.exit("ERROR: -ld is not defined.")
         log_plotter(args.log_plot, args.log_dataset)
-        sys.exit("Exit normally.")
+        sys.exit("Exit normally")
+
+    if args.print_model_layers:
+        model_explorer(args.print_model_layers)
+        sys.exit("Exit normally")
+
     input_file_path = args.input_file_path
     dataset_path = args.dataset_path
     model_name = args.model_name
@@ -231,6 +241,24 @@ def read_input_file(input_file_path):
         dl_inputs['general']['device'] = device
         cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
     return dl_inputs
+
+# ------------------- model_explorer --------------------
+def model_explorer(model_path):
+    """Output all the layers in a model"""
+    pretrained_model = torch.load(model_path)
+
+    print("\n")
+    print(20*"===")
+    print(f"List all parameters in {model_path}")
+    print(20*"===")
+    for name, param in pretrained_model.named_parameters():
+        n = name.split(".")[0].split("_")[0]
+        print(name, param.requires_grad)
+    print(20*"===")
+    print("Any of the above parameters can be freezed for fine-tuning.")
+    print("You can also input, e.g., 'gru_1' and in this case, all weights/biases related to that layer will be freezed.")
+    print("See input file.")
+    print(20*"===")
 
 # ------------------- log_message --------------------
 def log_message(msg2push, filename="./log.txt", mode="w"):
