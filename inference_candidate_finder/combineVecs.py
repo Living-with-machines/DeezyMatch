@@ -71,6 +71,7 @@ elif qc_mode == "c":
 
 print(f"\n\nReading vectors from {path2vecs}")
 list_files = glob.glob(os.path.join(path2vecs))
+list_files.sort()
 vecs = []
 for lfile in list_files:
     print(lfile)
@@ -80,8 +81,9 @@ for lfile in list_files:
         vecs = torch.cat((vecs, torch.load(f"{lfile}")))
 torch.save(vecs, path_vec_combined)
 
-vecs_ids = []
 list_files = glob.glob(os.path.join(path2ids))
+list_files.sort()
+vecs_ids = []
 for lfile in list_files: 
     print(lfile)
     if len(vecs_ids) == 0:

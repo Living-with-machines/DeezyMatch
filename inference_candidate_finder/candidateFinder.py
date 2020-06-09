@@ -99,12 +99,12 @@ for iq in range(len(vecs_query)):
     
         # Candidates
         orig_id_candis = vecs_ids_candidates[found_neighbours[1][0, id_0_neigh:id_1_neigh]]
-        all_candidates = vecs_items_candidates[found_neighbours[1][0, id_0_neigh:id_1_neigh]]
+        all_candidates = vecs_items_candidates[orig_id_candis]
     
         # Queries
         orig_id_queries = vecs_ids_query[iq].item()
-        all_queries = [vecs_items_query[iq]]*(id_1_neigh - id_0_neigh)
-    
+        all_queries = [vecs_items_query[orig_id_queries]]*(id_1_neigh - id_0_neigh)
+
         query_candidate_pd = pd.DataFrame(all_queries, columns=['s1'])
         query_candidate_pd['s2'] = all_candidates
         query_candidate_pd['label'] = "False"
@@ -134,11 +134,11 @@ for iq in range(len(vecs_query)):
         mydict_candid_id[row["s2"]] = row["s2_orig_ids"]
     one_row = {
         "id": orig_id_queries, 
-        "toponym": vecs_items_query[iq], 
+        "toponym": all_queries[0], 
         #"DeezyMatch_score": [mydict_dl_match], 
         "faiss_distance": [mydict_faiss_dist], 
         "candidate_original_ids": [mydict_candid_id], 
-        "query_original_id": vecs_ids_query[iq].item(),
+        "query_original_id": orig_id_queries,
         "num_all_searches": id_1_neigh 
         }
     output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
