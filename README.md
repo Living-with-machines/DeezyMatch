@@ -137,7 +137,7 @@ models/
 |   |-- finetuned_test001.model
 |   |-- finetuned_test001.vocab
 |   |-- input_dfm.yaml
-|   `-- log.txt
+|   |-- log.txt
 |-- test001
 |   |-- checkpoint00000.model
 |   |-- checkpoint00001.model
@@ -147,7 +147,7 @@ models/
 |   |-- input_dfm.yaml
 |   |-- log.txt
 |   |-- test001.model
-|   `-- test001.vocab
+|   |-- test001.vocab
 ```
 
 After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `inference_candidate_finder` directory for more information.
