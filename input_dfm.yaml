@@ -14,7 +14,7 @@ preprocessing:
 # --- GRU/LSTM architecture/misc info
 gru_lstm:
   # main_architecture: gru or lstm (not implemented)?
-  # mode: char or word, character or word-level tokenization?
+  # mode: char or word or bigram, character or word-level tokenization?
   # bidirectional: f True, becomes a bidirectional GRU/LSTM
   # num_layers: number of recurrent layers. E.g., setting num_layers=2 would mean stacking two GRU/LSTMs together to form a stacked GRU/LSTM,
   #             with the second GRU/LSTM taking in outputs of the first GRU/LSTM and computing the final results.
@@ -44,10 +44,10 @@ gru_lstm:
   bidirectional: True
   num_layers: 2
   fc1_out_dim: 120
-  pooling_mode: 'context'
-  gru_dropout: 0.2
-  fc_dropout: [0.2, 0.2]  # fully-connected layers dropout depends on the number of fc layers (currently there are two)
-  att_dropout: [0.2, 0.2] # attention layer dropout depends on the number of attention layers (currently there are two)
+  pooling_mode: 'context_layers_simple'
+  gru_dropout: 0.01
+  fc_dropout: [0.01, 0.01]  # fully-connected layers dropout depends on the number of fc layers (currently there are two)
+  att_dropout: [0.01, 0.01] # attention layer dropout depends on the number of attention layers (currently there are two)
   bias: True
 
   rnn_hidden_dim: 60
@@ -70,6 +70,9 @@ gru_lstm:
 
   #create_tensor_board: "./tb_gru_test" 
   create_tensor_board: False
+
+  #Layers to freeze during fine-tuning
+  layers_to_freeze: ["emb", "gru_1", "attn"]
 
 inference:
  candidate_mode:
