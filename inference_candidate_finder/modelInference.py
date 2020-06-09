@@ -100,7 +100,8 @@ test_acc, test_pre, test_rec, test_f1 = test_model(model,
                                                    device=dl_inputs['general']['device'],
                                                    batch_size=dl_inputs['gru_lstm']['batch_size'],
                                                    output_state_vectors=output_state_vectors, 
-                                                   shuffle=False
+                                                   shuffle=False,
+                                                   evaluation=True
                                                    )
 
 cprint('[INFO]', bc.lred,
