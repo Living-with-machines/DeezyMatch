@@ -42,8 +42,14 @@ def set_seed_everywhere(seed):
 
 
 # ------------------- string_split --------------------
-def string_split(x):
-    return [sub_x for sub_x in x]
+def string_split(x, ngram=1):
+    if ngram == 1:
+        return [sub_x for sub_x in x]
+    else:
+        if len(x) <= 1:
+            return [sub_x for sub_x in x]
+        else:
+            return [x[i:i+ngram] for i in range(len(x)-ngram+1)]
 
 
 # ------------------- read_inputs_command --------------------
