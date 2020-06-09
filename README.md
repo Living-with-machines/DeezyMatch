@@ -61,6 +61,12 @@ models
 
 After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `inference_candidate_finder` directory for more information.
 
+To plot the log file:
+
+```bash
+python DeezyMatch.py -lp /path/to/log.txt -ld wikigaz_contlayers_010
+```
+
 ### Installation
 
 We strongly recommend installation via Anaconda:

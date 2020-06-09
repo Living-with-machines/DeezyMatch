@@ -78,8 +78,21 @@ def read_inputs_command():
     parser.add_argument("-n", "--number_training_examples",
                     help="the number of training examples to be used (optional)", 
                     default=None)
+
+    parser.add_argument("-lp", "--log_plot",
+                    help="Plot a log file and exit. In this case, you need to specify -ld flag as well.", 
+                    default=None)
+
+    parser.add_argument("-ld", "--log_dataset",
+                    help="Name of the dataset for which the log will be plotted. This name is used in the figures. See -lp flag.", 
+                    default=None)
     
     args = parser.parse_args()
+    if args.log_plot:
+        if not args.log_dataset:
+            parser.exit("ERROR: -ld is not defined.")
+        log_plotter(args.log_plot, args.log_dataset)
+        sys.exit("Exit normally.")
     input_file_path = args.input_file_path
     dataset_path = args.dataset_path
     model_name = args.model_name
@@ -455,4 +468,3 @@ def log_plotter(path2log, dataset="DEFAULT"):
     
     plt.tight_layout()
     plt.savefig(f"log_{dataset}.png", dpi=300)
-
