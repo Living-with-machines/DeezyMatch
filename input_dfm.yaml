@@ -57,7 +57,7 @@ gru_lstm:
 
   learning_rate: 0.001
   optimizer: adam
-  epochs: 20
+  epochs: 5
   batch_size: 256
   dl_shuffle: True 
   random_seed: 123
