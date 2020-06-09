@@ -84,7 +84,7 @@ def csv_split_tokenize(dataset_path, n_train_examples=None,
     if mode.lower() in ["char", "character"]:
         dataset_split["s1_unicode"] = dataset_split["s1_unicode"].apply(lambda x: string_split(x))
         dataset_split["s2_unicode"] = dataset_split["s2_unicode"].apply(lambda x: string_split(x))
-    elif mode.lower() in ["bigram"]:
+    elif mode.lower() in ["bigram", "bigrams"]:
         dataset_split["s1_unicode"] = dataset_split["s1_unicode"].apply(lambda x: string_split(x, ngram=2))
         dataset_split["s2_unicode"] = dataset_split["s2_unicode"].apply(lambda x: string_split(x, ngram=2))
     elif mode.lower() in ["word"]:
