@@ -108,6 +108,8 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         s2_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s2_unicode]
 
         to_be_removed = [x for x in range(len(s1_indx)) if len(s1_indx[x])==0 or len(s2_indx[x])==0]
+        
+        dataset_split.drop(dataset_split.index[to_be_removed], axis=0, inplace=True)
 
         dataset_split['s1_indx'] = [s1_indx[x] for x in range(len(s1_indx)) if x not in to_be_removed]
         dataset_split['s2_indx'] = [s2_indx[x] for x in range(len(s2_indx)) if x not in to_be_removed]
