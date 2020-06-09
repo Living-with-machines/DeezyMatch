@@ -39,7 +39,7 @@ if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['validation']:
     val_prop = dl_inputs['gru_lstm']['val_proportion']
     test_prop = dl_inputs['gru_lstm']['test_proportion']
     train_dc, valid_dc, test_dc, dataset_vocab = csv_split_tokenize(
-        dataset_path, n_train_examples, train_prop, val_prop, test_prop,
+        dataset_path, pretrained_vocab_path, n_train_examples, train_prop, val_prop, test_prop,
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
