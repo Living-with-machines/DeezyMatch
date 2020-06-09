@@ -140,14 +140,20 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     
     pretrained_model = torch.load(pretrained_model_path, map_location=torch.device(device))
     
-    # XXX layers_to_freeze = ["emb","gru","fc1","fc2","attn"]
-    layers_to_freeze = []
-    
+    layers_to_freeze = dl_inputs['gru_lstm']['layers_to_freeze']
+    for one_layer in layers_to_freeze:
+        for name, param in pretrained_model.named_parameters():
+            if one_layer in name:
+                param.requires_grad = False
+
+    print("\n")
+    print(20*"===")
+    print(f"List all parameters in the model")
+    print(20*"===")
     for name, param in pretrained_model.named_parameters():
         n = name.split(".")[0].split("_")[0]
-        if n in layers_to_freeze:
-            param.requires_grad = False
-            print (name, param.requires_grad)
+        print(name, param.requires_grad)
+    print(20*"===")
     
     if dl_inputs['gru_lstm']['optimizer'].lower() in ['adam']:
         opt = optim.Adam(filter(lambda p: p.requires_grad, pretrained_model.parameters()), learning_rate)
@@ -172,7 +178,8 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         epochs=epochs,
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
-        tboard_path=dl_inputs['gru_lstm']['create_tensor_board']
+        tboard_path=dl_inputs['gru_lstm']['create_tensor_board'],
+        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name)
         )
 
     # --- save the model
@@ -182,6 +189,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
                               model_name + '.model')
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
+
     torch.save(pretrained_model, model_path)
 
     """
@@ -282,7 +290,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                     datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
             cprint('[INFO]', bc.orange, epoch_log)
             if model_path:
-                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+                log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
             else:
                 log_message(epoch_log + "\n", mode="a+")
 
@@ -312,7 +320,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 len1 = len1.numpy()
                 len2 = len2.numpy()
 
-                pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device)
+                pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, evaluation=True)
                 loss = loss_fn(pred, y)
 
                 t_valid.set_postfix(loss=loss.data)
@@ -333,7 +341,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1)
             cprint('[INFO]', bc.lred, epoch_log)
             if model_path:
-                log_message(epoch_log + "\n", mode="a", filename=os.path.join(model_path, "log.txt"))
+                log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
             else:
                 log_message(epoch_log + "\n", mode="a+")
 
@@ -385,6 +393,8 @@ class two_parallel_rnns(nn.Module):
             fc1_multiplier = 4
         elif self.pooling_mode in ["context_layers"]:
             fc1_multiplier = 8
+        elif self.pooling_mode in ["context_layers_simple"]:
+            fc1_multiplier = 4
         else:
             fc1_multiplier = 4
 
@@ -411,7 +421,14 @@ class two_parallel_rnns(nn.Module):
         self.fc2 = nn.Linear(self.fc1_out_features, self.output_dim)
 
     # ------------------- forward 
-    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='context', device="cpu", output_state_vectors=False):
+    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='context', device="cpu", output_state_vectors=False, evaluation=False):
+
+        if evaluation:
+            # XXX Set dropouts to zero manually
+            self.att1_dropout = 0
+            self.att2_dropout = 0
+            self.fc1_dropout = 0
+            self.fc2_dropout = 0
 
         if output_state_vectors:
             create_parent_dir(output_state_vectors)
@@ -458,7 +475,7 @@ class two_parallel_rnns(nn.Module):
             context_1 = context_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_1 = torch.cat((context_1, context_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['context_layers']:
+        elif pooling_mode in ['context_layers', 'context_layers_simple']:
             context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, gru_out_1.shape[1], self.rnn_hidden_dim)
             context_1 = context_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -499,7 +516,7 @@ class two_parallel_rnns(nn.Module):
             context_2 = context_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_2 = torch.cat((context_2, context_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['context_layers']:
+        elif pooling_mode in ['context_layers', 'context_layers_simple']:
             context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, gru_out_2.shape[1], self.rnn_hidden_dim)
             context_2 = context_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -532,6 +549,8 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((context_rnn_cat,
                                          context_rnn_mul,
                                          context_rnn_dif), dim=1)
+        elif pooling_mode in ['context_layers_simple']:
+            output_combined = torch.cat((context_1, context_2), dim=1)
 
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))

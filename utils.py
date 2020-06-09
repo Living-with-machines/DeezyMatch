@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from datetime import datetime
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
@@ -42,8 +43,14 @@ def set_seed_everywhere(seed):
 
 
 # ------------------- string_split --------------------
-def string_split(x):
-    return [sub_x for sub_x in x]
+def string_split(x, ngram=1):
+    if ngram == 1:
+        return [sub_x for sub_x in x]
+    else:
+        if len(x) <= 1:
+            return [sub_x for sub_x in x]
+        else:
+            return [x[i:i+ngram] for i in range(len(x)-ngram+1)]
 
 
 # ------------------- read_inputs_command --------------------
@@ -71,8 +78,31 @@ def read_inputs_command():
     parser.add_argument("-n", "--number_training_examples",
                     help="the number of training examples to be used (optional)", 
                     default=None)
+
+    parser.add_argument("-lp", "--log_plot",
+                    help="Plot a log file and exit. In this case, you need to specify -ld flag as well.", 
+                    default=None)
+
+    parser.add_argument("-ld", "--log_dataset",
+                    help="Name of the dataset for which the log will be plotted. This name is used in the figures. See -lp flag.", 
+                    default=None)
+
+    parser.add_argument("-pm", "--print_model_layers",
+                    help="Print all the layers in a saved model.", 
+                    default=None)
     
     args = parser.parse_args()
+
+    if args.log_plot:
+        if not args.log_dataset:
+            parser.exit("ERROR: -ld is not defined.")
+        log_plotter(args.log_plot, args.log_dataset)
+        sys.exit("Exit normally")
+
+    if args.print_model_layers:
+        model_explorer(args.print_model_layers)
+        sys.exit("Exit normally")
+
     input_file_path = args.input_file_path
     dataset_path = args.dataset_path
     model_name = args.model_name
@@ -165,6 +195,7 @@ def read_inference_command():
         parser.add_argument("-n", "--number_examples")
         parser.add_argument("-mode", "--inference_mode", default="test")
         parser.add_argument("-qc", "--query_candidate_mode", default="q")
+        parser.add_argument("-sc", "--scenario")
         args = parser.parse_args()
         
         model_path = args.model_path
@@ -174,12 +205,13 @@ def read_inference_command():
         test_cutoff = args.number_examples
         inference_mode = args.inference_mode
         query_candidate_mode = args.query_candidate_mode
+        scenario = args.scenario
 
     except IndexError as error:
         cprint('[syntax error]', bc.red, 'syntax: python <modelInference.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff')
         sys.exit("[ERROR] {}".format(error))
     
-    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode
+    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode, scenario
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):
@@ -209,6 +241,24 @@ def read_input_file(input_file_path):
         dl_inputs['general']['device'] = device
         cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
     return dl_inputs
+
+# ------------------- model_explorer --------------------
+def model_explorer(model_path):
+    """Output all the layers in a model"""
+    pretrained_model = torch.load(model_path)
+
+    print("\n")
+    print(20*"===")
+    print(f"List all parameters in {model_path}")
+    print(20*"===")
+    for name, param in pretrained_model.named_parameters():
+        n = name.split(".")[0].split("_")[0]
+        print(name, param.requires_grad)
+    print(20*"===")
+    print("Any of the above parameters can be freezed for fine-tuning.")
+    print("You can also input, e.g., 'gru_1' and in this case, all weights/biases related to that layer will be freezed.")
+    print("See input file.")
+    print(20*"===")
 
 # ------------------- log_message --------------------
 def log_message(msg2push, filename="./log.txt", mode="w"):
@@ -332,9 +382,117 @@ def torch_summarize(model, show_weights=True, show_parameters=True):
     print(tmpstr)
     print(20*"=" + "\n\n")
 
-
 # ------------------- create_parent_dir --------------------
 def create_parent_dir(file_path):
     output_par_dir = os.path.abspath(os.path.join(file_path, os.pardir))
     if not os.path.isdir(output_par_dir):
         os.mkdir(output_par_dir)
+
+# ------------------- log_plotter --------------------
+def log_plotter(path2log, dataset="DEFAULT"):
+    """Plot the generated log file for each model"""
+    log_fio = open(path2log, "r")
+    log = log_fio.readlines()
+
+    # collect info of train and valid sets
+    train_arr = []
+    valid_arr = []
+    time_arr = []
+    for one_line in log[3:]:
+        line_split = one_line.split()
+        datetime_str = line_split[0]
+        epoch = int(line_split[3].split("/")[0])
+        loss = float(line_split[6][:-1])
+        acc = float(line_split[8][:-1])
+        prec = float(line_split[10][:-1])
+        recall = float(line_split[12][:-1])
+        f1 = float(line_split[14])
+    
+        if line_split[4] in ["train"]:
+            train_arr.append([epoch, loss, acc, prec, recall, f1])
+            time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
+        elif line_split[4] in ["valid"]:
+            valid_arr.append([epoch, loss, acc, prec, recall, f1])
+    
+    diff_time = []
+    for i in range(len(time_arr)-1):
+        diff_time.append((time_arr[i+1] - time_arr[i]).seconds)
+    total_time = (time_arr[-1] - time_arr[0]).seconds
+    
+    print(f"Dataset: {dataset}\nTime: {total_time}s")
+    print(f"Dataset: {dataset}\nTime / epoch: {total_time/(len(time_arr)-1):.3f}s")
+    
+    train_arr = np.array(train_arr)
+    valid_arr = np.array(valid_arr)
+    min_valid_arg = np.argmin(valid_arr[:, 1])
+    
+    plt.figure(figsize=(15, 12))
+    plt.subplot(3, 2, 1)
+    plt.plot(train_arr[:, 0], train_arr[:, 1], label="train loss", c="k", lw=2)
+    plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2)
+    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
+             f"Epoch: {min_valid_arg}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
+    plt.xlabel("Epoch", size=18)
+    plt.ylabel("Loss", size=18)
+    plt.legend(fontsize=14, loc=7)
+    plt.xticks(size=14)
+    plt.yticks(size=14)
+    plt.grid()
+    
+    plt.subplot(3, 2, 2)
+    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train F1", c="k", lw=2)
+    plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid F1", c='r', lw=2)
+    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
+             f"Epoch: {min_valid_arg}, F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+    plt.xlabel("Epoch", size=18)
+    plt.ylabel("F1", size=18)
+    plt.legend(fontsize=14, loc=4)
+    plt.xticks(size=14)
+    plt.yticks(size=14)
+    plt.grid()
+    
+    plt.subplot(3, 2, 3)
+    plt.plot(train_arr[:, 0], train_arr[:, 2], label="train acc", c="k", lw=2)
+    plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2)
+    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
+             f"Epoch: {min_valid_arg}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
+    plt.xlabel("Epoch", size=18)
+    plt.ylabel("Accuracy", size=18)
+    plt.legend(fontsize=14, loc=4)
+    plt.xticks(size=14)
+    plt.yticks(size=14)
+    plt.grid()
+    
+    plt.subplot(3, 2, 4)
+    plt.plot(train_arr[:, 0], train_arr[:, 3], label="train prec", c="k", ls="-", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 4], label="train recall", c="k", ls="--", lw=2)
+    plt.plot(valid_arr[:, 0], valid_arr[:, 3], label="valid prec", c='r', ls="-", lw=2)
+    plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2)
+    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
+             f"Epoch: {min_valid_arg}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
+    plt.xlabel("Epoch", size=18)
+    plt.ylabel("Precision/Recall", size=18)
+    plt.legend(fontsize=14, loc=4)
+    plt.xticks(size=14)
+    plt.yticks(size=14)
+    plt.grid()
+    
+    plt.subplot(3, 2, 5)
+    plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
+    plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
+    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 
+             f"Epoch: {min_valid_arg}, Time to solution: {np.cumsum(diff_time[:min_valid_arg])[-1]}s", fontsize=12, color="r")
+    plt.xlabel("Epoch", size=18)
+    plt.ylabel("Time (each epoch) / sec", size=18)
+    plt.xticks(size=14)
+    plt.yticks(size=14)
+    plt.ylim(min(diff_time)*0.97)
+    plt.grid()
+    
+    plt.tight_layout()
+    plt.savefig(f"log_{dataset}.png", dpi=300)

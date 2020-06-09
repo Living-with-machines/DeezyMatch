@@ -8,7 +8,7 @@ import re
 import time
 from tqdm import tqdm
 import unicodedata
-
+import pickle
 from torch.utils.data import Dataset
 
 from utils import cprint, bc
@@ -20,7 +20,7 @@ set_seed_everywhere(1364)
 
 
 # ------------------- csv_split_tokenize --------------------
-def csv_split_tokenize(dataset_path, n_train_examples=None,
+def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_examples=None,
                        train_prop=0.7, val_prop=0.15, test_prop=0.15,
                        preproc_steps=(True, True, True, False), 
                        max_seq_len=100, mode="char", csv_sep="\t"):
@@ -84,6 +84,9 @@ def csv_split_tokenize(dataset_path, n_train_examples=None,
     if mode.lower() in ["char", "character"]:
         dataset_split["s1_unicode"] = dataset_split["s1_unicode"].apply(lambda x: string_split(x))
         dataset_split["s2_unicode"] = dataset_split["s2_unicode"].apply(lambda x: string_split(x))
+    elif mode.lower() in ["bigram", "bigrams"]:
+        dataset_split["s1_unicode"] = dataset_split["s1_unicode"].apply(lambda x: string_split(x, ngram=2))
+        dataset_split["s2_unicode"] = dataset_split["s2_unicode"].apply(lambda x: string_split(x, ngram=2))
     elif mode.lower() in ["word"]:
         dataset_split["s1_unicode"] = dataset_split["s1_unicode"].apply(lambda x: x.split())
         dataset_split["s2_unicode"] = dataset_split["s2_unicode"].apply(lambda x: x.split())
@@ -98,8 +101,26 @@ def csv_split_tokenize(dataset_path, n_train_examples=None,
     cprint('[INFO]', bc.dgreen, "-- convert tokens to indices")
     s1_unicode = dataset_split['s1_unicode'].to_list()
     s2_unicode = dataset_split['s2_unicode'].to_list()
-    dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
-    dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
+    
+    if pretrained_vocab_path:
+        with open(pretrained_vocab_path, 'rb') as handle:
+            pretrained_vocab = pickle.load(handle)
+        
+        # XXX we need to document the following lines
+        s1_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s1_unicode]
+        s2_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s2_unicode]
+
+        to_be_removed = [x for x in range(len(s1_indx)) if len(s1_indx[x])==0 or len(s2_indx[x])==0]
+        
+        dataset_split.drop(dataset_split.index[to_be_removed], axis=0, inplace=True)
+
+        dataset_split['s1_indx'] = [s1_indx[x] for x in range(len(s1_indx)) if x not in to_be_removed]
+        dataset_split['s2_indx'] = [s2_indx[x] for x in range(len(s2_indx)) if x not in to_be_removed]
+                
+    else:
+
+        dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
+        dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
 
     with pd.option_context('mode.chained_assignment', None):
         train_dc = DatasetClass(dataset_split.loc[dataset_split['split'] == 'train'], dataset_vocab, maxlen=max_seq_len)

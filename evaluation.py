@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import os
+import numpy as np
 from tqdm import tqdm, tnrange
 
 import torch
@@ -18,7 +19,8 @@ set_seed_everywhere(1364)
 
 # ------------------- test_model --------------------
 def test_model(model, test_dc, pooling_mode='attention', device='cpu', batch_size=256, 
-               output_state_vectors=False, output_preds=False, shuffle=False):
+               output_state_vectors=False, output_preds=False, shuffle=False, evaluation=True,
+               output_preds_file="./pred_results.txt"):
 
     model.eval()
 
@@ -34,6 +36,8 @@ def test_model(model, test_dc, pooling_mode='attention', device='cpu', batch_siz
 
     # XXX HARD CODED! Also in rnn_networks
     loss_fn=F.nll_loss
+    # In first dump of the results, we add a header to the output file
+    first_dump = True
 
     wtest_counter = 0
     t_test = tqdm(iter(test_dl), leave=False, total=num_batch_test)
@@ -57,7 +61,7 @@ def test_model(model, test_dc, pooling_mode='attention', device='cpu', batch_siz
         len2 = len2.numpy()
 
         with torch.no_grad():
-            pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, output_state_vectors=output_state_vectors)
+            pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, output_state_vectors=output_state_vectors, evaluation=evaluation)
             if output_state_vectors:
                 continue
 
@@ -72,6 +76,22 @@ def test_model(model, test_dc, pooling_mode='attention', device='cpu', batch_siz
 
             y_true_test += list(y.cpu().data.numpy())
             y_pred_test += list(pred_idx.cpu().data.numpy())
+
+            pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
+                                      test_dl.dataset.df.loc[indxs]["s2_unicode"].to_numpy(), 
+                                      pred_idx.cpu().data.numpy().T, 
+                                      torch.exp(pred).T.cpu().data.numpy(), 
+                                      y.cpu().data.numpy().T])
+            with open(output_preds_file, "a+") as pred_f:
+                if first_dump:
+                    np.savetxt(pred_f, pred_results.T, 
+                               fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t', 
+                               header="s1_unicode\ts2_unicode\tprediction\tp0\tp1\tlabel")
+                    first_time = False
+                else:
+                    np.savetxt(pred_f, pred_results.T, 
+                               fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t')
+
             total_loss_test += loss.data
 
     if output_preds:
