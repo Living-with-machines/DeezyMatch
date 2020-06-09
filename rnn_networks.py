@@ -314,7 +314,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 len1 = len1.numpy()
                 len2 = len2.numpy()
 
-                pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device)
+                pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, evaluation=True)
                 loss = loss_fn(pred, y)
 
                 t_valid.set_postfix(loss=loss.data)
@@ -387,6 +387,8 @@ class two_parallel_rnns(nn.Module):
             fc1_multiplier = 4
         elif self.pooling_mode in ["context_layers"]:
             fc1_multiplier = 8
+        elif self.pooling_mode in ["context_layers_simple"]:
+            fc1_multiplier = 4
         else:
             fc1_multiplier = 4
 
@@ -467,7 +469,7 @@ class two_parallel_rnns(nn.Module):
             context_1 = context_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_1 = torch.cat((context_1, context_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['context_layers']:
+        elif pooling_mode in ['context_layers', 'context_layers_simple']:
             context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, gru_out_1.shape[1], self.rnn_hidden_dim)
             context_1 = context_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -508,7 +510,7 @@ class two_parallel_rnns(nn.Module):
             context_2 = context_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_2 = torch.cat((context_2, context_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['context_layers']:
+        elif pooling_mode in ['context_layers', 'context_layers_simple']:
             context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, gru_out_2.shape[1], self.rnn_hidden_dim)
             context_2 = context_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -541,6 +543,8 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((context_rnn_cat,
                                          context_rnn_mul,
                                          context_rnn_dif), dim=1)
+        elif pooling_mode in ['context_layers_simple']:
+            output_combined = torch.cat((context_1, context_2), dim=1)
 
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))
