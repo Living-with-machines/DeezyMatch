@@ -20,7 +20,7 @@ set_seed_everywhere(1364)
 
 
 # ------------------- csv_split_tokenize --------------------
-def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_examples=None,
+def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_examples=None, missing_char_threshold=0.5,
                        train_prop=0.7, val_prop=0.15, test_prop=0.15,
                        preproc_steps=(True, True, True, False), 
                        max_seq_len=100, mode="char", csv_sep="\t"):
@@ -110,8 +110,10 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         s1_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s1_unicode]
         s2_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s2_unicode]
 
-        to_be_removed = [x for x in range(len(s1_indx)) if len(s1_indx[x])==0 or len(s2_indx[x])==0]
+        to_be_removed = [x for x in range(len(s1_indx)) if len(s1_indx[x]) / max(1, len(s1_unicode[x])) < missing_char_threshold and len(s2_indx[x]) / max(1, len(s2_unicode[x])) < missing_char_threshold]
         
+        cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
+
         dataset_split.drop(dataset_split.index[to_be_removed], axis=0, inplace=True)
 
         dataset_split['s1_indx'] = [s1_indx[x] for x in range(len(s1_indx)) if x not in to_be_removed]
@@ -133,7 +135,7 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
 # ------------------- test_tokenize --------------------
 # XXX in future we could divide the previous function in two (split and tokenize) 
 # so that we have a single text processing function
-def test_tokenize(dataset_path, train_vocab, 
+def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5, 
                   preproc_steps=(True, True, True, False), 
                   max_seq_len=100, mode="char",
                   cutoff=None, 
@@ -168,9 +170,19 @@ def test_tokenize(dataset_path, train_vocab,
     s1_unicode = dataset_pd['s1_unicode'].to_list()
     s2_unicode = dataset_pd['s2_unicode'].to_list()
     # XXX we need to explain why we have an if in the following for loop
-    dataset_pd['s1_indx'] = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s1_unicode]
-    dataset_pd['s2_indx'] = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s2_unicode]
+    s1_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s1_unicode]
+    s2_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s2_unicode]
     # XXX we need to document the following two lines
+    
+    to_be_removed = [x for x in range(len(s1_indx)) if len(s1_indx[x]) / max(1, len(s1_unicode[x])) < missing_char_threshold and len(s2_indx[x]) / max(1, len(s2_unicode[x])) < missing_char_threshold]
+        
+    cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
+
+    dataset_pd.drop(dataset_pd.index[to_be_removed], axis=0, inplace=True)
+
+    dataset_pd['s1_indx'] = [s1_indx[x] for x in range(len(s1_indx)) if x not in to_be_removed]
+    dataset_pd['s2_indx'] = [s2_indx[x] for x in range(len(s2_indx)) if x not in to_be_removed]
+    
     to_be_removed = [x for x in range(len(dataset_pd['s1_indx'])) if len(dataset_pd['s1_indx'][x])==0 or len(dataset_pd['s2_indx'][x])==0]
     dataset_pd.drop(dataset_pd.index[to_be_removed], axis=0, inplace=True)
 
