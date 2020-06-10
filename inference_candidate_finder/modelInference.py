@@ -82,7 +82,7 @@ with open(train_vocab_path, 'rb') as handle:
 
 # create the actual class here
 test_dc = test_tokenize(
-    dataset_path, train_vocab,
+    dataset_path, train_vocab,dl_inputs["preprocessing"]["missing_char_threshold"],
     preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                    dl_inputs["preprocessing"]["lowercase"],
                    dl_inputs["preprocessing"]["strip"],
