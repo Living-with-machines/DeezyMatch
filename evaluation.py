@@ -87,7 +87,7 @@ def test_model(model, test_dc, pooling_mode='attention', device='cpu', batch_siz
                     np.savetxt(pred_f, pred_results.T, 
                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t', 
                                header="s1_unicode\ts2_unicode\tprediction\tp0\tp1\tlabel")
-                    first_time = False
+                    first_dump = False
                 else:
                     np.savetxt(pred_f, pred_results.T, 
                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t')
