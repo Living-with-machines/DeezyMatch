@@ -107,11 +107,14 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         s2_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s2_unicode]
 
         to_be_removed = []
-        for x in range(len(s1_indx)-1, -1, -1):
-            if (1 - len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold or (1 - len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold or len(s1_unicode[x]) == 0 or len(s2_unicode[x]) == 0:
-                to_be_removed.append(x)
-                del s1_indx[x]
-                del s2_indx[x]
+        for i in range(len(s1_indx)-1, -1, -1):
+            if (1 - len(s1_indx[i]) / max(1, len(s1_unicode[i]))) > missing_char_threshold or\
+                    (1 - len(s2_indx[i]) / max(1, len(s2_unicode[i]))) > missing_char_threshold or\
+                    len(s1_unicode[i]) == 0 or\
+                    len(s2_unicode[i]) == 0:
+                to_be_removed.append(i)
+                del s1_indx[i]
+                del s2_indx[i]
 
         cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
         dataset_split.reset_index(inplace=True)
@@ -179,11 +182,14 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     # XXX we need to document the following two lines
     
     to_be_removed = []
-    for x in range(len(s1_indx)-1, -1, -1):
-        if (1 - len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold or (1 - len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold or len(s1_unicode[x]) == 0 or len(s2_unicode[x]) == 0:
-            to_be_removed.append(x)
-            del s1_indx[x]
-            del s2_indx[x]
+    for i in range(len(s1_indx)-1, -1, -1):
+        if (1 - len(s1_indx[i]) / max(1, len(s1_unicode[i]))) > missing_char_threshold or\
+                (1 - len(s2_indx[i]) / max(1, len(s2_unicode[i]))) > missing_char_threshold or\
+                len(s1_unicode[i]) == 0\
+                or len(s2_unicode[i]) == 0:
+            to_be_removed.append(i)
+            del s1_indx[i]
+            del s2_indx[i]
         
     cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
     dataset_pd.reset_index(inplace=True)
