@@ -110,7 +110,7 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         s1_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s1_unicode]
         s2_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s2_unicode]
 
-        to_be_removed = [x for x in range(len(s1_indx)) if len(s1_indx[x]) / max(1, len(s1_unicode[x])) < missing_char_threshold and len(s2_indx[x]) / max(1, len(s2_unicode[x])) < missing_char_threshold]
+        to_be_removed = [x for x in range(len(s1_indx)) if 1-(len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold and 1-(len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold]
         
         cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
 
@@ -174,7 +174,7 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     s2_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s2_unicode]
     # XXX we need to document the following two lines
     
-    to_be_removed = [x for x in range(len(s1_indx)) if len(s1_indx[x]) / max(1, len(s1_unicode[x])) < missing_char_threshold and len(s2_indx[x]) / max(1, len(s2_unicode[x])) < missing_char_threshold]
+    to_be_removed = [x for x in range(len(s1_indx)) if 1-(len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold and 1-(len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold]
         
     cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
 
