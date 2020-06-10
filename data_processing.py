@@ -94,32 +94,36 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
     s1_s2_flatten = dataset_split[["s1_unicode", "s2_unicode"]].to_numpy().flatten()
     s1_s2_flatten_all_tokens = np.unique(np.hstack(s1_s2_flatten)).tolist()
 
-    cprint('[INFO]', bc.dgreen, "-- create a lookup table for tokens")
-    dataset_vocab = lookupToken("lookup_token")
-    dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
-
     cprint('[INFO]', bc.dgreen, "-- convert tokens to indices")
     s1_unicode = dataset_split['s1_unicode'].to_list()
     s2_unicode = dataset_split['s2_unicode'].to_list()
     
     if pretrained_vocab_path:
         with open(pretrained_vocab_path, 'rb') as handle:
-            pretrained_vocab = pickle.load(handle)
+            dataset_vocab = pickle.load(handle)
         
         # XXX we need to document the following lines
-        s1_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s1_unicode]
-        s2_indx = [[pretrained_vocab.tok2index[tok] for tok in seq if tok in pretrained_vocab.tok2index] for seq in s2_unicode]
+        s1_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s1_unicode]
+        s2_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s2_unicode]
 
-        to_be_removed = [x for x in range(len(s1_indx)) if 1-(len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold and 1-(len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold]
-        
+        to_be_removed = []
+        for x in range(len(s1_indx)-1, -1, -1):
+            if (1 - len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold or (1 - len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold or len(s1_unicode[x]) == 0 or len(s2_unicode[x]) == 0:
+                to_be_removed.append(x)
+                del s1_indx[x]
+                del s2_indx[x]
+
         cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
+        dataset_split.reset_index(inplace=True)
+        dataset_split.drop(to_be_removed, axis=0, inplace=True)
 
-        dataset_split.drop(dataset_split.index[to_be_removed], axis=0, inplace=True)
-
-        dataset_split['s1_indx'] = [s1_indx[x] for x in range(len(s1_indx)) if x not in to_be_removed]
-        dataset_split['s2_indx'] = [s2_indx[x] for x in range(len(s2_indx)) if x not in to_be_removed]
+        dataset_split['s1_indx'] = s1_indx
+        dataset_split['s2_indx'] = s2_indx
                 
     else:
+        cprint('[INFO]', bc.dgreen, "-- create a lookup table for tokens")
+        dataset_vocab = lookupToken("lookup_token")
+        dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
 
         dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
         dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
@@ -174,17 +178,19 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     s2_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s2_unicode]
     # XXX we need to document the following two lines
     
-    to_be_removed = [x for x in range(len(s1_indx)) if 1-(len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold and 1-(len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold]
+    to_be_removed = []
+    for x in range(len(s1_indx)-1, -1, -1):
+        if (1 - len(s1_indx[x]) / max(1, len(s1_unicode[x]))) > missing_char_threshold or (1 - len(s2_indx[x]) / max(1, len(s2_unicode[x]))) > missing_char_threshold or len(s1_unicode[x]) == 0 or len(s2_unicode[x]) == 0:
+            to_be_removed.append(x)
+            del s1_indx[x]
+            del s2_indx[x]
         
     cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
+    dataset_pd.reset_index(inplace=True)
+    dataset_pd.drop(to_be_removed, axis=0, inplace=True)
 
-    dataset_pd.drop(dataset_pd.index[to_be_removed], axis=0, inplace=True)
-
-    dataset_pd['s1_indx'] = [s1_indx[x] for x in range(len(s1_indx)) if x not in to_be_removed]
-    dataset_pd['s2_indx'] = [s2_indx[x] for x in range(len(s2_indx)) if x not in to_be_removed]
-    
-    to_be_removed = [x for x in range(len(dataset_pd['s1_indx'])) if len(dataset_pd['s1_indx'][x])==0 or len(dataset_pd['s2_indx'][x])==0]
-    dataset_pd.drop(dataset_pd.index[to_be_removed], axis=0, inplace=True)
+    dataset_pd['s1_indx'] = s1_indx 
+    dataset_pd['s2_indx'] = s2_indx 
 
     #and then we do the cutoff again after having excluded the ones to be removed
     dataset_pd = dataset_pd[:cutoff]
