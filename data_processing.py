@@ -126,7 +126,8 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
     else:
         cprint('[INFO]', bc.dgreen, "-- create a lookup table for tokens")
         dataset_vocab = lookupToken("lookup_token")
-        dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
+        # dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
+        dataset_vocab.addTokens(pd.read_pickle("all_characters.vocab"))
 
         dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
         dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
@@ -155,8 +156,21 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
         dataset_pd = dataset_path
     else:
         cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
-        dataset_pd = pd.read_csv(dataset_path, sep="\t", header=None, usecols=[0, 1, 2])
-        dataset_pd = dataset_pd.rename(columns={0: "s1", 1: "s2", 2: "label"})
+        ds_fio = open(dataset_path, "r")
+        df_list = ds_fio.readlines()
+        for i in range(len(df_list)):
+            tmp_split_row = df_list[i].split("\t")
+            if len(tmp_split_row) != 3:
+                print(f"SKIP: {df_list[i]}")
+                tmp_split_row = "XXXXXXXXXXXX\t0\tfalse".split("\t")
+            df_list[i] = tmp_split_row
+        dataset_pd = pd.DataFrame(df_list, columns=["s1", "s2", "label"])
+        dataset_pd["s1"] = dataset_pd["s1"].str.strip()
+        dataset_pd["s2"] = dataset_pd["s2"].str.strip()
+        dataset_pd["label"] = dataset_pd["label"].str.strip()
+            
+        #dataset_pd = pd.read_csv(dataset_path, sep="\t", header=None, usecols=[0, 1, 2])
+        #dataset_pd = dataset_pd.rename(columns={0: "s1", 1: "s2", 2: "label"})
 
     # XXX remove faulty rows
     dataset_pd = dataset_pd.drop(dataset_pd[~dataset_pd['label'].astype(str).str.contains("true|false", case=False)].index)
