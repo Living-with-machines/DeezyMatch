@@ -152,6 +152,8 @@ models/
 
 After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `inference_candidate_finder` directory for more information.
 
+**Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
+
 ### Installation
 
 We strongly recommend installation via Anaconda:

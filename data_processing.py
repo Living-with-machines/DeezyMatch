@@ -126,8 +126,8 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
     else:
         cprint('[INFO]', bc.dgreen, "-- create a lookup table for tokens")
         dataset_vocab = lookupToken("lookup_token")
-        # dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
-        dataset_vocab.addTokens(pd.read_pickle("all_characters.vocab"))
+        dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
+        dataset_vocab.addTokens(pd.read_pickle("characters_v001.vocab"))
 
         dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
         dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
