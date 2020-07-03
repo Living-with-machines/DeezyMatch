@@ -17,6 +17,8 @@ Others:
 """
 
 import time, os
+import pickle
+import shutil
 from tqdm import tqdm, tnrange
 
 from datetime import datetime
@@ -32,6 +34,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 import glob
 import numpy as np
+import sys
 
 from utils import cprint, bc, log_message
 from utils import print_stats
@@ -632,3 +635,91 @@ class two_parallel_rnns(nn.Module):
         if self.bidirectional:
             first_dim *= 2
         return Variable(torch.zeros((first_dim, batch_size, self.rnn_hidden_dim)).to(device))
+
+def inference(model_path, dataset_path, train_vocab_path, input_file_path,
+             test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs):
+
+    from data_processing import test_tokenize
+    start_time = time.time()
+
+    # --- read command args
+    if type(test_cutoff) == int:
+        test_cutoff = int(test_cutoff)
+    
+    if inference_mode in ['test']:
+        output_state_vectors = False
+        path_save_test_class = False
+    else:
+        scenario_path = ""
+        if query_candidate_mode in ["c"]:
+            scenario_path = "./candidates/" + scenario + "/"
+            if not os.path.isdir(os.path.dirname(scenario_path)):
+                os.makedirs(os.path.dirname(scenario_path))
+            output_state_vectors = scenario_path + "embed_candidates/rnn"
+            path_save_test_class = scenario_path + "candidates.df"
+            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
+            if os.path.isdir(parent_dir):
+                shutil.rmtree(parent_dir)
+            if os.path.isfile(path_save_test_class):
+                os.remove(path_save_test_class)
+        elif query_candidate_mode in ["q"]:
+            scenario_path = "./queries/" + scenario + "/"
+            if not os.path.isdir(os.path.dirname(scenario_path)):
+                os.makedirs(os.path.dirname(scenario_path))
+            output_state_vectors = scenario_path + "embed_queries/rnn"
+            path_save_test_class = scenario_path + "queries.df"
+            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
+            if os.path.isdir(parent_dir):
+                shutil.rmtree(parent_dir)
+            if os.path.isfile(path_save_test_class):
+                os.remove(path_save_test_class)
+        shutil.copy2(input_file_path, os.path.dirname(scenario_path))
+        msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
+        cur_dir = os.path.abspath(os.path.curdir)
+        input_command_line = f"python"
+        for one_arg in sys.argv:
+            input_command_line += f" {one_arg}"
+        msg += "\nCurrent directory: " + cur_dir + "\n"
+        log_message(msg, mode="w", filename=os.path.join(os.path.dirname(scenario_path), "log.txt"))
+        log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(scenario_path), "log.txt"))
+    
+    # --- load torch model, send it to the device (CPU/GPU)
+    model = torch.load(model_path, map_location=dl_inputs['general']['device'])
+    #print(model.state_dict()['emb.weight'])
+    
+    # --- create test data class
+    # read vocabulary
+    with open(train_vocab_path, 'rb') as handle:
+        train_vocab = pickle.load(handle)
+    
+    # create the actual class here
+    test_dc = test_tokenize(
+        dataset_path, train_vocab,dl_inputs["preprocessing"]["missing_char_threshold"],
+        preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
+                       dl_inputs["preprocessing"]["lowercase"],
+                       dl_inputs["preprocessing"]["strip"],
+                       dl_inputs["preprocessing"]["only_latin_letters"]),
+        max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
+        mode=dl_inputs['gru_lstm']['mode'],
+        cutoff=test_cutoff, 
+        save_test_class=path_save_test_class
+        )
+    
+    test_dl = DataLoader(dataset=test_dc, 
+                         batch_size=dl_inputs['gru_lstm']['batch_size'], 
+                         shuffle=False)
+    num_batch_test = len(test_dl)
+    
+    # --- output state vectors 
+    test_acc, test_pre, test_rec, test_f1 = test_model(model, 
+                                                       test_dl,
+                                                       eval_mode='test',
+                                                       pooling_mode=dl_inputs['gru_lstm']['pooling_mode'],
+                                                       device=dl_inputs['general']['device'],
+                                                       evaluation=True,
+                                                       output_state_vectors=output_state_vectors, 
+                                                       output_preds=False,
+                                                       output_preds_file="./pred_results.txt"
+                                                       )
+    
+    print("--- %s seconds ---" % (time.time() - start_time))
