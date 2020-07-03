@@ -286,7 +286,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
             train_rec = recall_score(y_true_train, y_pred_train)
             train_f1 = f1_score(y_true_train, y_pred_train, average='weighted')
             train_loss = total_loss_train / len(train_dl)
-            epoch_log = '{} -- Epoch: {}/{}; train loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+            epoch_log = '{} -- Epoch: {}/{}; Train; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
                     datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
             cprint('[INFO]', bc.orange, epoch_log)
             if model_path:
@@ -302,58 +302,13 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 tboard_writer.flush()
 
         if valid_dl:
-            model.eval()
-            y_true_valid = list()
-            y_pred_valid = list()
-            total_loss_valid = 0
-
-            t_valid = tqdm(iter(valid_dl), leave=False, total=num_batch_valid)
-            t_valid.set_description('Epoch {}/{}'.format(epoch+1, epochs))
-            for x1, len1, x2, len2, y, valid_indxs in t_valid:
-                # transpose x1 and x2
-                x1 = x1.transpose(0, 1)
-                x2 = x2.transpose(0, 1)
-
-                x1 = Variable(x1.to(device))
-                x2 = Variable(x2.to(device))
-                y = Variable(y.to(device))
-                len1 = len1.numpy()
-                len2 = len2.numpy()
-
-                pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, evaluation=True)
-                loss = loss_fn(pred, y)
-
-                t_valid.set_postfix(loss=loss.data)
-                pred_idx = torch.max(pred, dim=1)[1]
-
-                y_true_valid += list(y.cpu().data.numpy())
-                y_pred_valid += list(pred_idx.cpu().data.numpy())
-                total_loss_valid += loss.data
-
-                wvalid_counter += 1
-
-            valid_acc = accuracy_score(y_true_valid, y_pred_valid)
-            valid_pre = precision_score(y_true_valid, y_pred_valid)
-            valid_rec = recall_score(y_true_valid, y_pred_valid)
-            valid_f1 = f1_score(y_true_valid, y_pred_valid, average='weighted')
-            valid_loss = total_loss_valid / len(valid_dl)
-            epoch_log = '{} -- Epoch: {}/{}; valid loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, valid_loss, valid_acc, valid_pre, valid_rec, valid_f1)
-            cprint('[INFO]', bc.lred, epoch_log)
-            if model_path:
-                log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
-            else:
-                log_message(epoch_log + "\n", mode="a+")
-
-            if tboard_writer:
-                # Record loss
-                tboard_writer.add_scalar('Valid/Loss', loss.item(), epoch)
-                # Record Accuracy, precision, recall, F1 on validation set 
-                tboard_writer.add_scalar('Valid/Accuracy', valid_acc, epoch)
-                tboard_writer.add_scalar('Valid/Precision', valid_pre, epoch)
-                tboard_writer.add_scalar('Valid/Recall', valid_rec, epoch)
-                tboard_writer.add_scalar('Valid/F1', valid_f1, epoch)
-                tboard_writer.flush()
+            valid_desc = 'Epoch: {}/{}; Valid'.format(epoch+1, epochs)
+            test_model(model, valid_dl, 
+                       eval_mode="valid", valid_desc=valid_desc,
+                       pooling_mode=pooling_mode, 
+                       device=device,
+                       model_path=model_path, 
+                       tboard_writer=tboard_writer)
 
         if model_path:
             # --- save the model
@@ -363,6 +318,121 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
                 os.makedirs(os.path.dirname(checkpoint_path))
             torch.save(model, checkpoint_path)
 
+# ------------------- test_model --------------------
+def test_model(model, test_dl, eval_mode='test', valid_desc=None,
+               pooling_mode='attention', device='cpu', evaluation=True,
+               output_state_vectors=False, output_preds=False, 
+               output_preds_file=False, model_path=False, tboard_writer=False):
+
+    model.eval()
+
+    # print info about the model only in the first epoch
+    #torch_summarize(model)
+
+    y_true_test = list()
+    y_pred_test = list()
+    total_loss_test = 0
+
+    # XXX HARD CODED! Also in rnn_networks
+    loss_fn=F.nll_loss
+    # In first dump of the results, we add a header to the output file
+    first_dump = True
+
+    wtest_counter = 0
+    t_test = tqdm(iter(test_dl), leave=False, total=len(test_dl))
+    if eval_mode == 'valid':
+        eval_desc = valid_desc
+    elif eval_mode == 'test':
+        eval_desc = "test"
+    
+    t_test.set_description(eval_mode)
+
+    for x1, len1, x2, len2, y, indxs in t_test:
+        if output_state_vectors:
+            output_par_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
+            if not os.path.isdir(output_par_dir):
+                os.mkdir(output_par_dir)
+            torch.save(indxs, f'{output_state_vectors}_indxs_{wtest_counter}')
+        wtest_counter += 1
+
+        # transpose x1 and x2
+        x1 = x1.transpose(0, 1)
+        x2 = x2.transpose(0, 1)
+
+        x1 = Variable(x1.to(device))
+        x2 = Variable(x2.to(device))
+        y = Variable(y.to(device))
+        len1 = len1.numpy()
+        len2 = len2.numpy()
+
+        with torch.no_grad():
+            pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, output_state_vectors=output_state_vectors, evaluation=evaluation)
+            if output_state_vectors:
+                continue
+
+            loss = loss_fn(pred, y)
+
+            if eval_mode == 'valid':
+                t_test.set_postfix(loss=loss.data)
+                
+            pred_idx = torch.max(pred, dim=1)[1]
+
+            if wtest_counter == 1:
+                # Confidence for label 1
+                all_preds = pred[:, 1]
+            else:
+                all_preds = torch.cat([all_preds, pred[:, 1]])
+
+            y_true_test += list(y.cpu().data.numpy())
+            y_pred_test += list(pred_idx.cpu().data.numpy())
+
+            if output_preds_file:
+                pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
+                                        test_dl.dataset.df.loc[indxs]["s2_unicode"].to_numpy(), 
+                                        pred_idx.cpu().data.numpy().T, 
+                                        torch.exp(pred).T.cpu().data.numpy(), 
+                                        y.cpu().data.numpy().T])
+                with open(output_preds_file, "a+") as pred_f:
+                    if first_dump:
+                        np.savetxt(pred_f, pred_results.T, 
+                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t', 
+                                header="s1_unicode\ts2_unicode\tprediction\tp0\tp1\tlabel")
+                        first_dump = False
+                    else:
+                        np.savetxt(pred_f, pred_results.T, 
+                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t')
+
+            total_loss_test += loss.data
+
+    if output_preds:
+        return all_preds, 0, 0, 0
+    elif output_state_vectors:
+        return 0, 0, 0, 0
+    else:
+        test_acc = accuracy_score(y_true_test, y_pred_test)
+        test_pre = precision_score(y_true_test, y_pred_test)
+        test_rec = recall_score(y_true_test, y_pred_test)
+        test_f1 = f1_score(y_true_test, y_pred_test, average='weighted')
+        test_loss = total_loss_test / len(test_dl)
+        epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
+               datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_f1)
+        cprint('[INFO]', bc.lred, epoch_log)
+        if model_path:
+            log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
+        else:
+            log_message(epoch_log + "\n", mode="a+")
+
+        if tboard_writer:
+            # Record loss
+            tboard_writer.add_scalar('Test/Loss', loss.item(), epoch)
+            # Record Accuracy, precision, recall, F1 on validation set 
+            tboard_writer.add_scalar('Test/Accuracy', test_acc, epoch)
+            tboard_writer.add_scalar('Test/Precision', test_pre, epoch)
+            tboard_writer.add_scalar('Test/Recall', test_rec, epoch)
+            tboard_writer.add_scalar('Test/F1', test_f1, epoch)
+            tboard_writer.flush()
+            
+        return (test_acc, test_pre, test_rec, test_f1)
 
 # ------------------- two_parallel_rnns  --------------------
 class two_parallel_rnns(nn.Module):
