@@ -23,7 +23,7 @@ set_seed_everywhere(1364)
 def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_examples=None, missing_char_threshold=0.5,
                        train_prop=0.7, val_prop=0.15, test_prop=0.15,
                        preproc_steps=(True, True, True, False), 
-                       max_seq_len=100, mode="char", csv_sep="\t"):
+                       max_seq_len=100, mode="char", read_list_chars=False, csv_sep="\t"):
 
     # --- read CSV file (dataset)
     cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
@@ -126,8 +126,12 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
     else:
         cprint('[INFO]', bc.dgreen, "-- create a lookup table for tokens")
         dataset_vocab = lookupToken("lookup_token")
+        if read_list_chars:
+            cprint('[INFO]', bc.dgreen, f"-- read list of characters from {read_list_chars}") 
+            dataset_vocab.addTokens(pd.read_pickle(read_list_chars))
+        # Add additional tokens in the dataset, if any
         dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
-        dataset_vocab.addTokens(pd.read_pickle("characters_v001.vocab"))
+        cprint('[INFO]', bc.dgreen, f"-- Length of vocabulary: {dataset_vocab.n_tok}") 
 
         dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
         dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]

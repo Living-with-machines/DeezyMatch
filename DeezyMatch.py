@@ -46,6 +46,7 @@ if dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['validation']:
                        dl_inputs["preprocessing"]["only_latin_letters"]),
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],
+        read_list_chars=dl_inputs['preprocessing']['read_list_chars'],
         csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
     
