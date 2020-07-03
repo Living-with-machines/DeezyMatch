@@ -162,7 +162,9 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
             tmp_split_row = df_list[i].split("\t")
             if len(tmp_split_row) != 3:
                 print(f"SKIP: {df_list[i]}")
-                tmp_split_row = "XXXXXXXXXXXX\t0\tfalse".split("\t")
+                # change the label to remove_me, 
+                # we drop the rows with no true|false in the label column
+                tmp_split_row = "X\tX\tremove_me".split("\t")
             df_list[i] = tmp_split_row
         dataset_pd = pd.DataFrame(df_list, columns=["s1", "s2", "label"])
         dataset_pd["s1"] = dataset_pd["s1"].str.strip()
