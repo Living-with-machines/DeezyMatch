@@ -79,7 +79,9 @@ gru_lstm:
 
 inference:
  output_preds: True
- output_preds_file: "./pred_results.txt"
+ # either a path or "default"
+ # "default" saves the prediction output inside the model directory
+ output_preds_file: "default"
  candidate_mode:
   output_vectors: "./embed_candidates/rnn"
   output_test_class: "./df/candidates.df" # XXX rename test_class
