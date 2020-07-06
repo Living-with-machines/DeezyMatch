@@ -157,13 +157,22 @@ models
 
 After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. 
 
-To perform inference on a dataset:
+### Model inference
+
+To use an already trained model for inference/prediction:
 
 ```bash
 python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode test
 ```
 
-In candidate selection, we first need to create vectors for both query and candidates. This can be done by:
+### Candidate selection
+
+Candidate selection consists of the following steps:
+1. Generate vectors for both queries and candidates
+2. Combine vectors
+3. For each query, find a list of candidates
+
+1. In the first step, we create vectors for both query and candidate tokens:
 
 ```bash
 # queries
@@ -173,7 +182,25 @@ python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetu
 python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode vect --scenario test -qc c
 ```
 
-Refer to `inference_candidate_finder` directory for more information.
+2. Combine vectors. This step is required if candidates or queries are distributed on several files. At this step, we combined those vectors.
+
+```bash
+python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
+```
+
+3. CandidateFinder:
+
+```bash
+python candidateFinder.py -fd 0.0 -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -tn 100
+```
+
+If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
+
+```bash
+pip install faiss-cpu --no-cache
+```
+
+Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
 **Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
 
