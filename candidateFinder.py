@@ -16,6 +16,7 @@ import time
 
 import torch
 
+from utils import read_input_file
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -37,6 +38,10 @@ def read_command():
 
     parser.add_argument("-comb", "--combined_path",
                         help="path of the combined folder")
+    
+    parser.add_argument("-i", "--input_file_path",
+                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
+                        default="default")
 
     args = parser.parse_args()
     num_candidates = int(args.num_candidates)
@@ -44,10 +49,20 @@ def read_command():
     max_faiss_distance = float(args.max_faiss_distance)
     search_size = int(args.search_size)
     comb_path = args.combined_path
-    return output_filename, max_faiss_distance, search_size, num_candidates, comb_path 
+    input_file_path = args.input_file_path
+    return output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path 
 
 start_time = time.time()
-output_filename, max_faiss_distance, search_size, num_candidates, comb_path = read_command()
+output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path = read_command()
+
+if input_file_path in ["default"]:
+    detect_input_files = glob.iglob(os.path.join(comb_path, "*.yaml"))
+    for detected_inp in detect_input_files:
+        if os.path.isfile(detected_inp):
+            input_file_path = detected_inp
+            break
+
+dl_inputs = read_input_file(input_file_path)
 
 # ----- COMBINE VECTORS, USER
 par_dir = comb_path
@@ -56,10 +71,10 @@ path2_combined = os.path.join(par_dir, "candidates_bwd.pt")
 path_id_combined = os.path.join(par_dir, "candidates_fwd_id.pt")
 path_items_combined = os.path.join(par_dir, "candidates_fwd_items.npy")
 
-vecs_ids_candidates = torch.load(path_id_combined)
+vecs_ids_candidates = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
 vecs_items_candidates = np.load(path_items_combined, allow_pickle=True)
-vecs1_candidates = torch.load(path1_combined)
-vecs2_candidates = torch.load(path2_combined)
+vecs1_candidates = torch.load(path1_combined, map_location=dl_inputs['general']['device'])
+vecs2_candidates = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
 vecs_candidates = torch.cat([vecs1_candidates, vecs2_candidates], dim=1)
 
 par_dir = comb_path
@@ -68,10 +83,10 @@ path2_combined = os.path.join(par_dir, "queries_bwd.pt")
 path_id_combined = os.path.join(par_dir, "queries_fwd_id.pt")
 path_items_combined = os.path.join(par_dir, "queries_fwd_items.npy")
 
-vecs_ids_query = torch.load(path_id_combined)
+vecs_ids_query = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
 vecs_items_query = np.load(path_items_combined, allow_pickle=True)
-vecs1_query = torch.load(path1_combined)
-vecs2_query = torch.load(path2_combined)
+vecs1_query = torch.load(path1_combined, map_location=dl_inputs['general']['device'])
+vecs2_query = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
 vecs_query = torch.cat([vecs1_query, vecs2_query], dim=1)
 # ----- END COMBINED VECTORS
 
