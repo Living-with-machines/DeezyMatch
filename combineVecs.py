@@ -18,6 +18,7 @@ import torch
 
 start_time = time.time()
 
+from utils import read_input_file
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -87,40 +88,47 @@ elif qc_mode == "c":
     path_items_combined += "candidates_" + rnn_pass + "_items.npy"
     inp_par_dir = "./candidates/" + cq_sc
 
-print(f"\n\nReading vectors from {path2vecs}")
-list_files = glob.glob(os.path.join(path2vecs))
-list_files.sort(key=sort_key)
-vecs = []
-for lfile in list_files:
-    print(lfile)
-    if len(vecs) == 0:
-        vecs = torch.load(f"{lfile}")
-    else:
-        vecs = torch.cat((vecs, torch.load(f"{lfile}")))
-torch.save(vecs, path_vec_combined)
-
-list_files = glob.glob(os.path.join(path2ids))
-list_files.sort(key=sort_key)
-vecs_ids = []
-for lfile in list_files: 
-    print(lfile)
-    if len(vecs_ids) == 0:
-        vecs_ids = torch.load(f"{lfile}")
-    else:
-        vecs_ids = torch.cat((vecs_ids, torch.load(f"{lfile}")))
-torch.save(vecs_ids, path_id_combined)
-
-mydf = pd.read_pickle(pathdf)
-vecs_items = mydf['s1_unicode'].to_numpy()
-np.save(path_items_combined, vecs_items)
-
 if input_file_path in ["default"]:
     detect_input_files = glob.iglob(os.path.join(inp_par_dir, "*.yaml"))
     for detected_inp in detect_input_files:
         if os.path.isfile(detected_inp):
             shutil.copy2(detected_inp, outputpath)
+            input_file_path = detected_inp
 else:
     shutil.copy2(input_file_path, outputpath)
+
+dl_inputs = read_input_file(input_file_path)
+
+print(f"\n\nReading vectors from {path2vecs}")
+list_files = glob.glob(os.path.join(path2vecs))
+list_files.sort(key=sort_key)
+vecs = []
+print("Combine vectors")
+for lfile in list_files:
+    print(lfile, end="; ")
+    if len(vecs) == 0:
+        vecs = torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])
+    else:
+        vecs = torch.cat((vecs, torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])))
+print()
+torch.save(vecs, path_vec_combined)
+
+list_files = glob.glob(os.path.join(path2ids))
+list_files.sort(key=sort_key)
+vecs_ids = []
+print("\nCombine IDs")
+for lfile in list_files: 
+    print(lfile, end="; ")
+    if len(vecs_ids) == 0:
+        vecs_ids = torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])
+    else:
+        vecs_ids = torch.cat((vecs_ids, torch.load(f"{lfile}", dl_inputs['general']['device'])))
+print()
+torch.save(vecs_ids, path_id_combined)
+
+mydf = pd.read_pickle(pathdf)
+vecs_items = mydf['s1_unicode'].to_numpy()
+np.save(path_items_combined, vecs_items)
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
