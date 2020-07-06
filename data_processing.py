@@ -27,8 +27,26 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
 
     # --- read CSV file (dataset)
     cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
-    dataset_pd = pd.read_csv(dataset_path, sep=csv_sep, header=None, usecols=[0, 1, 2])
-    dataset_pd = dataset_pd.rename(columns={0: "s1", 1: "s2", 2: "label"})
+    
+    # replaced by the following block 
+    # dataset_pd = pd.read_csv(dataset_path, sep=csv_sep, header=None, usecols=[0, 1, 2])
+    # dataset_pd = dataset_pd.rename(columns={0: "s1", 1: "s2", 2: "label"})
+
+    ds_fio = open(dataset_path, "r")
+    df_list = ds_fio.readlines()
+    for i in range(len(df_list)):
+        tmp_split_row = df_list[i].split(csv_sep)
+        if str(tmp_split_row[2]).strip().lower() not in ["true", "false", "1", "0"]:
+            print(f"SKIP: {df_list[i]}")
+            # change the label to remove_me, 
+            # we drop the rows with no true|false in the label column
+            tmp_split_row = "X\tX\tremove_me".split(csv_sep)
+        df_list[i] = tmp_split_row[:3]
+    dataset_pd = pd.DataFrame(df_list, columns=["s1", "s2", "label"])
+    dataset_pd["s1"] = dataset_pd["s1"].str.strip()
+    dataset_pd["s2"] = dataset_pd["s2"].str.strip()
+    dataset_pd["label"] = dataset_pd["label"].str.strip()
+
     # remove faulty rows
     dataset_pd = dataset_pd.drop(dataset_pd[~dataset_pd['label'].astype(str).str.contains("true|false", case=False)].index)
     dataset_pd.label.replace("(?i)TRUE", True, inplace=True, regex=True)
