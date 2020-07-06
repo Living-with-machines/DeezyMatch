@@ -397,9 +397,9 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             import ipdb
             ipdb.set_trace()
 
-            y_score_test += list(torch.exp(pred).T.cpu().data.numpy())
+            y_score_test += torch.exp(pred).cpu().data.numpy()[:, 1].tolist()
 
-            q_id = list(test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy())
+            q_id = test_dl.dataset.df.loc[indxs]["s1_unicode"].tolist()
 
 
 

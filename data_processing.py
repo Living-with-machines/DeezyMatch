@@ -154,6 +154,8 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
         dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
 
+    dataset_split.reset_index(drop=True, inplace=True)
+
     with pd.option_context('mode.chained_assignment', None):
         train_dc = DatasetClass(dataset_split.loc[dataset_split['split'] == 'train'], dataset_vocab, maxlen=max_seq_len)
         valid_dc = DatasetClass(dataset_split.loc[dataset_split['split'] == 'val'], dataset_vocab, maxlen=max_seq_len)
@@ -240,6 +242,7 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     #and then we do the cutoff again after having excluded the ones to be removed
     dataset_pd = dataset_pd[:cutoff]
     
+    dataset_pd.reset_index(drop=True, inplace=True)
     with pd.option_context('mode.chained_assignment', None):
         test_dc = DatasetClass(dataset_pd, train_vocab, maxlen=max_seq_len)
 
