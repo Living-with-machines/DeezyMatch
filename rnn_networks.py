@@ -335,6 +335,9 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
     y_true_test = list()
     y_pred_test = list()
+    y_score_test = list()
+    map_queries = {}
+    test_line_id = 0
     total_loss_test = 0
 
     # XXX HARD CODED! Also in rnn_networks
@@ -350,7 +353,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         eval_desc = "test"
     
     t_test.set_description(eval_mode)
-
+    print (type(t_test))
     for x1, len1, x2, len2, y, indxs in t_test:
         if output_state_vectors:
             output_par_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
@@ -389,6 +392,27 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
             y_true_test += list(y.cpu().data.numpy())
             y_pred_test += list(pred_idx.cpu().data.numpy())
+            # pulling out the scores for the prediction of 1
+            
+            import ipdb
+            ipdb.set_trace()
+
+            y_score_test += list(torch.exp(pred).T.cpu().data.numpy())
+
+            q_id = list(test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy())
+
+
+
+            for q in test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy():
+                q = "".join(q)
+
+                if q in map_queries:
+                    map_queries[q].append(test_line_id)              
+
+                else:
+                    map_queries[q] = [test_line_id]
+
+                test_line_id +=1
 
             if output_preds_file:
                 pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
@@ -417,6 +441,9 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         test_pre = precision_score(y_true_test, y_pred_test)
         test_rec = recall_score(y_true_test, y_pred_test)
         test_f1 = f1_score(y_true_test, y_pred_test, average='weighted')
+        for q,pred_ids in map_queries.items():
+            q_preds =[y_pred_test[x] for x in pred_ids]
+
         test_loss = total_loss_test / len(test_dl)
         epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
                datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_f1)
