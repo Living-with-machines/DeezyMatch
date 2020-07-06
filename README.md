@@ -20,6 +20,11 @@ python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetu
 python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode vect --scenario test -qc c
 ```
 
+XXX The third column should be:
+["true", "false", "1", "0"]
+
+
+
 DeezyMatch has been applied to the following problems:
 
 - toponym matching

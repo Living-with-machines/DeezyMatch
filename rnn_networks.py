@@ -409,9 +409,9 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             total_loss_test += loss.data
 
     if output_preds:
-        return all_preds, 0, 0, 0
+        return all_preds
     elif output_state_vectors:
-        return 0, 0, 0, 0
+        return None 
     else:
         test_acc = accuracy_score(y_true_test, y_pred_test)
         test_pre = precision_score(y_true_test, y_pred_test)
@@ -637,6 +637,7 @@ class two_parallel_rnns(nn.Module):
             first_dim *= 2
         return Variable(torch.zeros((first_dim, batch_size, self.rnn_hidden_dim)).to(device))
 
+# ------------------- inference  --------------------
 def inference(model_path, dataset_path, train_vocab_path, input_file_path,
              test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs):
 
@@ -711,15 +712,15 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
     num_batch_test = len(test_dl)
     
     # --- output state vectors 
-    test_acc, test_pre, test_rec, test_f1 = test_model(model, 
-                                                       test_dl,
-                                                       eval_mode='test',
-                                                       pooling_mode=dl_inputs['gru_lstm']['pooling_mode'],
-                                                       device=dl_inputs['general']['device'],
-                                                       evaluation=True,
-                                                       output_state_vectors=output_state_vectors, 
-                                                       output_preds=False,
-                                                       output_preds_file="./pred_results.txt"
-                                                       )
+    test_model_output = test_model(model, 
+                                   test_dl,
+                                   eval_mode='test',
+                                   pooling_mode=dl_inputs['gru_lstm']['pooling_mode'],
+                                   device=dl_inputs['general']['device'],
+                                   evaluation=True,
+                                   output_state_vectors=output_state_vectors, 
+                                   output_preds=False,
+                                   output_preds_file="./pred_results.txt"
+                                   )
     
     print("--- %s seconds ---" % (time.time() - start_time))
