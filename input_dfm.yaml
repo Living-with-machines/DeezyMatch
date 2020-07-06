@@ -11,6 +11,8 @@ preprocessing:
   missing_char_threshold: 0.5
   # separation in the input CSV file
   csv_sep: "\t"
+  # read a list of characters and add to the vocabulary
+  read_list_chars: "./dataset/characters_v001.vocab"
 
 # --- GRU/LSTM architecture/misc info
 gru_lstm:
@@ -76,6 +78,10 @@ gru_lstm:
   layers_to_freeze: ["emb", "gru_1", "attn"]
 
 inference:
+ output_preds: True
+ # either a path or "default"
+ # "default" saves the prediction output inside the model directory
+ output_preds_file: "default"
  candidate_mode:
   output_vectors: "./embed_candidates/rnn"
   output_test_class: "./df/candidates.df" # XXX rename test_class

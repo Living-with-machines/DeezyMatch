@@ -18,6 +18,8 @@ After installing DeezyMatch on your machine, a new classifier can be trained by:
 python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
+NOTE: Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
+
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
 ```bash
@@ -72,6 +74,7 @@ Any of the above parameters can be freezed for fine-tuning.
 You can also input, e.g., 'gru_1' and in this case, all weights/biases related to that layer will be freezed.
 See input file.
 ============================================================
+Exit normally
 ```
 
 2. Modify the input file:
@@ -127,30 +130,50 @@ The first column lists the learnable parameters, and the second column specifies
 DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure:
 
 ```bash
-models/
-|-- finetuned_test001
-|   |-- checkpoint00000.model
-|   |-- checkpoint00001.model
-|   |-- checkpoint00002.model
-|   |-- checkpoint00003.model
-|   |-- checkpoint00004.model
-|   |-- finetuned_test001.model
-|   |-- finetuned_test001.vocab
-|   |-- input_dfm.yaml
-|   |-- log.txt
-|-- test001
-|   |-- checkpoint00000.model
-|   |-- checkpoint00001.model
-|   |-- checkpoint00002.model
-|   |-- checkpoint00003.model
-|   |-- checkpoint00004.model
-|   |-- input_dfm.yaml
-|   |-- log.txt
-|   |-- test001.model
-|   |-- test001.vocab
+models
+├── finetuned_test001
+│   ├── checkpoint00000.model
+│   ├── checkpoint00001.model
+│   ├── checkpoint00002.model
+│   ├── checkpoint00003.model
+│   ├── checkpoint00004.model
+│   ├── finetuned_test001.model
+│   ├── finetuned_test001.vocab
+│   ├── input_dfm.yaml
+│   └── log.txt
+└── test001
+    ├── checkpoint00000.model
+    ├── checkpoint00001.model
+    ├── checkpoint00002.model
+    ├── checkpoint00003.model
+    ├── checkpoint00004.model
+    ├── input_dfm.yaml
+    ├── log.txt
+    ├── test001.model
+    └── test001.vocab
 ```
 
-After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. Refer to `inference_candidate_finder` directory for more information.
+After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. 
+
+To perform inference on a dataset:
+
+```bash
+python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode test
+```
+
+In candidate selection, we first need to create vectors for both query and candidates. This can be done by:
+
+```bash
+# queries
+python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode vect --scenario test -qc q
+
+# candidates
+python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode vect --scenario test -qc c
+```
+
+Refer to `inference_candidate_finder` directory for more information.
+
+**Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
 
 ### Installation
 

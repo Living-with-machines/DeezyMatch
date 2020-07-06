@@ -8,22 +8,24 @@ sys.path.insert(0,'..')
 import argparse
 from datetime import datetime
 from data_processing import test_tokenize
-from evaluation import test_model
+from rnn_networks import test_model
 import os
 import pickle
 import shutil
+import time
 
 from utils import read_inference_command, read_input_file
 from utils import cprint, bc, log_message
 
 import torch
+from torch.utils.data import DataLoader
 
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
-
 # ==== Model inference
+start_time = time.time()
 
 # --- read command args
 model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode, scenario = \
@@ -93,17 +95,21 @@ test_dc = test_tokenize(
     save_test_class=path_save_test_class
     )
 
+test_dl = DataLoader(dataset=test_dc, 
+                     batch_size=dl_inputs['gru_lstm']['batch_size'], 
+                     shuffle=False)
+num_batch_test = len(test_dl)
+
 # --- output state vectors 
 test_acc, test_pre, test_rec, test_f1 = test_model(model, 
-                                                   test_dc,
+                                                   test_dl,
+                                                   eval_mode='test',
                                                    pooling_mode=dl_inputs['gru_lstm']['pooling_mode'],
                                                    device=dl_inputs['general']['device'],
-                                                   batch_size=dl_inputs['gru_lstm']['batch_size'],
+                                                   evaluation=True,
                                                    output_state_vectors=output_state_vectors, 
-                                                   shuffle=False,
-                                                   evaluation=True
+                                                   output_preds=False,
+                                                   output_preds_file="./pred_results.txt"
                                                    )
 
-cprint('[INFO]', bc.lred,
-       'TEST dataset\nacc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-           test_acc, test_pre, test_rec, test_f1))
+print("--- %s seconds ---" % (time.time() - start_time))

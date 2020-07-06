@@ -98,7 +98,7 @@ for iq in range(len(vecs_query)):
         found_neighbours = faiss_id_candis.search(vecs_query[iq:(iq+1)].detach().cpu().numpy(), id_1_neigh)
     
         # Candidates
-        orig_id_candis = vecs_ids_candidates[found_neighbours[1][0, id_0_neigh:id_1_neigh]]
+        orig_id_candis = found_neighbours[1][0, id_0_neigh:id_1_neigh]
         all_candidates = vecs_items_candidates[orig_id_candis]
     
         # Queries

@@ -11,11 +11,21 @@ import numpy as np
 import os
 import pandas as pd
 import sys
+import time
 
 import torch
+
+start_time = time.time()
+
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
+
+import re
+key_pat = re.compile(r"^(\D+)(\d+)$")
+def sort_key(item):
+    m = key_pat.match(item)
+    return m.group(1), int(m.group(2))
 
 def read_command():
     parser = ArgumentParser()
@@ -71,7 +81,7 @@ elif qc_mode == "c":
 
 print(f"\n\nReading vectors from {path2vecs}")
 list_files = glob.glob(os.path.join(path2vecs))
-list_files.sort()
+list_files.sort(key=sort_key)
 vecs = []
 for lfile in list_files:
     print(lfile)
@@ -82,7 +92,7 @@ for lfile in list_files:
 torch.save(vecs, path_vec_combined)
 
 list_files = glob.glob(os.path.join(path2ids))
-list_files.sort()
+list_files.sort(key=sort_key)
 vecs_ids = []
 for lfile in list_files: 
     print(lfile)
@@ -95,3 +105,6 @@ torch.save(vecs_ids, path_id_combined)
 mydf = pd.read_pickle(pathdf)
 vecs_items = mydf['s1_unicode'].to_numpy()
 np.save(path_items_combined, vecs_items)
+
+print("--- %s seconds ---" % (time.time() - start_time))
+

@@ -52,6 +52,20 @@ def string_split(x, ngram=1):
         else:
             return [x[i:i+ngram] for i in range(len(x)-ngram+1)]
 
+# ------------------- deezy_mode_detector --------------------
+def deezy_mode_detector():
+
+    parser = ArgumentParser()
+    parser.add_argument("--deezy_mode", 
+                        help="DeezyMatch mode (options: train, inference)",
+                        default="train",
+                        )
+    dm_mode, unknown = parser.parse_known_args()
+    dm_mode = dm_mode.deezy_mode.lower()
+    if dm_mode not in ["train", "inference"]:
+        parser.exit(f"ERROR: implemeted modes are: train | inference (input: {dm_mode})")     
+        
+    return dm_mode
 
 # ------------------- read_inputs_command --------------------
 def read_inputs_command():
@@ -61,19 +75,35 @@ def read_inputs_command():
     """    
     parser = ArgumentParser()
     
+    parser.add_argument("--deezy_mode",
+                    help="DeezyMatch mode",
+                    default=None
+                    )
+
     parser.add_argument("-i", "--input_file_path",
-                    help="add the path of the input file")
+                    help="add the path of the input file",
+                    default=None
+                    )
     
     parser.add_argument("-d", "--dataset_path",
-                    help="add the path of the dataset")
+                    help="add the path of the dataset",
+                    default=None
+                    )
     
     parser.add_argument("-m", "--model_name",
-                    help="add the name of the model to be saved")
+                    help="add the name of the model to be saved",
+                    default=None
+                    )
     
     parser.add_argument("-f", "--fine_tuning",
-                    help="add the path to the folder of the model to be fine-tuned (note: if you use -v, then you should provide here the path to the .model file)")
+                    help="add the path to the folder of the model to be fine-tuned (note: if you use -v, then you should provide here the path to the .model file)",
+                    default=None
+                    )
+
     parser.add_argument("-v", "--vocabulary",
-                    help="add the path to the vocabulary to be used when fine-tuning (note: in this case -f should point to the .model file)")
+                    help="add the path to the vocabulary to be used when fine-tuning (note: in this case -f should point to the .model file)",
+                    default=None
+                    )
 
     parser.add_argument("-n", "--number_training_examples",
                     help="the number of training examples to be used (optional)", 
@@ -149,34 +179,9 @@ def read_inputs_command():
                 if os.path.exists(vocab_path) is False:
                     parser.exit(f"ERROR: vocab {vocab_path} not found!") 
 
-                    
-                
-                
         return input_file_path, dataset_path, model_name, fine_tuning_model_path, vocab_path, n_train_examples
     else:
         parser.exit("ERROR: Input file or dataset not found.")
-
-
-# ------------------- read_test_command --------------------
-def read_test_command():
-    """
-    read inputs from the command line
-    :return:
-    """
-    
-    cprint('[INFO]', bc.dgreen, 'read inputs from the command')
-    try:
-        model_path = sys.argv[1]
-        dataset_path = sys.argv[2]
-        train_vocab_path = sys.argv[3]
-        input_file = sys.argv[4]
-        test_cutoff = int(sys.argv[5])
-        query_candid_mode = sys.argv[6]
-    except IndexError as error:
-        cprint('[syntax error]', bc.red, 'syntax: python <TestModel.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff <q or c, q: query mode, c: candidate mode>')
-        sys.exit("[ERROR] {}".format(error))
-    
-    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, query_candid_mode
 
 # ------------------- read_inference_command --------------------
 def read_inference_command():
@@ -188,6 +193,10 @@ def read_inference_command():
     cprint('[INFO]', bc.dgreen, 'read inputs from the command')
     try:
         parser = ArgumentParser()
+        parser.add_argument("--deezy_mode",
+                        help="DeezyMatch mode",
+                        default=None
+                        )
         parser.add_argument("-m", "--model_path")
         parser.add_argument("-d", "--dataset_path")
         parser.add_argument("-v", "--vocabulary_path")
@@ -408,10 +417,10 @@ def log_plotter(path2log, dataset="DEFAULT"):
         recall = float(line_split[12][:-1])
         f1 = float(line_split[14])
     
-        if line_split[4] in ["train"]:
+        if line_split[4].lower() in ["train;", "train"]:
             train_arr.append([epoch, loss, acc, prec, recall, f1])
             time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
-        elif line_split[4] in ["valid"]:
+        elif line_split[4].lower() in ["valid;", "valid"]:
             valid_arr.append([epoch, loss, acc, prec, recall, f1])
     
     diff_time = []
