@@ -42,6 +42,10 @@ def read_command():
     parser.add_argument("-i", "--input_file_path",
                         help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
                         default="default")
+    
+    parser.add_argument("-tn", "--number_test_rows",
+                        help="Only for testing", 
+                        default=-1)
 
     args = parser.parse_args()
     num_candidates = int(args.num_candidates)
@@ -50,10 +54,11 @@ def read_command():
     search_size = int(args.search_size)
     comb_path = args.combined_path
     input_file_path = args.input_file_path
-    return output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path 
+    number_test_rows = int(args.number_test_rows)
+    return output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path, number_test_rows
 
 start_time = time.time()
-output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path = read_command()
+output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path, number_test_rows = read_command()
 
 if input_file_path in ["default"]:
     detect_input_files = glob.iglob(os.path.join(comb_path, "*.yaml"))
@@ -96,8 +101,13 @@ faiss_id_candis = faiss.IndexFlatL2(vecs_candidates.size()[1])   # build the ind
 print("Is faiss_id_candis already trained? %s" % faiss_id_candis.is_trained)
 faiss_id_candis.add(vecs_candidates.detach().cpu().numpy())
 
+if number_test_rows > 0:
+    len_vecs_query = number_test_rows
+else:
+    len_vecs_query = len(vecs_query)
+
 output_pd = pd.DataFrame()
-for iq in range(len(vecs_query)):
+for iq in range(len_vecs_query):
     print("=========== Start the search for %s" % iq, vecs_items_query[iq])
     collect_neigh_pd = pd.DataFrame()
     num_found_candidates = 0
