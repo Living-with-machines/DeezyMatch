@@ -249,6 +249,11 @@ def read_input_file(input_file_path):
 
         dl_inputs['general']['device'] = device
         cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
+
+        # XXX separation in the input CSV file
+        # Hardcoded, see issue #38
+        dl_inputs['general']['csv_sep'] = "\t"
+
     return dl_inputs
 
 # ------------------- model_explorer --------------------

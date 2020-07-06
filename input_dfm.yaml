@@ -9,8 +9,6 @@ preprocessing:
   strip: True
   only_latin_letters: False
   missing_char_threshold: 0.5
-  # separation in the input CSV file
-  csv_sep: "\t"
   # read a list of characters and add to the vocabulary
   read_list_chars: "./dataset/characters_v001.vocab"
 

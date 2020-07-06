@@ -18,7 +18,9 @@ After installing DeezyMatch on your machine, a new classifier can be trained by:
 python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
-NOTE: Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
+NOTE: 
+* Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
+* Delimiter is fixed to \t for now.
 
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
