@@ -36,6 +36,7 @@ import glob
 import numpy as np
 import sys
 
+from data_processing import test_tokenize
 from utils import cprint, bc, log_message
 from utils import print_stats
 from utils import torch_summarize
@@ -639,7 +640,6 @@ class two_parallel_rnns(nn.Module):
 def inference(model_path, dataset_path, train_vocab_path, input_file_path,
              test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs):
 
-    from data_processing import test_tokenize
     start_time = time.time()
 
     # --- read command args
