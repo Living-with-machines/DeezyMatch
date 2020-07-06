@@ -78,6 +78,8 @@ gru_lstm:
   layers_to_freeze: ["emb", "gru_1", "attn"]
 
 inference:
+ output_preds: True
+ output_preds_file: "./pred_results.txt"
  candidate_mode:
   output_vectors: "./embed_candidates/rnn"
   output_test_class: "./df/candidates.df" # XXX rename test_class

@@ -639,7 +639,7 @@ class two_parallel_rnns(nn.Module):
 
 # ------------------- inference  --------------------
 def inference(model_path, dataset_path, train_vocab_path, input_file_path,
-             test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs):
+              test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs):
 
     start_time = time.time()
 
@@ -719,8 +719,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                                    device=dl_inputs['general']['device'],
                                    evaluation=True,
                                    output_state_vectors=output_state_vectors, 
-                                   output_preds=False,
-                                   output_preds_file="./pred_results.txt"
+                                   output_preds=dl_inputs['inference']['output_preds'],
+                                   output_preds_file=dl_inputs['inference']['output_preds_file']
                                    )
     
     print("--- %s seconds ---" % (time.time() - start_time))
