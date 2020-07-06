@@ -10,6 +10,7 @@ import glob
 import numpy as np
 import os
 import pandas as pd
+import shutil
 import sys
 import time
 
@@ -42,14 +43,19 @@ def read_command():
     parser.add_argument("-combs", "--combined_scenario",
                         help="name of the combined scenario")
 
+    parser.add_argument("-i", "--input_file_path",
+                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
+                        default="default")
+
     args = parser.parse_args()
     qc_mode = args.candidate_or_query
     cq_sc = args.candidate_query_scenario
     rnn_pass = args.rnn_pass
     combined_sc = args.combined_scenario
-    return qc_mode, cq_sc, rnn_pass, combined_sc
+    input_file_path = args.input_file_path
+    return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
 
-qc_mode, cq_sc, rnn_pass, combined_sc = read_command()
+qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path = read_command()
 
 # paths to create tensors/arrays
 outputpath = "./combined/" + combined_sc + "/"
@@ -71,6 +77,7 @@ if qc_mode == "q":
     path_vec_combined += "queries_" + rnn_pass + ".pt"
     path_id_combined += "queries_" + rnn_pass + "_id.pt"
     path_items_combined += "queries_" + rnn_pass + "_items.npy"
+    inp_par_dir = "./queries/" + cq_sc
 elif qc_mode == "c":
     path2vecs = "./candidates/" + cq_sc + "/embed_candidates/rnn_" + rnn_pass + "*"
     path2ids = "./candidates/" + cq_sc + "/embed_candidates/rnn_indxs*"
@@ -78,6 +85,7 @@ elif qc_mode == "c":
     path_vec_combined += "candidates_" + rnn_pass + ".pt"
     path_id_combined += "candidates_" + rnn_pass + "_id.pt"
     path_items_combined += "candidates_" + rnn_pass + "_items.npy"
+    inp_par_dir = "./candidates/" + cq_sc
 
 print(f"\n\nReading vectors from {path2vecs}")
 list_files = glob.glob(os.path.join(path2vecs))
@@ -105,6 +113,14 @@ torch.save(vecs_ids, path_id_combined)
 mydf = pd.read_pickle(pathdf)
 vecs_items = mydf['s1_unicode'].to_numpy()
 np.save(path_items_combined, vecs_items)
+
+if input_file_path in ["default"]:
+    detect_input_files = glob.iglob(os.path.join(inp_par_dir, "*.yaml"))
+    for detected_inp in detect_input_files:
+        if os.path.isfile(detected_inp):
+            shutil.copy2(detected_inp, outputpath)
+else:
+    shutil.copy2(input_file_path, outputpath)
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
