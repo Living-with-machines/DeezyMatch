@@ -46,7 +46,7 @@ from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # ------------------- gru_lstm_network --------------------
-def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=False):
+def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=False):
     """
     Main function for training and evaluation of GRU/LSTM network for matching
     """
@@ -175,6 +175,12 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     
     train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
+
+    if dl_inputs['gru_lstm']['create_tensor_board']:
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+    else:
+        tboard_path = None
+
     fit(model=pretrained_model,
         train_dl=train_dl, 
         valid_dl=valid_dl,
@@ -183,7 +189,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         epochs=epochs,
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
-        tboard_path=dl_inputs['gru_lstm']['create_tensor_board'],
+        tboard_path=tboard_path,
         model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name),
         csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
@@ -319,7 +325,8 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
                        device=device,
                        model_path=model_path, 
                        tboard_writer=tboard_writer,
-                       csv_sep=csv_sep
+                       csv_sep=csv_sep,
+                       epoch=epoch+1
                        )
 
         if model_path:
@@ -335,7 +342,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                pooling_mode='attention', device='cpu', evaluation=True,
                output_state_vectors=False, output_preds=False, 
                output_preds_file=False, model_path=False, tboard_writer=False,
-               csv_sep="\t"):
+               csv_sep="\t", epoch=1):
 
     model.eval()
 
