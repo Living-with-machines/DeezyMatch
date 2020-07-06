@@ -643,6 +643,11 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
 
     start_time = time.time()
 
+    if dl_inputs['inference']['output_preds_file'] in ["default"]:
+        output_preds_file = os.path.join(os.path.dirname(model_path), f"pred_results_{os.path.basename(dataset_path)}")
+    else:
+        output_preds_file = dl_inputs['inference']['output_preds_file'] 
+
     # --- read command args
     if type(test_cutoff) == int:
         test_cutoff = int(test_cutoff)
@@ -720,7 +725,7 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                                    evaluation=True,
                                    output_state_vectors=output_state_vectors, 
                                    output_preds=dl_inputs['inference']['output_preds'],
-                                   output_preds_file=dl_inputs['inference']['output_preds_file']
+                                   output_preds_file=output_preds_file
                                    )
     
     print("--- %s seconds ---" % (time.time() - start_time))
