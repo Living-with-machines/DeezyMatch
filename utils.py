@@ -417,10 +417,10 @@ def log_plotter(path2log, dataset="DEFAULT"):
         recall = float(line_split[12][:-1])
         f1 = float(line_split[14])
     
-        if line_split[4] in ["train"]:
+        if line_split[4].lower() in ["train;", "train"]:
             train_arr.append([epoch, loss, acc, prec, recall, f1])
             time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
-        elif line_split[4] in ["valid"]:
+        elif line_split[4].lower() in ["valid;", "valid"]:
             valid_arr.append([epoch, loss, acc, prec, recall, f1])
     
     diff_time = []
