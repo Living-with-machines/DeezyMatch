@@ -26,7 +26,9 @@ set_seed_everywhere(1364)
 import re
 key_pat = re.compile(r"^(\D+)(\d+)$")
 def sort_key(item):
-    m = key_pat.match(item)
+    item = os.path.abspath(item)
+    item2match = os.path.basename(item)
+    m = key_pat.match(item2match)
     return m.group(1), int(m.group(2))
 
 def read_command():
