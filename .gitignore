@@ -3,3 +3,5 @@ __pycache__
 log.txt
 models
 pred_results.txt
+.DS_Store
+default.profraw

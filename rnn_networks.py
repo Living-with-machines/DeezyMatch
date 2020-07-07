@@ -46,7 +46,7 @@ from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # ------------------- gru_lstm_network --------------------
-def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=False):
+def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=False):
     """
     Main function for training and evaluation of GRU/LSTM network for matching
     """
@@ -108,7 +108,8 @@ def gru_lstm_network(dl_inputs, model_name,train_dc, valid_dc=False, test_dc=Fal
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
         tboard_path=tboard_path,
-        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name)
+        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name),
+        csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
 
     # --- save the model
@@ -174,6 +175,12 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     
     train_dl = DataLoader(dataset=train_dc, batch_size=batch_size, shuffle=dl_shuffle)
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
+
+    if dl_inputs['gru_lstm']['create_tensor_board']:
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+    else:
+        tboard_path = None
+
     fit(model=pretrained_model,
         train_dl=train_dl, 
         valid_dl=valid_dl,
@@ -182,8 +189,9 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         epochs=epochs,
         pooling_mode=pooling_mode,
         device=dl_inputs['general']['device'], 
-        tboard_path=dl_inputs['gru_lstm']['create_tensor_board'],
-        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name)
+        tboard_path=tboard_path,
+        model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name),
+        csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
 
     # --- save the model
@@ -206,7 +214,9 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     print_stats(start_time)
     
 # ------------------- fit  --------------------
-def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attention', device='cpu', tboard_path=False, model_path=False):
+def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, 
+        pooling_mode='attention', device='cpu', 
+        tboard_path=False, model_path=False, csv_sep="\t"):
 
     num_batch_train = len(train_dl)
     num_batch_valid = len(valid_dl)
@@ -307,12 +317,17 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
 
         if valid_dl:
             valid_desc = 'Epoch: {}/{}; Valid'.format(epoch+1, epochs)
-            test_model(model, valid_dl, 
-                       eval_mode="valid", valid_desc=valid_desc,
+            test_model(model, 
+                       valid_dl, 
+                       eval_mode="valid", 
+                       valid_desc=valid_desc,
                        pooling_mode=pooling_mode, 
                        device=device,
                        model_path=model_path, 
-                       tboard_writer=tboard_writer)
+                       tboard_writer=tboard_writer,
+                       csv_sep=csv_sep,
+                       epoch=epoch+1
+                       )
 
         if model_path:
             # --- save the model
@@ -326,7 +341,8 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, pooling_mode='attenti
 def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                pooling_mode='attention', device='cpu', evaluation=True,
                output_state_vectors=False, output_preds=False, 
-               output_preds_file=False, model_path=False, tboard_writer=False):
+               output_preds_file=False, model_path=False, tboard_writer=False,
+               csv_sep="\t", epoch=1):
 
     model.eval()
 
@@ -375,6 +391,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         with torch.no_grad():
             pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, output_state_vectors=output_state_vectors, evaluation=evaluation)
             if output_state_vectors:
+                all_preds = []
                 continue
 
             loss = loss_fn(pred, y)
@@ -423,19 +440,19 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                 with open(output_preds_file, "a+") as pred_f:
                     if first_dump:
                         np.savetxt(pred_f, pred_results.T, 
-                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t', 
-                                header="s1_unicode\ts2_unicode\tprediction\tp0\tp1\tlabel")
+                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep, 
+                                header=f"s1_unicode{csv_sep}s2_unicode{csv_sep}prediction{csv_sep}p0{csv_sep}p1{csv_sep}label")
                         first_dump = False
                     else:
                         np.savetxt(pred_f, pred_results.T, 
-                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter='\t')
+                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep)
 
             total_loss_test += loss.data
 
-    if output_preds:
-        return all_preds
-    elif output_state_vectors:
+    if output_state_vectors:
         return None 
+    elif output_preds:
+        return all_preds
     else:
         test_acc = accuracy_score(y_true_test, y_pred_test)
         test_pre = precision_score(y_true_test, y_pred_test)
@@ -735,7 +752,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],
         cutoff=test_cutoff, 
-        save_test_class=path_save_test_class
+        save_test_class=path_save_test_class,
+        csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
     
     test_dl = DataLoader(dataset=test_dc, 
@@ -752,7 +770,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                                    evaluation=True,
                                    output_state_vectors=output_state_vectors, 
                                    output_preds=dl_inputs['inference']['output_preds'],
-                                   output_preds_file=output_preds_file
+                                   output_preds_file=output_preds_file,
+                                   csv_sep=dl_inputs['preprocessing']['csv_sep']
                                    )
     
     print("--- %s seconds ---" % (time.time() - start_time))
