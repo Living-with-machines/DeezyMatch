@@ -41,6 +41,7 @@ from utils import cprint, bc, log_message
 from utils import print_stats
 from utils import torch_summarize
 from utils import create_parent_dir
+from utils import eval_map
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -298,7 +299,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
             train_acc = accuracy_score(y_true_train, y_pred_train)
             train_pre = precision_score(y_true_train, y_pred_train)
             train_rec = recall_score(y_true_train, y_pred_train)
-            train_f1 = f1_score(y_true_train, y_pred_train, average='weighted')
+            train_f1 = f1_score(y_true_train, y_pred_train, average='macro')
             train_loss = total_loss_train / len(train_dl)
             epoch_log = '{} -- Epoch: {}/{}; Train; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
                     datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
@@ -411,8 +412,6 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             y_pred_test += list(pred_idx.cpu().data.numpy())
             # pulling out the scores for the prediction of 1
             
-            import ipdb
-            ipdb.set_trace()
 
             y_score_test += torch.exp(pred).cpu().data.numpy()[:, 1].tolist()
 
@@ -457,9 +456,23 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         test_acc = accuracy_score(y_true_test, y_pred_test)
         test_pre = precision_score(y_true_test, y_pred_test)
         test_rec = recall_score(y_true_test, y_pred_test)
-        test_f1 = f1_score(y_true_test, y_pred_test, average='weighted')
+        test_f1 = f1_score(y_true_test, y_pred_test, average='macro')
+
+
+        # computing MAP
+
+        list_of_list_of_trues = []
+        list_of_list_of_preds = []
+
         for q,pred_ids in map_queries.items():
-            q_preds =[y_pred_test[x] for x in pred_ids]
+            q_preds = [y_score_test[x] for x in pred_ids]
+            q_trues = [y_true_test[x] for x in pred_ids]
+            list_of_list_of_preds.append(q_preds)
+            list_of_list_of_trues.append(q_trues)
+
+        test_map = eval_map(list_of_list_of_trues, list_of_list_of_preds)
+        import ipdb
+        ipdb.set_trace()
 
         test_loss = total_loss_test / len(test_dl)
         epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(

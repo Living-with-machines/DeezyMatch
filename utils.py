@@ -13,7 +13,7 @@ import time
 import unicodedata
 import yaml
 from argparse import ArgumentParser
-
+from sklearn.metrics import average_precision_score
 import torch
 from torch.nn.modules.module import _addindent
 
@@ -40,6 +40,37 @@ def set_seed_everywhere(seed):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+# ------------------- computing_map --------------------
+# from: https://github.com/iesl/stance/blob/master/src/main/eval/EvalMap.py
+
+def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
+    """Compute Mean Average Precision
+    Given a two lists with one element per test example compute the
+    mean average precision score.
+    The i^th element of each list is an array of scores or labels corresponding
+    to the i^th training example.
+    :param list_of_list_of_labels: Binary relevance labels. One list per example.
+    :param list_of_list_of_scores: Predicted relevance scores. One list per example.
+    :return: the mean average precision
+    """
+    np.random.seed(19)
+    assert len(list_of_list_of_labels) == len(list_of_list_of_scores)
+    aps = []
+    for i in range(len(list_of_list_of_labels)):
+        if randomize == True:
+            perm = np.random.permutation(len(list_of_list_of_labels[i]))
+            list_of_list_of_labels[i] = np.asarray(list_of_list_of_labels[i])[perm]
+            list_of_list_of_scores[i] = np.asarray(list_of_list_of_scores[i])[perm]
+        # print("Labels: {}".format(list_of_list_of_labels[i]))
+        # print("Scores: {}".format(list_of_list_of_scores[i]))
+        # print("MAP: {}".format(average_precision_score(list_of_list_of_labels[i],
+        #                                                list_of_list_of_scores[i])))
+        if sum(list_of_list_of_labels[i]) > 0:
+            aps.append(average_precision_score(list_of_list_of_labels[i],
+                                               list_of_list_of_scores[i]))
+    return sum(aps) / len(aps)
 
 
 # ------------------- string_split --------------------
