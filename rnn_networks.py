@@ -62,6 +62,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
 
     # --- read inputs
     cprint('[INFO]', bc.dgreen, 'read inputs')
+    main_architecture = dl_inputs['gru_lstm']['main_architecture']
     vocab_size = len(train_dc.vocab)
     embedding_dim = dl_inputs['gru_lstm']['embedding_dim']
     rnn_hidden_dim = dl_inputs['gru_lstm']['rnn_hidden_dim']
@@ -71,7 +72,10 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     learning_rate = dl_inputs['gru_lstm']['learning_rate']
     rnn_n_layers = dl_inputs['gru_lstm']['num_layers']
     bidirectional = dl_inputs['gru_lstm']['bidirectional']
-    rnn_drop_prob = dl_inputs['gru_lstm']['gru_dropout']
+    try:
+        rnn_drop_prob = dl_inputs['gru_lstm']['rnn_dropout']
+    except:
+        rnn_drop_prob = dl_inputs['gru_lstm']['gru_dropout']
     rnn_bias = dl_inputs['gru_lstm']['bias']
     fc_dropout = dl_inputs['gru_lstm']['fc_dropout']
     att_dropout = dl_inputs['gru_lstm']['att_dropout']
@@ -81,7 +85,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
 
     # --- create the model
     cprint('[INFO]', bc.dgreen, 'create a two_parallel_rnns model')
-    model_gru = two_parallel_rnns(vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
+    model_gru = two_parallel_rnns(main_architecture, vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
                                   rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
                                   fc1_out_features, fc_dropout, att_dropout)
     model_gru.to(dl_inputs['general']['device'])
@@ -457,11 +461,12 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
 # ------------------- two_parallel_rnns  --------------------
 class two_parallel_rnns(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
+    def __init__(self, main_architecture, vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
                  rnn_n_layers, bidirectional, pooling_mode, rnn_drop_prob, rnn_bias,
                  fc1_out_features, fc_dropout=[0.5, 0.5], att_dropout=[0.5, 0.5], 
                  maxpool_kernel_size=2):
         super().__init__()
+        self.main_architecture = main_architecture
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         self.rnn_hidden_dim = rnn_hidden_dim
@@ -497,9 +502,19 @@ class two_parallel_rnns(nn.Module):
         # --- methods
         self.emb = nn.Embedding(self.vocab_size, self.embedding_dim)
 
-        self.gru_1 = nn.GRU(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
-                            bias=self.rnn_bias, dropout=self.rnn_drop_prob,
-                            bidirectional=self.bidirectional)
+        if self.main_architecture.lower() in ["lstm"]:
+            self.rnn_1 = nn.LSTM(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
+                                 bias=self.rnn_bias, dropout=self.rnn_drop_prob,
+                                 bidirectional=self.bidirectional)
+        elif self.main_architecture.lower() in ["gru"]:
+            self.rnn_1 = nn.GRU(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
+                                bias=self.rnn_bias, dropout=self.rnn_drop_prob,
+                                bidirectional=self.bidirectional)
+        elif self.main_architecture.lower() in ["rnn"]:
+            self.rnn_1 = nn.RNN(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
+                                bias=self.rnn_bias, dropout=self.rnn_drop_prob,
+                                bidirectional=self.bidirectional)
+
 
         #self.gru_2 = nn.GRU(self.embedding_dim, self.rnn_hidden_dim, self.rnn_n_layers,
         #                    bias=self.rnn_bias, dropout=self.rnn_drop_prob,
@@ -524,15 +539,18 @@ class two_parallel_rnns(nn.Module):
         if output_state_vectors:
             create_parent_dir(output_state_vectors)
 
-        self.h1 = self.init_hidden(x1_seq.size(1), device)
+        self.h1, self.c1 = self.init_hidden(x1_seq.size(1), device)
         x1_embs_not_packed = self.emb(x1_seq)
         x1_embs = pack_padded_sequence(x1_embs_not_packed, len1, enforce_sorted=False)
-        gru_out_1, self.h1 = self.gru_1(x1_embs, self.h1)
-        gru_out_1, len1 = pad_packed_sequence(gru_out_1)
+        if self.main_architecture.lower() in ["lstm"]:
+            rnn_out_1, (self.h1, self.c1) = self.rnn_1(x1_embs, (self.h1, self.c1))
+        elif self.main_architecture.lower() in ["gru", "rnn"]:
+            rnn_out_1, self.h1 = self.rnn_1(x1_embs, self.h1)
+        rnn_out_1, len1 = pad_packed_sequence(rnn_out_1)
 
         if output_state_vectors:
             # the layers can be separated using h_n.view(num_layers, num_directions, batch, hidden_size).
-            h1_reshape = self.h1.view(self.rnn_n_layers, self.num_directions, gru_out_1.shape[1], self.rnn_hidden_dim)
+            h1_reshape = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
 
             output_h_layer = self.rnn_n_layers - 1
             file_id = len(glob.glob(output_state_vectors + "_fwd_*"))
@@ -547,8 +565,8 @@ class two_parallel_rnns(nn.Module):
         if pooling_mode in ['attention']:
             attn_weight_flag = False
             attn_weight_array = False
-            for i_nhs in range(np.shape(gru_out_1)[0]):
-                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_1[i_nhs], self.att1_dropout)))
+            for i_nhs in range(np.shape(rnn_out_1)[0]):
+                attn_weight = F.relu(self.attn_step1(F.dropout(rnn_out_1[i_nhs], self.att1_dropout)))
                 attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
                     attn_weight_array = attn_weight
@@ -556,18 +574,18 @@ class two_parallel_rnns(nn.Module):
                 else:
                     attn_weight_array = torch.cat((attn_weight_array, attn_weight), dim=1)
             attn_weight_array = F.softmax(attn_weight_array, dim=1)
-            attn_vect_1 = torch.squeeze(torch.bmm(gru_out_1.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
+            attn_vect_1 = torch.squeeze(torch.bmm(rnn_out_1.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
         elif pooling_mode in ['average']:
-            pool_1 = F.adaptive_avg_pool1d(gru_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
+            pool_1 = F.adaptive_avg_pool1d(rnn_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
         elif pooling_mode in ['max', 'maximum']:
-            pool_1 = F.adaptive_max_pool1d(gru_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
+            pool_1 = F.adaptive_max_pool1d(rnn_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
         elif pooling_mode in ['context']:
-            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, gru_out_1.shape[1], self.rnn_hidden_dim)
+            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
             context_1 = context_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_1 = torch.cat((context_1, context_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
         elif pooling_mode in ['context_layers', 'context_layers_simple']:
-            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, gru_out_1.shape[1], self.rnn_hidden_dim)
+            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
             context_1 = context_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
                 context_1 = torch.cat((context_1, context_1_fwd_bwd[rlayer, 0]), dim=1)
@@ -577,19 +595,23 @@ class two_parallel_rnns(nn.Module):
                     context_1_bwd = torch.cat((context_1_bwd, context_1_fwd_bwd[rlayer, 1]), dim=1)
                 context_1 = torch.cat((context_1, context_1_bwd), dim=1)
 
-        self.h2 = self.init_hidden(x2_seq.size(1), device)
+        self.h2, self.c2 = self.init_hidden(x2_seq.size(1), device)
         x2_embs_not_packed = self.emb(x2_seq)
         x2_embs = pack_padded_sequence(x2_embs_not_packed, len2, enforce_sorted=False)
         # Share parameters between two GRUs
         # Previously, we had gru_out_2, self.h2 = self.gru_2(x2_embs, self.h2)
-        gru_out_2, self.h2 = self.gru_1(x2_embs, self.h2)
-        gru_out_2, len2 = pad_packed_sequence(gru_out_2)
+        if self.main_architecture.lower() in ["lstm"]:
+            rnn_out_2, (self.h2, self.c2) = self.rnn_1(x2_embs, (self.h2, self.c2))
+        elif self.main_architecture.lower() in ["gru", "rnn"]:
+            rnn_out_2, self.h2 = self.rnn_1(x2_embs, self.h2)
+
+        rnn_out_2, len2 = pad_packed_sequence(rnn_out_2)
 
         if pooling_mode in ['attention']:
             attn_weight_flag = False
             attn_weight_array = False
-            for i_nhs in range(np.shape(gru_out_2)[0]):
-                attn_weight = F.relu(self.attn_step1(F.dropout(gru_out_2[i_nhs], self.att1_dropout)))
+            for i_nhs in range(np.shape(rnn_out_2)[0]):
+                attn_weight = F.relu(self.attn_step1(F.dropout(rnn_out_2[i_nhs], self.att1_dropout)))
                 attn_weight = self.attn_step2(F.dropout(attn_weight, self.att2_dropout))
                 if not attn_weight_flag:
                     attn_weight_array = attn_weight
@@ -597,18 +619,18 @@ class two_parallel_rnns(nn.Module):
                 else:
                     attn_weight_array = torch.cat((attn_weight_array, attn_weight), dim=1)
             attn_weight_array = F.softmax(attn_weight_array, dim=1)
-            attn_vect_2 = torch.squeeze(torch.bmm(gru_out_2.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
+            attn_vect_2 = torch.squeeze(torch.bmm(rnn_out_2.permute(1, 2, 0), torch.unsqueeze(attn_weight_array, 2)))
         elif pooling_mode in ['average']:
-            pool_2 = F.adaptive_avg_pool1d(gru_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
+            pool_2 = F.adaptive_avg_pool1d(rnn_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
         elif pooling_mode in ['max', 'maximum']:
-            pool_2 = F.adaptive_max_pool1d(gru_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
+            pool_2 = F.adaptive_max_pool1d(rnn_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
         elif pooling_mode in ['context']:
-            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, gru_out_2.shape[1], self.rnn_hidden_dim)
+            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
             context_2 = context_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 context_2 = torch.cat((context_2, context_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
         elif pooling_mode in ['context_layers', 'context_layers_simple']:
-            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, gru_out_2.shape[1], self.rnn_hidden_dim)
+            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
             context_2 = context_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
                 context_2 = torch.cat((context_2, context_2_fwd_bwd[rlayer, 0]), dim=1)
@@ -652,7 +674,9 @@ class two_parallel_rnns(nn.Module):
         first_dim = self.rnn_n_layers
         if self.bidirectional:
             first_dim *= 2
-        return Variable(torch.zeros((first_dim, batch_size, self.rnn_hidden_dim)).to(device))
+        return (Variable(torch.zeros((first_dim, batch_size, self.rnn_hidden_dim)).to(device)), 
+                Variable(torch.zeros((first_dim, batch_size, self.rnn_hidden_dim)).to(device)))
+                
 
 # ------------------- inference  --------------------
 def inference(model_path, dataset_path, train_vocab_path, input_file_path,
