@@ -299,10 +299,12 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
             train_acc = accuracy_score(y_true_train, y_pred_train)
             train_pre = precision_score(y_true_train, y_pred_train)
             train_rec = recall_score(y_true_train, y_pred_train)
-            train_f1 = f1_score(y_true_train, y_pred_train, average='macro')
+            train_macrof1 = f1_score(y_true_train, y_pred_train, average='macro')
+            train_weightedf1 = f1_score(y_true_train, y_pred_train, average='weighted')
+
             train_loss = total_loss_train / len(train_dl)
-            epoch_log = '{} -- Epoch: {}/{}; Train; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_f1)
+            epoch_log = '{} -- Epoch: {}/{}; Train; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f},, weightedf1: {:.3f}'.format(
+                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_macrof1,train_weightedf1)
             cprint('[INFO]', bc.orange, epoch_log)
             if model_path:
                 log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
@@ -456,11 +458,10 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         test_acc = accuracy_score(y_true_test, y_pred_test)
         test_pre = precision_score(y_true_test, y_pred_test)
         test_rec = recall_score(y_true_test, y_pred_test)
-        test_f1 = f1_score(y_true_test, y_pred_test, average='macro')
-
+        test_macrof1 = f1_score(y_true_test, y_pred_test, average='macro')
+        test_weightedf1 = f1_score(y_true_test, y_pred_test, average='weighted')
 
         # computing MAP
-
         list_of_list_of_trues = []
         list_of_list_of_preds = []
 
@@ -471,12 +472,10 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             list_of_list_of_trues.append(q_trues)
 
         test_map = eval_map(list_of_list_of_trues, list_of_list_of_preds)
-        import ipdb
-        ipdb.set_trace()
 
         test_loss = total_loss_test / len(test_dl)
-        epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, f1: {:.3f}'.format(
-               datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_f1)
+        epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, , map: {:.3f}'.format(
+               datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1, test_map)
         cprint('[INFO]', bc.lred, epoch_log)
         if model_path:
             log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
@@ -486,14 +485,17 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         if tboard_writer:
             # Record loss
             tboard_writer.add_scalar('Test/Loss', loss.item(), epoch)
-            # Record Accuracy, precision, recall, F1 on validation set 
+            # Record Accuracy, precision, recall, F1, MAP on validation set 
             tboard_writer.add_scalar('Test/Accuracy', test_acc, epoch)
             tboard_writer.add_scalar('Test/Precision', test_pre, epoch)
             tboard_writer.add_scalar('Test/Recall', test_rec, epoch)
-            tboard_writer.add_scalar('Test/F1', test_f1, epoch)
+            tboard_writer.add_scalar('Test/MacroF1', test_macrof1, epoch)
+            tboard_writer.add_scalar('Test/WeightedF1', test_weightedf1, epoch)
+            tboard_writer.add_scalar('Test/Map', test_map, epoch)
+
             tboard_writer.flush()
             
-        return (test_acc, test_pre, test_rec, test_f1)
+        return (test_acc, test_pre, test_rec, test_macrof1,test_weightedf1,test_map)
 
 # ------------------- two_parallel_rnns  --------------------
 class two_parallel_rnns(nn.Module):
