@@ -407,7 +407,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             y_true_test += list(y.cpu().data.numpy())
             y_pred_test += list(pred_idx.cpu().data.numpy())
 
-            if output_preds_file:
+            if output_preds_file and output_preds:
                 pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
                                         test_dl.dataset.df.loc[indxs]["s2_unicode"].to_numpy(), 
                                         pred_idx.cpu().data.numpy().T, 
