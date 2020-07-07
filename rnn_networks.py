@@ -372,7 +372,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         eval_desc = "test"
     
     t_test.set_description(eval_mode)
-    print (type(t_test))
+    
     for x1, len1, x2, len2, y, indxs in t_test:
         if output_state_vectors:
             output_par_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
@@ -750,7 +750,6 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
     
     # --- load torch model, send it to the device (CPU/GPU)
     model = torch.load(model_path, map_location=dl_inputs['general']['device'])
-    #print(model.state_dict()['emb.weight'])
     
     # --- create test data class
     # read vocabulary
