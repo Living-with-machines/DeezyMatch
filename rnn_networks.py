@@ -75,6 +75,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     try:
         rnn_drop_prob = dl_inputs['gru_lstm']['rnn_dropout']
     except:
+        cprint('[WARNING]', bc.dred, 'DEPRECATED (gru_dropout): use rnn_dropout in the input file instead.')
         rnn_drop_prob = dl_inputs['gru_lstm']['gru_dropout']
     rnn_bias = dl_inputs['gru_lstm']['bias']
     fc_dropout = dl_inputs['gru_lstm']['fc_dropout']
