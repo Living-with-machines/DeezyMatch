@@ -405,6 +405,15 @@ def create_parent_dir(file_path):
 # ------------------- log_plotter --------------------
 def log_plotter(path2log, dataset="DEFAULT"):
     """Plot the generated log file for each model"""
+
+    # set path for the output
+    path2log = os.path.abspath(path2log)
+    path2fig_dir = os.path.dirname(path2log)
+    path2fig_dirname = os.path.basename(path2fig_dir)
+
+    if dataset in [None, "DEFAULT"]:
+        dataset = path2fig_dirname 
+
     log_fio = open(path2log, "r")
     log = log_fio.readlines()
 
@@ -509,4 +518,5 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.grid()
     
     plt.tight_layout()
-    plt.savefig(f"log_{dataset}.png", dpi=300)
+    path2fig = os.path.join(path2fig_dir, f"log_{dataset}.png")
+    plt.savefig(path2fig, dpi=300)
