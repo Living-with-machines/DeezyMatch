@@ -13,7 +13,7 @@ import time
 import unicodedata
 import yaml
 from argparse import ArgumentParser
-
+from sklearn.metrics import average_precision_score
 import torch
 from torch.nn.modules.module import _addindent
 
@@ -40,6 +40,38 @@ def set_seed_everywhere(seed):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+# ------------------- computing_map --------------------
+# from: https://github.com/iesl/stance/blob/master/src/main/eval/EvalMap.py
+
+#NOTE! this expects labels as 1 and 0
+def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
+    """Compute Mean Average Precision
+    Given a two lists with one element per test example compute the
+    mean average precision score.
+    The i^th element of each list is an array of scores or labels corresponding
+    to the i^th training example.
+    :param list_of_list_of_labels: Binary relevance labels. One list per example.
+    :param list_of_list_of_scores: Predicted relevance scores. One list per example.
+    :return: the mean average precision
+    """
+
+    set_seed_everywhere(1364)
+
+    assert len(list_of_list_of_labels) == len(list_of_list_of_scores)
+    aps = []
+    for i in range(len(list_of_list_of_labels)):
+        if randomize == True:
+            perm = np.random.permutation(len(list_of_list_of_labels[i]))
+            list_of_list_of_labels[i] = np.asarray(list_of_list_of_labels[i])[perm]
+            list_of_list_of_scores[i] = np.asarray(list_of_list_of_scores[i])[perm]
+
+        # NOTE! In case there are no positive labels, the entry will be skipped
+        if sum(list_of_list_of_labels[i]) > 0:
+            aps.append(average_precision_score(list_of_list_of_labels[i],
+                                               list_of_list_of_scores[i]))
+    return sum(aps) / len(aps)
 
 
 # ------------------- string_split --------------------
@@ -249,6 +281,11 @@ def read_input_file(input_file_path):
 
         dl_inputs['general']['device'] = device
         cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
+
+        # XXX separation in the input CSV file
+        # Hardcoded, see issue #38
+        dl_inputs['preprocessing']['csv_sep'] = "\t"
+
     return dl_inputs
 
 # ------------------- model_explorer --------------------
@@ -400,6 +437,15 @@ def create_parent_dir(file_path):
 # ------------------- log_plotter --------------------
 def log_plotter(path2log, dataset="DEFAULT"):
     """Plot the generated log file for each model"""
+
+    # set path for the output
+    path2log = os.path.abspath(path2log)
+    path2fig_dir = os.path.dirname(path2log)
+    path2fig_dirname = os.path.basename(path2fig_dir)
+
+    if dataset in [None, "DEFAULT"]:
+        dataset = path2fig_dirname 
+
     log_fio = open(path2log, "r")
     log = log_fio.readlines()
 
@@ -415,13 +461,16 @@ def log_plotter(path2log, dataset="DEFAULT"):
         acc = float(line_split[8][:-1])
         prec = float(line_split[10][:-1])
         recall = float(line_split[12][:-1])
-        f1 = float(line_split[14])
+        macrof1 = float(line_split[14][:-1])
+        weightedf1 = float(line_split[16][:-1])
     
         if line_split[4].lower() in ["train;", "train"]:
-            train_arr.append([epoch, loss, acc, prec, recall, f1])
+            train_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1])
             time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
         elif line_split[4].lower() in ["valid;", "valid"]:
-            valid_arr.append([epoch, loss, acc, prec, recall, f1])
+            #to be added
+            #map_score = float(line_split[18])
+            valid_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1])
     
     diff_time = []
     for i in range(len(time_arr)-1):
@@ -433,15 +482,20 @@ def log_plotter(path2log, dataset="DEFAULT"):
     
     train_arr = np.array(train_arr)
     valid_arr = np.array(valid_arr)
-    min_valid_arg = np.argmin(valid_arr[:, 1])
+    if len(valid_arr > 0):
+        min_valid_arg = np.argmin(valid_arr[:, 1])
+        plot_valid = True
+    else:
+        plot_valid = False
     
     plt.figure(figsize=(15, 12))
     plt.subplot(3, 2, 1)
     plt.plot(train_arr[:, 0], train_arr[:, 1], label="train loss", c="k", lw=2)
-    plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2)
-    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
-             f"Epoch: {min_valid_arg}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
+    if plot_valid:
+        plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2)
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
+                 f"Epoch: {min_valid_arg}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Loss", size=18)
     plt.legend(fontsize=14, loc=7)
@@ -450,13 +504,14 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.grid()
     
     plt.subplot(3, 2, 2)
-    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train F1", c="k", lw=2)
-    plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid F1", c='r', lw=2)
-    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
-             f"Epoch: {min_valid_arg}, F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train macro F1", c="k", lw=2)
+    if plot_valid:  
+        plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid macro F1", c='r', lw=2)
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
+             f"Epoch: {min_valid_arg}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
-    plt.ylabel("F1", size=18)
+    plt.ylabel("macro F1", size=18)
     plt.legend(fontsize=14, loc=4)
     plt.xticks(size=14)
     plt.yticks(size=14)
@@ -464,10 +519,11 @@ def log_plotter(path2log, dataset="DEFAULT"):
     
     plt.subplot(3, 2, 3)
     plt.plot(train_arr[:, 0], train_arr[:, 2], label="train acc", c="k", lw=2)
-    plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2)
-    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
-             f"Epoch: {min_valid_arg}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
+    if plot_valid:
+        plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2)
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
+                 f"Epoch: {min_valid_arg}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Accuracy", size=18)
     plt.legend(fontsize=14, loc=4)
@@ -478,11 +534,12 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.subplot(3, 2, 4)
     plt.plot(train_arr[:, 0], train_arr[:, 3], label="train prec", c="k", ls="-", lw=2)
     plt.plot(train_arr[:, 0], train_arr[:, 4], label="train recall", c="k", ls="--", lw=2)
-    plt.plot(valid_arr[:, 0], valid_arr[:, 3], label="valid prec", c='r', ls="-", lw=2)
-    plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2)
-    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
-             f"Epoch: {min_valid_arg}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
+    if plot_valid:
+        plt.plot(valid_arr[:, 0], valid_arr[:, 3], label="valid prec", c='r', ls="-", lw=2)
+        plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2)
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
+                 f"Epoch: {min_valid_arg}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Precision/Recall", size=18)
     plt.legend(fontsize=14, loc=4)
@@ -493,9 +550,10 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.subplot(3, 2, 5)
     plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
     plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
-    plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-    plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 
-             f"Epoch: {min_valid_arg}, Time to solution: {np.cumsum(diff_time[:min_valid_arg])[-1]}s", fontsize=12, color="r")
+    if plot_valid:
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 
+                 f"Epoch: {min_valid_arg}, Time to solution: {np.cumsum(diff_time[:min_valid_arg])[-1]}s", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Time (each epoch) / sec", size=18)
     plt.xticks(size=14)
@@ -504,4 +562,5 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.grid()
     
     plt.tight_layout()
-    plt.savefig(f"log_{dataset}.png", dpi=300)
+    path2fig = os.path.join(path2fig_dir, f"log_{dataset}.png")
+    plt.savefig(path2fig, dpi=300)

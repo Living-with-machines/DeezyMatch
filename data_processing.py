@@ -40,7 +40,7 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
             print(f"SKIP: {df_list[i]}")
             # change the label to remove_me, 
             # we drop the rows with no true|false in the label column
-            tmp_split_row = "X\tX\tremove_me".split(csv_sep)
+            tmp_split_row = f"X{csv_sep}X{csv_sep}remove_me".split(csv_sep)
         df_list[i] = tmp_split_row[:3]
     dataset_pd = pd.DataFrame(df_list, columns=["s1", "s2", "label"])
     dataset_pd["s1"] = dataset_pd["s1"].str.strip()
@@ -153,6 +153,9 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
 
         dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
         dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
+    
+    # cleanup the indices
+    dataset_split.reset_index(drop=True, inplace=True)
 
     with pd.option_context('mode.chained_assignment', None):
         train_dc = DatasetClass(dataset_split.loc[dataset_split['split'] == 'train'], dataset_vocab, maxlen=max_seq_len)
@@ -170,7 +173,8 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
                   max_seq_len=100, mode="char",
                   cutoff=None, 
                   save_test_class="./test_dc.df",
-                  dataframe_input=False
+                  dataframe_input=False,
+                  csv_sep="\t"
                   ):
 
     if dataframe_input:
@@ -181,13 +185,13 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
         ds_fio = open(dataset_path, "r")
         df_list = ds_fio.readlines()
         for i in range(len(df_list)):
-            tmp_split_row = df_list[i].split("\t")
+            tmp_split_row = df_list[i].split(csv_sep)
             #if len(tmp_split_row) != 3:
             if str(tmp_split_row[2]).strip().lower() not in ["true", "false", "1", "0"]:
                 print(f"SKIP: {df_list[i]}")
                 # change the label to remove_me, 
                 # we drop the rows with no true|false in the label column
-                tmp_split_row = "X\tX\tremove_me".split("\t")
+                tmp_split_row = f"X{csv_sep}X{csv_sep}remove_me".split(csv_sep)
             df_list[i] = tmp_split_row[:3]
         dataset_pd = pd.DataFrame(df_list, columns=["s1", "s2", "label"])
         dataset_pd["s1"] = dataset_pd["s1"].str.strip()
@@ -239,6 +243,9 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
 
     #and then we do the cutoff again after having excluded the ones to be removed
     dataset_pd = dataset_pd[:cutoff]
+
+    # cleanup the indices
+    dataset_pd.reset_index(drop=True, inplace=True)
     
     with pd.option_context('mode.chained_assignment', None):
         test_dc = DatasetClass(dataset_pd, train_vocab, maxlen=max_seq_len)

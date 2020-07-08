@@ -18,7 +18,9 @@ After installing DeezyMatch on your machine, a new classifier can be trained by:
 python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
-NOTE: Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
+NOTE: 
+* Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
+* Delimiter is fixed to \t for now.
 
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
@@ -155,13 +157,45 @@ models
 
 After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. 
 
-To perform inference on a dataset:
+### Model inference
+
+To use an already trained model for inference/prediction:
 
 ```bash
 python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode test
 ```
 
-In candidate selection, we first need to create vectors for both query and candidates. This can be done by:
+This command creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
+
+```bash
+# s1_unicode    s2_unicode      prediction      p0      p1      label
+la dom nxy      ลําโดมน้อย        1       0.1482  0.8518  1
+krutoy  крутой  1       0.0605  0.9395  1
+sharunyata      shartjugskij    0       0.9568  0.0432  0
+sutangcun       羊山村  1       0.1534  0.8466  0
+jowkār-e shafī‘ جوکار شفیع      1       0.0226  0.9774  1
+rongreiyn ban hwy h wk cxmthxng rongreiyn ban hnxng xu  0       0.8948  0.1052  0
+同心村  tong xin cun    1       0.0572  0.9428  1
+engeskjæran     abrahamskjeret  0       0.9289  0.0711  0
+izumo-zaki      tsumo-zaki      1       0.4662  0.5338  1
+```
+
+`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is 0.8518.
+
+In the above example, we used a fine-tuned model. The model inference can be done with any trained models, e.g., 
+
+```bash
+python DeezyMatch.py --deezy_mode inference -m ./models/test001/test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/test001/test001.vocab -i ./input_dfm.yaml -mode test
+```
+
+### Candidate selection
+
+Candidate selection consists of the following steps:
+1. Generate vectors for both queries and candidates
+2. Combine vectors
+3. For each query, find a list of candidates
+
+1. In the first step, we create vectors for both query and candidate tokens:
 
 ```bash
 # queries
@@ -171,7 +205,27 @@ python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetu
 python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode vect --scenario test -qc c
 ```
 
-Refer to `inference_candidate_finder` directory for more information.
+2. Combine vectors. This step is required if candidates or queries are distributed on several files. At this step, we combined those vectors.
+
+```bash
+python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
+```
+
+3. CandidateFinder:
+
+```bash
+python candidateFinder.py -fd 0.8 -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -tn 100
+```
+
+In this command, `-fd` specifies the max faiss distance used to select candidates, e.g., all candidates with distances less than 0.8 (as measured by L2-norm distance) will be selected. `-sz` is the search size. At each iteration, the distance between a query and `-sz` candidates are computed.
+
+If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
+
+```bash
+pip install faiss-cpu --no-cache
+```
+
+Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
 **Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
 
