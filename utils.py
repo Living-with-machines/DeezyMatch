@@ -468,8 +468,9 @@ def log_plotter(path2log, dataset="DEFAULT"):
             train_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1])
             time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
         elif line_split[4].lower() in ["valid;", "valid"]:
-            map_score = float(line_split[18])
-            valid_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1,map_score])
+            #to be added
+            #map_score = float(line_split[18])
+            valid_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1])
     
     diff_time = []
     for i in range(len(time_arr)-1):

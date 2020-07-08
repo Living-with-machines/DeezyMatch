@@ -84,6 +84,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     fc1_out_features = dl_inputs['gru_lstm']['fc1_out_dim']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
     dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
+    map_flag = dl_inputs['inference']['map']
     do_validation = dl_inputs["gru_lstm"]["validation"]
     if do_validation in [-1]:
         do_validation = 1
@@ -121,6 +122,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
         tboard_path=tboard_path,
         model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name),
         csv_sep=dl_inputs['preprocessing']["csv_sep"],
+        map_flag=map_flag,
         do_validation=do_validation
         )
 
@@ -154,6 +156,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     learning_rate = dl_inputs['gru_lstm']['learning_rate']
     epochs = dl_inputs['gru_lstm']['epochs']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
+    map_flag = dl_inputs['inference']['map']
     do_validation = dl_inputs["gru_lstm"]["validation"]
     if do_validation in [-1]:
         do_validation = 1
@@ -209,6 +212,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         tboard_path=tboard_path,
         model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name),
         csv_sep=dl_inputs['preprocessing']["csv_sep"],
+        map_flag=map_flag,
         do_validation=do_validation
         )
 
@@ -234,7 +238,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
 # ------------------- fit  --------------------
 def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, 
         pooling_mode='attention', device='cpu', 
-        tboard_path=False, model_path=False, csv_sep="\t", do_validation=1):
+        tboard_path=False, model_path=False, csv_sep="\t", map_flag=False, do_validation=1):
 
     num_batch_train = len(train_dl)
     num_batch_valid = len(valid_dl)
@@ -351,7 +355,8 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
                        model_path=model_path, 
                        tboard_writer=tboard_writer,
                        csv_sep=csv_sep,
-                       epoch=epoch+1
+                       epoch=epoch+1,
+                       map_flag=map_flag
                        )
 
         if model_path:
@@ -367,7 +372,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                pooling_mode='attention', device='cpu', evaluation=True,
                output_state_vectors=False, output_preds=False, 
                output_preds_file=False, model_path=False, tboard_writer=False,
-               csv_sep="\t", epoch=1):
+               csv_sep="\t", epoch=1,map_flag=False):
 
     model.eval()
 
@@ -435,18 +440,20 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             y_true_test += list(y.cpu().data.numpy())
             y_pred_test += list(pred_idx.cpu().data.numpy())
             
-            # pulling out the scores for the prediction of 1
-            y_score_test += torch.exp(pred).cpu().data.numpy()[:, 1].tolist()
+            if map_flag:
 
-            for q in test_dl.dataset.df.loc[indxs]["s1"].to_numpy():
+                # pulling out the scores for the prediction of 1
+                y_score_test += torch.exp(pred).cpu().data.numpy()[:, 1].tolist()
 
-                if q in map_queries:
-                    map_queries[q].append(test_line_id)              
+                for q in test_dl.dataset.df.loc[indxs]["s1"].to_numpy():
 
-                else:
-                    map_queries[q] = [test_line_id]
+                    if q in map_queries:
+                        map_queries[q].append(test_line_id)              
 
-                test_line_id +=1
+                    else:
+                        map_queries[q] = [test_line_id]
+
+                    test_line_id +=1
 
             if output_preds_file and output_preds:
                 pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
@@ -476,22 +483,31 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         test_rec = recall_score(y_true_test, y_pred_test)
         test_macrof1 = f1_score(y_true_test, y_pred_test, average='macro')
         test_weightedf1 = f1_score(y_true_test, y_pred_test, average='weighted')
-
-        # computing MAP
-        list_of_list_of_trues = []
-        list_of_list_of_preds = []
-
-        for q,pred_ids in map_queries.items():
-            q_preds = [y_score_test[x] for x in pred_ids]
-            q_trues = [y_true_test[x] for x in pred_ids]
-            list_of_list_of_preds.append(q_preds)
-            list_of_list_of_trues.append(q_trues)
-
-        test_map = eval_map(list_of_list_of_trues, list_of_list_of_preds)
-
         test_loss = total_loss_test / len(test_dl)
-        epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
+
+        if map_flag:
+
+            # computing MAP
+            list_of_list_of_trues = []
+            list_of_list_of_preds = []
+
+            for q,pred_ids in map_queries.items():
+                q_preds = [y_score_test[x] for x in pred_ids]
+                q_trues = [y_true_test[x] for x in pred_ids]
+                list_of_list_of_preds.append(q_preds)
+                list_of_list_of_trues.append(q_trues)
+
+            test_map = eval_map(list_of_list_of_trues, list_of_list_of_preds)
+
+            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
                datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1, test_map)
+        
+        else:
+            test_map = None
+            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
+                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1)
+
+
         cprint('[INFO]', bc.lred, epoch_log)
         if model_path:
             log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
