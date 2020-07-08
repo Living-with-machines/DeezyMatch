@@ -1,54 +1,47 @@
 general:
-  use_gpu: True # only if available
-  gpu_device: "cuda" # specify CUDA device, these are 0-indexed, e.g., cuda:0, cuda:1 or others. "cuda" is the default CUDA device
+  use_gpu: True    # only if available
+  # specify CUDA device, these are 0-indexed, e.g., 
+  #   cuda:0, cuda:1 or others. "cuda" is the default CUDA device
+  gpu_device: "cuda"
+  # Parent dir to save trained models 
   models_dir: "./models"
 
 preprocessing:
+  # normalizing text to the ASCII encoding standard
   uni2ascii: True
   lowercase: True
+  # removing both the leading and the trailing empty characters
   strip: True
   only_latin_letters: False
+  # XXX
   missing_char_threshold: 0.5
   # read a list of characters and add to the vocabulary
   read_list_chars: "./dataset/characters_v001.vocab"
 
-# --- GRU/LSTM architecture/misc info
+# --- RNN/GRU/LSTM architecture/misc info
 gru_lstm:
-  # main_architecture: gru or lstm (not implemented)?
-  # mode: char or word or bigram, character or word-level tokenization?
-  # bidirectional: f True, becomes a bidirectional GRU/LSTM
-  # num_layers: number of recurrent layers. E.g., setting num_layers=2 would mean stacking two GRU/LSTMs together to form a stacked GRU/LSTM,
-  #             with the second GRU/LSTM taking in outputs of the first GRU/LSTM and computing the final results.
-  # fc1_out_dim: number of dimensions of the first fully connected network
-  # pooling_mode: available options are 'attention', 'average', 'maximum', 'context'
-  # dropout: if non-zero, introduces a Dropout layer on the outputs of each LSTM/GRU layer except the last layer, with dropout probability equal to dropout.
-  # bias: XXX
-  # rnn_hidden_dim: XXX
-  # max_seq_len: XXX 
-  # embedding_dim: XXX
-  # output_dim: XXX
-  # learning_rate: XXX
-  # optimizer: XXX
-  # epochs: XXX
-  # batch_size: XXX 
-  # dl_shuffle: shuffle when creating DataLoader
-  # random_seed: XXX
-  # training: train a new model?
-  # validation: validate after each epoch using the validation set?
-  # train_proportion: XXX
-  # val_proportion: XXX
-  # test_proportion: XXX
-  # create_tensor_board: False or path to the directory
-
-  main_architecture: "gru"
-  mode: "char"
-  bidirectional: True
+  main_architecture: "gru"    # rnn, gru, lstm
+  mode: "char"    # char, word, bigram tokenization
+  bidirectional: True    # if True, becomes a bidirectional RNN/GRU/LSTM
+  # num_layers
+  # number of recurrent layers. e.g., setting num_layers=2 means stacking two 
+  #   RNN/GRU/LSTMs together to form a stacked RNN/GRU/LSTM,
+  #   with the second RNN/GRU/LSTM taking in outputs of the first RNN/GRU/LSTM and computing the final results.
   num_layers: 2
-  fc1_out_dim: 120
-  pooling_mode: 'context_layers_simple'
-  gru_dropout: 0.01
-  fc_dropout: [0.01, 0.01]  # fully-connected layers dropout depends on the number of fc layers (currently there are two)
-  att_dropout: [0.01, 0.01] # attention layer dropout depends on the number of attention layers (currently there are two)
+  # number of dimensions of the first fully connected network
+  fc1_out_dim: 120    
+  # pooling_mode:
+  # context_layers_simple, context, maximum, average, attention
+  pooling_mode: 'context_layers_simple'    
+  # rnn_dropout:
+  # if non-zero, introduces a Dropout layer on the outputs of each RNN/LSTM/GRU layer except the last layer,
+  #   with dropout probability equal to rnn_dropout.
+  rnn_dropout: 0.01
+  # fully-connected layers dropout depends on the number of fc layers (currently there are two)
+  fc_dropout: [0.01, 0.01]  
+  # attention layer dropout depends on the number of attention layers (currently there are two)
+  att_dropout: [0.01, 0.01] 
+  # Add bias to all learnable parameters
   bias: True
 
   rnn_hidden_dim: 60
@@ -56,27 +49,33 @@ gru_lstm:
   embedding_dim: 60
   output_dim: 2
 
-  learning_rate: 0.001
+  learning_rate: 3e-4
   optimizer: adam
   epochs: 5
   batch_size: 256
+  # shuffle when creating DataLoader
   dl_shuffle: True 
   random_seed: 123
 
-  training: True
-  validation: True
+  # if -1 or 1, perform the validation step in every epoch; 
+  # if 0, no validation will be done
+  # otherwise, specify the interval (integer)
+  validation: 1
+  # split dataset
   train_proportion: 0.7
   val_proportion: 0.15
   test_proportion: 0.15
 
+  # False or path to a directory to create tensor-board
   #create_tensor_board: "./tb_gru_test" 
   create_tensor_board: False
 
-  #Layers to freeze during fine-tuning
+  # Layers to freeze during fine-tuning
   layers_to_freeze: ["emb", "gru_1", "attn"]
 
 inference:
+ # Output predictions and save the results in output_preds_file
  output_preds: True
  # either a path or "default"
- # "default" saves the prediction output inside the model directory
+ #   "default" saves the prediction output inside the model directory
  output_preds_file: "default"

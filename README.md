@@ -165,6 +165,29 @@ To use an already trained model for inference/prediction:
 python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode test
 ```
 
+This command creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
+
+```bash
+# s1_unicode    s2_unicode      prediction      p0      p1      label
+la dom nxy      ลําโดมน้อย        1       0.1482  0.8518  1
+krutoy  крутой  1       0.0605  0.9395  1
+sharunyata      shartjugskij    0       0.9568  0.0432  0
+sutangcun       羊山村  1       0.1534  0.8466  0
+jowkār-e shafī‘ جوکار شفیع      1       0.0226  0.9774  1
+rongreiyn ban hwy h wk cxmthxng rongreiyn ban hnxng xu  0       0.8948  0.1052  0
+同心村  tong xin cun    1       0.0572  0.9428  1
+engeskjæran     abrahamskjeret  0       0.9289  0.0711  0
+izumo-zaki      tsumo-zaki      1       0.4662  0.5338  1
+```
+
+`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is 0.8518.
+
+In the above example, we used a fine-tuned model. The model inference can be done with any trained models, e.g., 
+
+```bash
+python DeezyMatch.py --deezy_mode inference -m ./models/test001/test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/test001/test001.vocab -i ./input_dfm.yaml -mode test
+```
+
 ### Candidate selection
 
 Candidate selection consists of the following steps:
@@ -191,8 +214,10 @@ python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
 3. CandidateFinder:
 
 ```bash
-python candidateFinder.py -fd 0.0 -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -tn 100
+python candidateFinder.py -fd 0.8 -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -tn 100
 ```
+
+In this command, `-fd` specifies the max faiss distance used to select candidates, e.g., all candidates with distances less than 0.8 (as measured by L2-norm distance) will be selected. `-sz` is the search size. At each iteration, the distance between a query and `-sz` candidates are computed.
 
 If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
 

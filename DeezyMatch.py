@@ -41,7 +41,7 @@ for one_arg in sys.argv:
     input_command_line += f" {one_arg}"
 
 # --- Methods for Fuzzy String Matching
-if dm_mode in ["train"] and (dl_inputs['gru_lstm']['training'] or dl_inputs['gru_lstm']['validation']):
+if dm_mode in ["train"]:
     
     # --- read dataset and split into train/val/test sets
     train_prop = dl_inputs['gru_lstm']['train_proportion']

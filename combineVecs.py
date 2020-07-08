@@ -26,7 +26,9 @@ set_seed_everywhere(1364)
 import re
 key_pat = re.compile(r"^(\D+)(\d+)$")
 def sort_key(item):
-    m = key_pat.match(item)
+    item = os.path.abspath(item)
+    item2match = os.path.basename(item)
+    m = key_pat.match(item2match)
     return m.group(1), int(m.group(2))
 
 def read_command():
@@ -55,6 +57,10 @@ def read_command():
     combined_sc = args.combined_scenario
     input_file_path = args.input_file_path
     return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
+
+# ----- input
+print_every = 500
+# -----
 
 qc_modes, cq_sc, rnn_passes, combined_sc, input_file_path = read_command()
 
@@ -112,9 +118,9 @@ for qc_mode in qc_modes_list:
         list_files = glob.glob(os.path.join(path2vecs))
         list_files.sort(key=sort_key)
         vecs = []
-        print("Combine vectors")
-        for lfile in list_files:
-            print(lfile, end="; ")
+        print("-- Combine vectors")
+        for i, lfile in enumerate(list_files):
+            if i % print_every == 0: print("%07i" % i, lfile)
             if len(vecs) == 0:
                 vecs = torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])
             else:
@@ -125,9 +131,9 @@ for qc_mode in qc_modes_list:
         list_files = glob.glob(os.path.join(path2ids))
         list_files.sort(key=sort_key)
         vecs_ids = []
-        print("\nCombine IDs")
-        for lfile in list_files: 
-            print(lfile, end="; ")
+        print("\n-- Combine IDs")
+        for i, lfile in enumerate(list_files): 
+            if i % print_every == 0: print("%07i" % i, lfile)
             if len(vecs_ids) == 0:
                 vecs_ids = torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])
             else:
