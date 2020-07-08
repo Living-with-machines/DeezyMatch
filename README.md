@@ -231,7 +231,7 @@ A candidate will be selected if:
 
 `-rm` specifies the ranking metric, choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs).
 
-`-sz` is the search size at each step. At each iteration, the selected metric between a query and `-sz` candidates are computed, and if the number of desired candidates is not reached (specified by `-n`), a new batch of candidates with the size of `-sz` is examined.
+`-sz` is the search size. At each iteration, the selected metric between a query and `-sz` candidates are computed, and if the number of desired candidates is not reached (specified by `-n`), a new batch of candidates with the size of `-sz` is examined.
 
 This command creates a pandas dataframe stored in `combined/test/test_candidates_deezymatch.pkl` and the first few rows are:
 
