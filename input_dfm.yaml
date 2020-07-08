@@ -79,5 +79,5 @@ inference:
  # either a path or "default"
  #   "default" saves the prediction output inside the model directory
  output_preds_file: "default"
- # change it to true to have Mean Average Precision as an eval metric. Note that it would have an impact on computational time
- map: False
+ # change it to true to have Mean Average Precision as an eval metric. Note that this would have an impact on computational time
+ eval_map_metric: False

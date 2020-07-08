@@ -84,7 +84,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     fc1_out_features = dl_inputs['gru_lstm']['fc1_out_dim']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
     dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
-    map_flag = dl_inputs['inference']['map']
+    map_flag = dl_inputs['inference']['eval_map_metric']
     do_validation = dl_inputs["gru_lstm"]["validation"]
     if do_validation in [-1]:
         do_validation = 1
@@ -156,7 +156,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     learning_rate = dl_inputs['gru_lstm']['learning_rate']
     epochs = dl_inputs['gru_lstm']['epochs']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
-    map_flag = dl_inputs['inference']['map']
+    map_flag = dl_inputs['inference']['eval_map_metric']
     do_validation = dl_inputs["gru_lstm"]["validation"]
     if do_validation in [-1]:
         do_validation = 1

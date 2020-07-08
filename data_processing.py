@@ -157,8 +157,6 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
     # cleanup the indices
     dataset_split.reset_index(drop=True, inplace=True)
 
-    dataset_split.reset_index(drop=True, inplace=True)
-
     with pd.option_context('mode.chained_assignment', None):
         train_dc = DatasetClass(dataset_split.loc[dataset_split['split'] == 'train'], dataset_vocab, maxlen=max_seq_len)
         valid_dc = DatasetClass(dataset_split.loc[dataset_split['split'] == 'val'], dataset_vocab, maxlen=max_seq_len)
@@ -249,7 +247,6 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     # cleanup the indices
     dataset_pd.reset_index(drop=True, inplace=True)
     
-    dataset_pd.reset_index(drop=True, inplace=True)
     with pd.option_context('mode.chained_assignment', None):
         test_dc = DatasetClass(dataset_pd, train_vocab, maxlen=max_seq_len)
 
