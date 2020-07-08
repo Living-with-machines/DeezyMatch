@@ -295,8 +295,17 @@ def read_command_combinevecs():
 def read_command_candidate_finder():
     parser = ArgumentParser()
 
-    parser.add_argument("-fd", "--max_faiss_distance",
-                        help="max FAISS distance", default=0.8)
+    parser.add_argument("-t", "--threshold",
+                        help="Selection criterion. NOTE: changes according to the ranking metric specified by -rm. " \
+                             "A candidate will be selected if:" \
+                             "faiss-distance <= threshold, " \
+                             "cosine-similarity >= threshold, " \
+                             "prediction-confidence >= threshold", 
+                        default=0.8)
+
+    parser.add_argument("-rm", "--ranking_metric",
+                        help="Choices between faiss, cosine, conf", 
+                        default="faiss")
 
     parser.add_argument("-n", "--num_candidates",
                         help="Number of candidates", default=10)
@@ -329,14 +338,15 @@ def read_command_candidate_finder():
     args = parser.parse_args()
     num_candidates = int(args.num_candidates)
     output_filename = args.output_filename
-    max_faiss_distance = float(args.max_faiss_distance)
+    selection_threshold = float(args.threshold)
+    ranking_metric = args.ranking_metric
     search_size = int(args.search_size)
     comb_path = args.combined_path
     input_file_path = args.input_file_path
     number_test_rows = int(args.number_test_rows)
     model_path = args.model_path
     vocab_path = args.vocab_path
-    return output_filename, max_faiss_distance, search_size, num_candidates, \
+    return output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
            comb_path, input_file_path, number_test_rows, model_path, vocab_path
 
 # ------------------- read_input_file --------------------

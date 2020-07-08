@@ -23,13 +23,17 @@ from data_processing import test_tokenize
 from rnn_networks import test_model
 from sklearn.metrics.pairwise import cosine_similarity
 
+# skip future warnings for now XXX
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # ===== candidateFinder main code
 start_time = time.time()
-output_filename, max_faiss_distance, search_size, num_candidates, \
+output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
     comb_path, input_file_path, number_test_rows, model_path, vocab_path = \
     read_command_candidate_finder()
 
@@ -131,7 +135,8 @@ for iq in range(len_vecs_query):
                 mode=dl_inputs['gru_lstm']['mode'],
                 cutoff=(id_1_neigh - id_0_neigh),
                 save_test_class=False,
-                dataframe_input=True
+                dataframe_input=True,
+                verbose=False
                 )
             
             test_dl = DataLoader(dataset=test_dc, 
@@ -152,7 +157,6 @@ for iq in range(len_vecs_query):
                                    csv_sep=dl_inputs['preprocessing']['csv_sep']
                                    )
             if len(all_queries) != len(query_candidate_pd):
-                # import ipdb; ipdb.set_trace()
                 print(f"[ERROR] lengths of all queries ({len(all_queries)}) and processed data ({len(query_candidate_pd)}) are not the same!")
                 sys.exit("[ERROR] This should not happen! Contact developers.")
 
@@ -167,7 +171,18 @@ for iq in range(len_vecs_query):
         query_candidate_pd['s1_orig_ids'] = orig_id_queries 
         query_candidate_pd['s2_orig_ids'] = orig_id_candis 
 
-        query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["faiss_dist"] <= max_faiss_distance]
+        if ranking_metric.lower() in ["faiss"]:
+            query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["faiss_dist"] <= selection_threshold]
+        elif ranking_metric.lower() in ["cosine"]:
+            query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["cosine_sim"] >= selection_threshold]
+        elif ranking_metric.lower() in ["conf"]:
+            if not model_path in [False, None]:
+                query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["dl_match"] >= selection_threshold]
+            else:
+                sys.exit(f"ranking_metric: {ranking_metric} is selected, but --model_path is not specified.")
+        else:
+            sys.exit(f"[ERROR] ranking_metric: {ranking_metric} is not implemented. See the documentation.")
+
         num_found_candidates += len(query_candidate_filtered_pd)
         print("ID: %s/%s -- Number of found candidates so far: %s, search span: 0, %s" % (iq, len(vecs_query), num_found_candidates, id_1_neigh))
 
@@ -205,4 +220,3 @@ output_pd = output_pd.set_index("id")
 output_pd.to_pickle(par_dir + "/" + output_filename + ".pkl")
 elapsed = time.time() - start_time
 print("TOTAL TIME: %s" % elapsed)
-# import ipdb; ipdb.set_trace()

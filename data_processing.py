@@ -174,11 +174,13 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
                   cutoff=None, 
                   save_test_class="./test_dc.df",
                   dataframe_input=False,
-                  csv_sep="\t"
+                  csv_sep="\t",
+                  verbose=True
                   ):
 
     if dataframe_input:
-        cprint('[INFO]', bc.dgreen, 'use a dataframe in test_tokenize.')
+        if verbose:
+            cprint('[INFO]', bc.dgreen, 'use a dataframe in test_tokenize.')
         dataset_pd = dataset_path
     else:
         cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
@@ -208,7 +210,8 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     # count number of False and True
     num_true = len(dataset_pd[dataset_pd['label'] == True])
     num_false = len(dataset_pd[dataset_pd['label'] == False])
-    cprint('[INFO]', bc.lgreen, 'number of labels, True: {} and False: {}'.format(num_true, num_false))
+    if verbose:
+        cprint('[INFO]', bc.lgreen, 'number of labels, True: {} and False: {}'.format(num_true, num_false))
 
     # instead of processing the entire dataset we first consider double the amount of the cutoff
     if cutoff == None:
@@ -233,8 +236,9 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
             to_be_removed.append(i)
             del s1_indx[i]
             del s2_indx[i]
-        
-    cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
+    
+    if verbose:
+        cprint('[INFO]', bc.dgreen, "skipping {} lines".format(len(to_be_removed)))
     dataset_pd.reset_index(inplace=True)
     dataset_pd.drop(to_be_removed, axis=0, inplace=True)
 
