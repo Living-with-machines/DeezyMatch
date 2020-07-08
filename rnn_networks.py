@@ -654,7 +654,7 @@ class two_parallel_rnns(nn.Module):
             hstates_1 = hstates_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_cosine']:
             hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
             hstates_1 = hstates_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -699,7 +699,7 @@ class two_parallel_rnns(nn.Module):
             hstates_2 = hstates_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_cosine']:
             hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
             hstates_2 = hstates_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -734,6 +734,11 @@ class two_parallel_rnns(nn.Module):
                                          hstates_rnn_dif), dim=1)
         elif pooling_mode in ['hstates_layers_simple']:
             output_combined = torch.cat((hstates_1, hstates_2), dim=1)
+
+        elif pooling_mode in ['hstates_cosine']:
+            sys.exit("[ERROR] hstates_cosine method is not implemented")
+            # hstates_cosine_sim = (nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2) + 1) / 2.
+            # return torch.log(torch.stack([1- hstates_cosine_sim, hstates_cosine_sim])).T
 
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))
