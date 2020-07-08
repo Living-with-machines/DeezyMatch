@@ -165,6 +165,23 @@ To use an already trained model for inference/prediction:
 python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode test
 ```
 
+This command creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
+
+```bash
+# s1_unicode    s2_unicode      prediction      p0      p1      label
+la dom nxy      ลําโดมน้อย        1       0.1482  0.8518  1
+krutoy  крутой  1       0.0605  0.9395  1
+sharunyata      shartjugskij    0       0.9568  0.0432  0
+sutangcun       羊山村  1       0.1534  0.8466  0
+jowkār-e shafī‘ جوکار شفیع      1       0.0226  0.9774  1
+rongreiyn ban hwy h wk cxmthxng rongreiyn ban hnxng xu  0       0.8948  0.1052  0
+同心村  tong xin cun    1       0.0572  0.9428  1
+engeskjæran     abrahamskjeret  0       0.9289  0.0711  0
+izumo-zaki      tsumo-zaki      1       0.4662  0.5338  1
+```
+
+`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is 0.8518.
+
 ### Candidate selection
 
 Candidate selection consists of the following steps:
