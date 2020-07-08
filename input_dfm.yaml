@@ -13,7 +13,9 @@ preprocessing:
   # removing both the leading and the trailing empty characters
   strip: True
   only_latin_letters: False
-  # XXX
+  # Accepted proportion of characters in a string that are not present in our vocabulary, i.e.,
+  # String is accepted if:
+  # (number of its characters found in the vocabulary)/(total number its characters) >= missing_char_threshold
   missing_char_threshold: 0.5
   # read a list of characters and add to the vocabulary
   read_list_chars: "./dataset/characters_v001.vocab"
