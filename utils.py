@@ -45,6 +45,7 @@ def set_seed_everywhere(seed):
 # ------------------- computing_map --------------------
 # from: https://github.com/iesl/stance/blob/master/src/main/eval/EvalMap.py
 
+#NOTE! this expects labels as 1 and 0
 def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
     """Compute Mean Average Precision
     Given a two lists with one element per test example compute the
@@ -55,6 +56,7 @@ def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
     :param list_of_list_of_scores: Predicted relevance scores. One list per example.
     :return: the mean average precision
     """
+
     set_seed_everywhere(1364)
 
     assert len(list_of_list_of_labels) == len(list_of_list_of_scores)
@@ -64,10 +66,8 @@ def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
             perm = np.random.permutation(len(list_of_list_of_labels[i]))
             list_of_list_of_labels[i] = np.asarray(list_of_list_of_labels[i])[perm]
             list_of_list_of_scores[i] = np.asarray(list_of_list_of_scores[i])[perm]
-        # print("Labels: {}".format(list_of_list_of_labels[i]))
-        # print("Scores: {}".format(list_of_list_of_scores[i]))
-        # print("MAP: {}".format(average_precision_score(list_of_list_of_labels[i],
-        #                                                list_of_list_of_scores[i])))
+
+        # NOTE! In case there are no positive labels, the entry will be skipped
         if sum(list_of_list_of_labels[i]) > 0:
             aps.append(average_precision_score(list_of_list_of_labels[i],
                                                list_of_list_of_scores[i]))
