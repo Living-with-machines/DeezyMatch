@@ -317,6 +317,14 @@ def read_command_candidate_finder():
     parser.add_argument("-tn", "--number_test_rows",
                         help="Only for testing", 
                         default=-1)
+    
+    parser.add_argument("-mp", "--model_path",
+                        help="Path to a DeezyMatch model, normally /path/to/file.model", 
+                        default=False)
+    
+    parser.add_argument("-v", "--vocab_path",
+                        help="Path to a vocabulary file, normally /path/to/file.vocab", 
+                        default=False)
 
     args = parser.parse_args()
     num_candidates = int(args.num_candidates)
@@ -326,7 +334,10 @@ def read_command_candidate_finder():
     comb_path = args.combined_path
     input_file_path = args.input_file_path
     number_test_rows = int(args.number_test_rows)
-    return output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path, number_test_rows
+    model_path = args.model_path
+    vocab_path = args.vocab_path
+    return output_filename, max_faiss_distance, search_size, num_candidates, \
+           comb_path, input_file_path, number_test_rows, model_path, vocab_path
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):

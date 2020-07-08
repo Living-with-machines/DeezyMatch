@@ -214,7 +214,7 @@ python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
 3. CandidateFinder:
 
 ```bash
-python candidateFinder.py -fd 0.8 -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -tn 100
+python candidateFinder.py -fd 0.8 -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -tn 100 -mp ./models/test001/test001.model -v ./models/test001/test001.vocab
 ```
 
 In this command, `-fd` specifies the max faiss distance used to select candidates, e.g., all candidates with distances less than 0.8 (as measured by L2-norm distance) will be selected. `-sz` is the search size. At each iteration, the distance between a query and `-sz` candidates are computed.

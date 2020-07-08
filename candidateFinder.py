@@ -15,50 +15,23 @@ import pickle
 import time
 
 import torch
+from torch.utils.data import DataLoader
 
 from utils import read_input_file
+from utils import read_command_candidate_finder
+from data_processing import test_tokenize
+from rnn_networks import test_model
+from sklearn.metrics.pairwise import cosine_similarity
+
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
-def read_command():
-    parser = ArgumentParser()
-
-    parser.add_argument("-fd", "--max_faiss_distance",
-                        help="max FAISS distance", default=0.8)
-
-    parser.add_argument("-n", "--num_candidates",
-                        help="Number of candidates", default=10)
-
-    parser.add_argument("-o", "--output_filename",
-                        help="output filename")
-
-    parser.add_argument("-sz", "--search_size",
-                        help="search size", default=4)
-
-    parser.add_argument("-comb", "--combined_path",
-                        help="path of the combined folder")
-    
-    parser.add_argument("-i", "--input_file_path",
-                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
-                        default="default")
-    
-    parser.add_argument("-tn", "--number_test_rows",
-                        help="Only for testing", 
-                        default=-1)
-
-    args = parser.parse_args()
-    num_candidates = int(args.num_candidates)
-    output_filename = args.output_filename
-    max_faiss_distance = float(args.max_faiss_distance)
-    search_size = int(args.search_size)
-    comb_path = args.combined_path
-    input_file_path = args.input_file_path
-    number_test_rows = int(args.number_test_rows)
-    return output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path, number_test_rows
-
+# ===== candidateFinder main code
 start_time = time.time()
-output_filename, max_faiss_distance, search_size, num_candidates, comb_path, input_file_path, number_test_rows = read_command()
+output_filename, max_faiss_distance, search_size, num_candidates, \
+    comb_path, input_file_path, number_test_rows, model_path, vocab_path = \
+    read_command_candidate_finder()
 
 if input_file_path in ["default"]:
     detect_input_files = glob.iglob(os.path.join(comb_path, "*.yaml"))
@@ -106,6 +79,14 @@ if number_test_rows > 0:
 else:
     len_vecs_query = len(vecs_query)
 
+if not model_path in [False, None]:
+    # --- load torch model, send it to the device (CPU/GPU)
+    model = torch.load(model_path, map_location=dl_inputs['general']['device'])
+    # --- create test data class
+    # read vocabulary
+    with open(vocab_path, 'rb') as handle:
+        train_vocab = pickle.load(handle)
+
 output_pd = pd.DataFrame()
 for iq in range(len_vecs_query):
     print("=========== Start the search for %s" % iq, vecs_items_query[iq])
@@ -133,7 +114,56 @@ for iq in range(len_vecs_query):
         query_candidate_pd = pd.DataFrame(all_queries, columns=['s1'])
         query_candidate_pd['s2'] = all_candidates
         query_candidate_pd['label'] = "False"
+
+        # Compute cosine similarity
+        cosine_sim = cosine_similarity(vecs_query[iq:(iq+1)].detach().cpu().numpy(), 
+                                       vecs_candidates.detach().cpu().numpy()[orig_id_candis])
+
+        if not model_path in [False, None]:
+            # create the actual class here
+            test_dc = test_tokenize(
+                query_candidate_pd, train_vocab,
+                preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
+                               dl_inputs["preprocessing"]["lowercase"],
+                               dl_inputs["preprocessing"]["strip"],
+                               dl_inputs["preprocessing"]["only_latin_letters"]),
+                max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
+                mode=dl_inputs['gru_lstm']['mode'],
+                cutoff=(id_1_neigh - id_0_neigh),
+                save_test_class=False,
+                dataframe_input=True
+                )
+            
+            test_dl = DataLoader(dataset=test_dc, 
+                                batch_size=dl_inputs['gru_lstm']['batch_size'], 
+                                shuffle=False)
+            num_batch_test = len(test_dl)
+
+            # --- output state vectors 
+            all_preds = test_model(model, 
+                                   test_dl,
+                                   eval_mode='test',
+                                   pooling_mode=dl_inputs['gru_lstm']['pooling_mode'],
+                                   device=dl_inputs['general']['device'],
+                                   evaluation=True,
+                                   output_state_vectors=False, 
+                                   output_preds=True,
+                                   output_preds_file="./tmp.txt",
+                                   csv_sep=dl_inputs['preprocessing']['csv_sep']
+                                   )
+            if len(all_queries) != len(query_candidate_pd):
+                # import ipdb; ipdb.set_trace()
+                print(f"[ERROR] lengths of all queries ({len(all_queries)}) and processed data ({len(query_candidate_pd)}) are not the same!")
+                sys.exit("[ERROR] This should not happen! Contact developers.")
+
+            all_preds = torch.exp(all_preds)
+            query_candidate_pd['dl_match'] = all_preds.detach().cpu().numpy()
+        else:
+            query_candidate_pd['dl_match'] = [None]*len(query_candidate_pd)
+
+
         query_candidate_pd['faiss_dist'] = found_neighbours[0][0, id_0_neigh:id_1_neigh]
+        query_candidate_pd['cosine_sim'] = cosine_sim[0] 
         query_candidate_pd['s1_orig_ids'] = orig_id_queries 
         query_candidate_pd['s2_orig_ids'] = orig_id_candis 
 
@@ -153,15 +183,18 @@ for iq in range(len_vecs_query):
     mydict_dl_match = {}
     mydict_faiss_dist = {}
     mydict_candid_id = {}
+    mydict_cosine_sim = {}
     for i_row, row in collect_neigh_pd.iterrows():
-        #mydict_dl_match[row["s2"]] = round(row["dl_match"], 4)
+        mydict_dl_match[row["s2"]] = row["dl_match"]
         mydict_faiss_dist[row["s2"]] = round(row["faiss_dist"], 4)
+        mydict_cosine_sim[row["s2"]] = round(row["cosine_sim"], 4)
         mydict_candid_id[row["s2"]] = row["s2_orig_ids"]
     one_row = {
         "id": orig_id_queries, 
         "toponym": all_queries[0], 
-        #"DeezyMatch_score": [mydict_dl_match], 
+        "DeezyMatch_score": [mydict_dl_match], 
         "faiss_distance": [mydict_faiss_dist], 
+        "cosine_sim": [mydict_cosine_sim],
         "candidate_original_ids": [mydict_candid_id], 
         "query_original_id": orig_id_queries,
         "num_all_searches": id_1_neigh 
@@ -172,4 +205,4 @@ output_pd = output_pd.set_index("id")
 output_pd.to_pickle(par_dir + "/" + output_filename + ".pkl")
 elapsed = time.time() - start_time
 print("TOTAL TIME: %s" % elapsed)
-#import ipdb; ipdb.set_trace()
+# import ipdb; ipdb.set_trace()
