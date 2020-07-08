@@ -19,50 +19,19 @@ import torch
 start_time = time.time()
 
 from utils import read_input_file
+from utils import sort_key
+from utils import read_command_combinevecs
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
-import re
-key_pat = re.compile(r"^(\D+)(\d+)$")
-def sort_key(item):
-    item = os.path.abspath(item)
-    item2match = os.path.basename(item)
-    m = key_pat.match(item2match)
-    return m.group(1), int(m.group(2))
-
-def read_command():
-    parser = ArgumentParser()
-
-    parser.add_argument("-qc", "--candidate_or_query",
-                        help="select mode: candidate (c) or query (q)")
-
-    parser.add_argument("-sc", "--candidate_query_scenario", 
-                        help="name of the candidate or query scenario")
-
-    parser.add_argument("-p", "--rnn_pass", 
-                        help="rnn pass: bwd (backward) or fwd (forward)")
-
-    parser.add_argument("-combs", "--combined_scenario",
-                        help="name of the combined scenario")
-
-    parser.add_argument("-i", "--input_file_path",
-                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
-                        default="default")
-
-    args = parser.parse_args()
-    qc_mode = args.candidate_or_query
-    cq_sc = args.candidate_query_scenario
-    rnn_pass = args.rnn_pass
-    combined_sc = args.combined_scenario
-    input_file_path = args.input_file_path
-    return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
+# ===== combineVecs main code
 
 # ----- input
 print_every = 500
 # -----
 
-qc_modes, cq_sc, rnn_passes, combined_sc, input_file_path = read_command()
+qc_modes, cq_sc, rnn_passes, combined_sc, input_file_path = read_command_combinevecs()
 
 rnn_passes_list = rnn_passes.split(",")
 rnn_passes_list = [x.strip() for x in rnn_passes_list]
