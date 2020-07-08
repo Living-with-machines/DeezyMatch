@@ -555,11 +555,11 @@ class two_parallel_rnns(nn.Module):
 
         self.maxpool_kernel_size = maxpool_kernel_size
 
-        if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'context']:
+        if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'hstates']:
             fc1_multiplier = 4
-        elif self.pooling_mode in ["context_layers"]:
+        elif self.pooling_mode in ["hstates_layers"]:
             fc1_multiplier = 8
-        elif self.pooling_mode in ["context_layers_simple"]:
+        elif self.pooling_mode in ["hstates_layers_simple"]:
             fc1_multiplier = 4
         else:
             fc1_multiplier = 4
@@ -597,7 +597,7 @@ class two_parallel_rnns(nn.Module):
         self.fc2 = nn.Linear(self.fc1_out_features, self.output_dim)
 
     # ------------------- forward 
-    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='context', device="cpu", output_state_vectors=False, evaluation=False):
+    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='hstates', device="cpu", output_state_vectors=False, evaluation=False):
 
         if evaluation:
             # XXX Set dropouts to zero manually
@@ -649,21 +649,21 @@ class two_parallel_rnns(nn.Module):
             pool_1 = F.adaptive_avg_pool1d(rnn_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
         elif pooling_mode in ['max', 'maximum']:
             pool_1 = F.adaptive_max_pool1d(rnn_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
-        elif pooling_mode in ['context']:
-            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
-            context_1 = context_1_fwd_bwd[self.rnn_n_layers - 1, 0]
+        elif pooling_mode in ['hstates']:
+            hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
+            hstates_1 = hstates_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
-                context_1 = torch.cat((context_1, context_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['context_layers', 'context_layers_simple']:
-            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
-            context_1 = context_1_fwd_bwd[0, 0]
+                hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple']:
+            hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
+            hstates_1 = hstates_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
-                context_1 = torch.cat((context_1, context_1_fwd_bwd[rlayer, 0]), dim=1)
+                hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[rlayer, 0]), dim=1)
             if self.bidirectional:
-                context_1_bwd = context_1_fwd_bwd[0, 1]
+                hstates_1_bwd = hstates_1_fwd_bwd[0, 1]
                 for rlayer in range(1, self.rnn_n_layers):
-                    context_1_bwd = torch.cat((context_1_bwd, context_1_fwd_bwd[rlayer, 1]), dim=1)
-                context_1 = torch.cat((context_1, context_1_bwd), dim=1)
+                    hstates_1_bwd = torch.cat((hstates_1_bwd, hstates_1_fwd_bwd[rlayer, 1]), dim=1)
+                hstates_1 = torch.cat((hstates_1, hstates_1_bwd), dim=1)
 
         self.h2, self.c2 = self.init_hidden(x2_seq.size(1), device)
         x2_embs_not_packed = self.emb(x2_seq)
@@ -694,21 +694,21 @@ class two_parallel_rnns(nn.Module):
             pool_2 = F.adaptive_avg_pool1d(rnn_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
         elif pooling_mode in ['max', 'maximum']:
             pool_2 = F.adaptive_max_pool1d(rnn_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
-        elif pooling_mode in ['context']:
-            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
-            context_2 = context_2_fwd_bwd[self.rnn_n_layers - 1, 0]
+        elif pooling_mode in ['hstates']:
+            hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
+            hstates_2 = hstates_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
-                context_2 = torch.cat((context_2, context_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['context_layers', 'context_layers_simple']:
-            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
-            context_2 = context_2_fwd_bwd[0, 0]
+                hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple']:
+            hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
+            hstates_2 = hstates_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
-                context_2 = torch.cat((context_2, context_2_fwd_bwd[rlayer, 0]), dim=1)
+                hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[rlayer, 0]), dim=1)
             if self.bidirectional:
-                context_2_bwd = context_2_fwd_bwd[0, 1]
+                hstates_2_bwd = hstates_2_fwd_bwd[0, 1]
                 for rlayer in range(1, self.rnn_n_layers):
-                    context_2_bwd = torch.cat((context_2_bwd, context_2_fwd_bwd[rlayer, 1]), dim=1)
-                context_2 = torch.cat((context_2, context_2_bwd), dim=1)
+                    hstates_2_bwd = torch.cat((hstates_2_bwd, hstates_2_fwd_bwd[rlayer, 1]), dim=1)
+                hstates_2 = torch.cat((hstates_2, hstates_2_bwd), dim=1)
 
         # Combine outputs from GRU1 and GRU2
         if pooling_mode in ['attention']:
@@ -725,15 +725,15 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((pool_rnn_cat,
                                          pool_rnn_mul,
                                          pool_rnn_dif), dim=1)
-        elif pooling_mode in ['context', 'context_layers']:
-            context_rnn_cat = torch.cat((context_1, context_2), dim=1)
-            context_rnn_mul = context_1 * context_2
-            context_rnn_dif = context_1 - context_2
-            output_combined = torch.cat((context_rnn_cat,
-                                         context_rnn_mul,
-                                         context_rnn_dif), dim=1)
-        elif pooling_mode in ['context_layers_simple']:
-            output_combined = torch.cat((context_1, context_2), dim=1)
+        elif pooling_mode in ['hstates', 'hstates_layers']:
+            hstates_rnn_cat = torch.cat((hstates_1, hstates_2), dim=1)
+            hstates_rnn_mul = hstates_1 * hstates_2
+            hstates_rnn_dif = hstates_1 - hstates_2
+            output_combined = torch.cat((hstates_rnn_cat,
+                                         hstates_rnn_mul,
+                                         hstates_rnn_dif), dim=1)
+        elif pooling_mode in ['hstates_layers_simple']:
+            output_combined = torch.cat((hstates_1, hstates_2), dim=1)
 
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))
