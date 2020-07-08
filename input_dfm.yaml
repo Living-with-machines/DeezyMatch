@@ -57,10 +57,10 @@ gru_lstm:
   dl_shuffle: True 
   random_seed: 123
 
-  # train a new model
-  training: True
-  # validate after each epoch using validation set
-  validation: True
+  # if -1 or 1, perform the validation step in every epoch; 
+  # if 0, no validation will be done
+  # otherwise, specify the interval (integer)
+  validation: 1
   # split dataset
   train_proportion: 0.7
   val_proportion: 0.15
