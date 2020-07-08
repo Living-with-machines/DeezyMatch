@@ -211,13 +211,50 @@ python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetu
 python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
 ```
 
-3. CandidateFinder:
+3. CandidateFinder. Various options are available to find a set of candidates (from a dataset) for each query in the same or another dataset.
+
+* Select candidates based on L2-norm distance (aka faiss distance):
 
 ```bash
-python candidateFinder.py -fd 0.8 -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -tn 100 -mp ./models/test001/test001.model -v ./models/test001/test001.vocab
+python candidateFinder.py -t 0.5 -rm faiss -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
 ```
 
-In this command, `-fd` specifies the max faiss distance used to select candidates, e.g., all candidates with distances less than 0.8 (as measured by L2-norm distance) will be selected. `-sz` is the search size. At each iteration, the distance between a query and `-sz` candidates are computed.
+in which `-t` is threshold:
+
+```text
+Selection criterion. NOTE: changes according to the ranking metric specified by -rm.
+A candidate will be selected if:
+    faiss-distance <= threshold, 
+    cosine-similarity >= threshold,
+    prediction-confidence >= threshold
+```
+
+`-rm` specifies the ranking metric, choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs).
+
+`-sz` is the search size at each step. At each iteration, the selected metric between a query and `-sz` candidates are computed, and if the number of desired candidates is not reached (specified by `-n`), a new batch of candidates with the size of `-sz` is examined.
+
+This command creates a pandas dataframe stored in `combined/test/test_candidates_deezymatch.pkl` and the first few rows are:
+
+```bash
+                            toponym                                   DeezyMatch_score                            faiss_distance                                cosine_sim                  candidate_original_ids  query_original_id  num_all_searches
+id                                                                                                                                                                                                                                                     
+0                        la dom nxy                 {'la dom nxy': 0.7220154404640198}                       {'la dom nxy': 0.0}                       {'la dom nxy': 1.0}                       {'la dom nxy': 0}                  0                 4
+1                            krutoy                       {'krutoy': 0.79023677110672}                           {'krutoy': 0.0}                           {'krutoy': 1.0}                           {'krutoy': 1}                  1                 4
+2                        sharunyata                 {'sharunyata': 0.8818759322166443}                       {'sharunyata': 0.0}                       {'sharunyata': 1.0}                       {'sharunyata': 2}                  2                 4
+3                         sutangcun                  {'sutangcun': 0.7015400528907776}                        {'sutangcun': 0.0}                        {'sutangcun': 1.0}                        {'sutangcun': 3}                  3                 4
+```
+
+* Select candidates based on DeezyMatch predictions and their confidence:
+
+```bash
+python candidateFinder.py -t 0.51 -rm conf -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+```
+
+* Select candidates based on cosine similarity:
+
+```bash
+python candidateFinder.py -t 0.51 -rm cosine -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+```
 
 If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
 
