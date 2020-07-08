@@ -83,6 +83,11 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     fc1_out_features = dl_inputs['gru_lstm']['fc1_out_dim']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
     dl_shuffle = dl_inputs['gru_lstm']['dl_shuffle']
+    do_validation = dl_inputs["gru_lstm"]["validation"]
+    if do_validation in [-1]:
+        do_validation = 1
+    else:
+        do_validation = int(do_validation)
 
     # --- create the model
     cprint('[INFO]', bc.dgreen, 'create a two_parallel_rnns model')
@@ -114,7 +119,8 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
         device=dl_inputs['general']['device'], 
         tboard_path=tboard_path,
         model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name),
-        csv_sep=dl_inputs['preprocessing']["csv_sep"]
+        csv_sep=dl_inputs['preprocessing']["csv_sep"],
+        do_validation=do_validation
         )
 
     # --- save the model
@@ -147,6 +153,11 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     learning_rate = dl_inputs['gru_lstm']['learning_rate']
     epochs = dl_inputs['gru_lstm']['epochs']
     pooling_mode = dl_inputs['gru_lstm']['pooling_mode']
+    do_validation = dl_inputs["gru_lstm"]["validation"]
+    if do_validation in [-1]:
+        do_validation = 1
+    else:
+        do_validation = int(do_validation)
     
     pretrained_model = torch.load(pretrained_model_path, map_location=torch.device(device))
     
@@ -196,7 +207,8 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         device=dl_inputs['general']['device'], 
         tboard_path=tboard_path,
         model_path=os.path.join(dl_inputs["general"]["models_dir"], model_name),
-        csv_sep=dl_inputs['preprocessing']["csv_sep"]
+        csv_sep=dl_inputs['preprocessing']["csv_sep"],
+        do_validation=do_validation
         )
 
     # --- save the model
@@ -221,7 +233,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
 # ------------------- fit  --------------------
 def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, 
         pooling_mode='attention', device='cpu', 
-        tboard_path=False, model_path=False, csv_sep="\t"):
+        tboard_path=False, model_path=False, csv_sep="\t", do_validation=1):
 
     num_batch_train = len(train_dl)
     num_batch_valid = len(valid_dl)
@@ -237,6 +249,11 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
             tboard_writer = False
     else:
         tboard_writer = False
+
+    # if do_validation is not -1, 
+    # perform validation at least once
+    if do_validation in [0]:
+        do_validation = epochs + 2
 
     print_summary = True
     wtrain_counter = 0
@@ -320,7 +337,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
                 tboard_writer.add_scalar('Train/Accuracy', train_acc, epoch)
                 tboard_writer.flush()
 
-        if valid_dl:
+        if valid_dl and (((epoch+1) % do_validation) == 0):
             valid_desc = 'Epoch: {}/{}; Valid'.format(epoch+1, epochs)
             test_model(model, 
                        valid_dl, 
