@@ -182,6 +182,12 @@ izumo-zaki      tsumo-zaki      1       0.4662  0.5338  1
 
 `p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is 0.8518.
 
+In the above example, we used a fine-tuned model. The model inference can be done with any trained models, e.g., 
+
+```bash
+python DeezyMatch.py --deezy_mode inference -m ./models/test001/test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/test001/test001.vocab -i ./input_dfm.yaml -mode test
+```
+
 ### Candidate selection
 
 Candidate selection consists of the following steps:
