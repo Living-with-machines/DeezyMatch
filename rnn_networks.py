@@ -303,7 +303,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
             train_weightedf1 = f1_score(y_true_train, y_pred_train, average='weighted')
 
             train_loss = total_loss_train / len(train_dl)
-            epoch_log = '{} -- Epoch: {}/{}; Train; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f},, weightedf1: {:.3f}'.format(
+            epoch_log = '{} -- Epoch: {}/{}; Train; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
                     datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), epoch+1, epochs, train_loss, train_acc, train_pre, train_rec, train_macrof1,train_weightedf1)
             cprint('[INFO]', bc.orange, epoch_log)
             if model_path:
@@ -412,17 +412,11 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
             y_true_test += list(y.cpu().data.numpy())
             y_pred_test += list(pred_idx.cpu().data.numpy())
-            # pulling out the scores for the prediction of 1
             
-
+            # pulling out the scores for the prediction of 1
             y_score_test += torch.exp(pred).cpu().data.numpy()[:, 1].tolist()
 
-            q_id = test_dl.dataset.df.loc[indxs]["s1_unicode"].tolist()
-
-
-
-            for q in test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy():
-                q = "".join(q)
+            for q in test_dl.dataset.df.loc[indxs]["s1"].to_numpy():
 
                 if q in map_queries:
                     map_queries[q].append(test_line_id)              
@@ -474,7 +468,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         test_map = eval_map(list_of_list_of_trues, list_of_list_of_preds)
 
         test_loss = total_loss_test / len(test_dl)
-        epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, , map: {:.3f}'.format(
+        epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
                datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1, test_map)
         cprint('[INFO]', bc.lred, epoch_log)
         if model_path:

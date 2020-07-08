@@ -55,7 +55,8 @@ def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
     :param list_of_list_of_scores: Predicted relevance scores. One list per example.
     :return: the mean average precision
     """
-    np.random.seed(19)
+    set_seed_everywhere(1364)
+
     assert len(list_of_list_of_labels) == len(list_of_list_of_scores)
     aps = []
     for i in range(len(list_of_list_of_labels)):
@@ -451,13 +452,15 @@ def log_plotter(path2log, dataset="DEFAULT"):
         acc = float(line_split[8][:-1])
         prec = float(line_split[10][:-1])
         recall = float(line_split[12][:-1])
-        f1 = float(line_split[14])
+        macrof1 = float(line_split[14][:-1])
+        weightedf1 = float(line_split[16][:-1])
     
         if line_split[4].lower() in ["train;", "train"]:
-            train_arr.append([epoch, loss, acc, prec, recall, f1])
+            train_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1])
             time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
         elif line_split[4].lower() in ["valid;", "valid"]:
-            valid_arr.append([epoch, loss, acc, prec, recall, f1])
+            map_score = float(line_split[18])
+            valid_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1,map_score])
     
     diff_time = []
     for i in range(len(time_arr)-1):
@@ -486,13 +489,13 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.grid()
     
     plt.subplot(3, 2, 2)
-    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train F1", c="k", lw=2)
-    plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid F1", c='r', lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train macro F1", c="k", lw=2)
+    plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid macro F1", c='r', lw=2)
     plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
     plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
-             f"Epoch: {min_valid_arg}, F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+             f"Epoch: {min_valid_arg}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
-    plt.ylabel("F1", size=18)
+    plt.ylabel("macro F1", size=18)
     plt.legend(fontsize=14, loc=4)
     plt.xticks(size=14)
     plt.yticks(size=14)
