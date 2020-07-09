@@ -6,6 +6,7 @@ import sys
 sys.path.insert(0,'..')
 
 from argparse import ArgumentParser
+from collections import OrderedDict
 import faiss
 import glob
 import numpy as np
@@ -200,10 +201,10 @@ for iq in range(len_vecs_query):
 
     
     # write results to output_pd
-    mydict_dl_match = {}
-    mydict_faiss_dist = {}
-    mydict_candid_id = {}
-    mydict_cosine_sim = {}
+    mydict_dl_match = OrderedDict({})
+    mydict_faiss_dist = OrderedDict({})
+    mydict_candid_id = OrderedDict({})
+    mydict_cosine_sim = OrderedDict({})
     if ranking_metric.lower() in ["faiss"]:
         collect_neigh_pd = collect_neigh_pd.sort_values(by="faiss_dist")[:num_candidates]
     elif ranking_metric.lower() in ["cosine"]:
