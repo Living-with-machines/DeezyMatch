@@ -12,42 +12,43 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+from sklearn.metrics.pairwise import cosine_similarity
 import time
 
 import torch
 from torch.utils.data import DataLoader
 
-from utils import read_input_file
-from utils import read_command_candidate_finder
 from data_processing import test_tokenize
 from rnn_networks import test_model
-from sklearn.metrics.pairwise import cosine_similarity
+from utils import read_input_file
+from utils import read_command_candidate_finder
+# --- set seed for reproducibility
+from utils import set_seed_everywhere
+set_seed_everywhere(1364)
 
 # skip future warnings for now XXX
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-# --- set seed for reproducibility
-from utils import set_seed_everywhere
-set_seed_everywhere(1364)
-
 # ===== candidateFinder main code
 start_time = time.time()
+
 output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
-    comb_path, input_file_path, number_test_rows, model_path, vocab_path = \
+    par_dir, input_file_path, number_test_rows, model_path, vocab_path = \
     read_command_candidate_finder()
 
 if input_file_path in ["default"]:
-    detect_input_files = glob.iglob(os.path.join(comb_path, "*.yaml"))
+    detect_input_files = glob.iglob(os.path.join(par_dir, "*.yaml"))
     for detected_inp in detect_input_files:
         if os.path.isfile(detected_inp):
             input_file_path = detected_inp
             break
 
+# read input file
 dl_inputs = read_input_file(input_file_path)
 
-# ----- COMBINE VECTORS, USER
-par_dir = comb_path
+# ----- COMBINE VECTORS
+# ----- CANDIDATES
 path1_combined = os.path.join(par_dir, "candidates_fwd.pt")
 path2_combined = os.path.join(par_dir, "candidates_bwd.pt")
 path_id_combined = os.path.join(par_dir, "candidates_fwd_id.pt")
@@ -59,7 +60,7 @@ vecs1_candidates = torch.load(path1_combined, map_location=dl_inputs['general'][
 vecs2_candidates = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
 vecs_candidates = torch.cat([vecs1_candidates, vecs2_candidates], dim=1)
 
-par_dir = comb_path
+# ----- QUERIES
 path1_combined = os.path.join(par_dir, "queries_fwd.pt")
 path2_combined = os.path.join(par_dir, "queries_bwd.pt")
 path_id_combined = os.path.join(par_dir, "queries_fwd_id.pt")
@@ -71,7 +72,6 @@ vecs1_query = torch.load(path1_combined, map_location=dl_inputs['general']['devi
 vecs2_query = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
 vecs_query = torch.cat([vecs1_query, vecs2_query], dim=1)
 # ----- END COMBINED VECTORS
-
 
 # --- start FAISS
 faiss_id_candis = faiss.IndexFlatL2(vecs_candidates.size()[1])   # build the index
@@ -91,12 +91,15 @@ if not model_path in [False, None]:
     with open(vocab_path, 'rb') as handle:
         train_vocab = pickle.load(handle)
 
+# Empty dataframe to collect data
 output_pd = pd.DataFrame()
 for iq in range(len_vecs_query):
     print("=========== Start the search for %s" % iq, vecs_items_query[iq])
     collect_neigh_pd = pd.DataFrame()
     num_found_candidates = 0
-    # start with 0:seach_size, increase later
+    # start with 0:seach_size
+    # If the number of selected candidates < num_candidates
+    # Increase the search size
     id_0_neigh = 0
     id_1_neigh = search_size
     while (num_found_candidates < num_candidates):
@@ -124,9 +127,10 @@ for iq in range(len_vecs_query):
                                        vecs_candidates.detach().cpu().numpy()[orig_id_candis])
 
         if not model_path in [False, None]:
-            # create the actual class here
+            # create test class 
             test_dc = test_tokenize(
-                query_candidate_pd, train_vocab,
+                query_candidate_pd, 
+                train_vocab,
                 preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                                dl_inputs["preprocessing"]["lowercase"],
                                dl_inputs["preprocessing"]["strip"],
@@ -144,7 +148,7 @@ for iq in range(len_vecs_query):
                                 shuffle=False)
             num_batch_test = len(test_dl)
 
-            # --- output state vectors 
+            # inference
             all_preds = test_model(model, 
                                    test_dl,
                                    eval_mode='test',
@@ -162,6 +166,7 @@ for iq in range(len_vecs_query):
 
             all_preds = torch.exp(all_preds)
             query_candidate_pd['dl_match'] = all_preds.detach().cpu().numpy()
+
         else:
             query_candidate_pd['dl_match'] = [None]*len(query_candidate_pd)
 
@@ -217,6 +222,6 @@ for iq in range(len_vecs_query):
     output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
        
 output_pd = output_pd.set_index("id")
-output_pd.to_pickle(par_dir + "/" + output_filename + ".pkl")
+output_pd.to_pickle(os.path.join(par_dir, f"{output_filename}.pkl"))
 elapsed = time.time() - start_time
 print("TOTAL TIME: %s" % elapsed)
