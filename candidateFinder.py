@@ -159,7 +159,8 @@ for iq in range(len_vecs_query):
                                    output_state_vectors=False, 
                                    output_preds=True,
                                    output_preds_file=False,
-                                   csv_sep=dl_inputs['preprocessing']['csv_sep']
+                                   csv_sep=dl_inputs['preprocessing']['csv_sep'],
+                                   print_epoch=False
                                    )
             if len(all_queries) != len(query_candidate_pd):
                 print(f"[ERROR] lengths of all queries ({len(all_queries)}) and processed data ({len(query_candidate_pd)}) are not the same!")

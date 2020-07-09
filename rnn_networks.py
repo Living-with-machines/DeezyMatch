@@ -46,6 +46,10 @@ from utils import eval_map
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
+# skip future warnings for now XXX
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 # ------------------- gru_lstm_network --------------------
 def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=False):
     """
@@ -372,7 +376,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                pooling_mode='attention', device='cpu', evaluation=True,
                output_state_vectors=False, output_preds=False, 
                output_preds_file=False, model_path=False, tboard_writer=False,
-               csv_sep="\t", epoch=1,map_flag=False):
+               csv_sep="\t", epoch=1, map_flag=False, print_epoch=True):
 
     model.eval()
 
@@ -474,11 +478,11 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
             total_loss_test += loss.data
 
+    # here, we can exit the code
     if output_state_vectors:
-        return None 
-    elif output_preds:
-        return all_preds
-    else:
+        return None
+
+    if print_epoch or map_flag:
         test_acc = accuracy_score(y_true_test, y_pred_test)
         test_pre = precision_score(y_true_test, y_pred_test)
         test_rec = recall_score(y_true_test, y_pred_test)
@@ -486,8 +490,11 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         test_weightedf1 = f1_score(y_true_test, y_pred_test, average='weighted')
         test_loss = total_loss_test / len(test_dl)
 
-        if map_flag:
-
+        if not map_flag:
+            test_map = False
+            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
+                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1, test_weightedf1)
+        else:
             # computing MAP
             list_of_list_of_trues = []
             list_of_list_of_preds = []
@@ -502,19 +509,13 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
             epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
                datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1, test_map)
-        
-        else:
-            test_map = None
-            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
-                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1)
-
 
         cprint('[INFO]', bc.lred, epoch_log)
         if model_path:
             log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
         else:
             log_message(epoch_log + "\n", mode="a+")
-
+        
         if tboard_writer:
             # Record loss
             tboard_writer.add_scalar('Test/Loss', loss.item(), epoch)
@@ -524,10 +525,13 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             tboard_writer.add_scalar('Test/Recall', test_rec, epoch)
             tboard_writer.add_scalar('Test/MacroF1', test_macrof1, epoch)
             tboard_writer.add_scalar('Test/WeightedF1', test_weightedf1, epoch)
-            tboard_writer.add_scalar('Test/Map', test_map, epoch)
-
+            if test_map:
+               tboard_writer.add_scalar('Test/Map', test_map, epoch)
             tboard_writer.flush()
-            
+
+    if output_preds:
+        return all_preds
+    elif map_flag:
         return (test_acc, test_pre, test_rec, test_macrof1,test_weightedf1,test_map)
 
 # ------------------- two_parallel_rnns  --------------------
