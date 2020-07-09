@@ -211,7 +211,7 @@ python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetu
 python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
 ```
 
-3. CandidateFinder. Various options are available to find a set of candidates (from a dataset) for each query in the same or another dataset.
+3. CandidateFinder. Various options are available to find a set of candidates (from a dataset) for a given query in the same or another dataset.
 
 * Select candidates based on L2-norm distance (aka faiss distance):
 
