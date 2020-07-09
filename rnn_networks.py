@@ -46,6 +46,10 @@ from utils import eval_map
 from utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
+# skip future warnings for now XXX
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 # ------------------- gru_lstm_network --------------------
 def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=False):
     """
@@ -372,7 +376,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                pooling_mode='attention', device='cpu', evaluation=True,
                output_state_vectors=False, output_preds=False, 
                output_preds_file=False, model_path=False, tboard_writer=False,
-               csv_sep="\t", epoch=1,map_flag=False):
+               csv_sep="\t", epoch=1, map_flag=False, print_epoch=True):
 
     model.eval()
 
@@ -455,29 +459,30 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
                     test_line_id +=1
 
-            if output_preds_file and output_preds:
+            if output_preds:
                 pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
                                         test_dl.dataset.df.loc[indxs]["s2_unicode"].to_numpy(), 
                                         pred_idx.cpu().data.numpy().T, 
                                         torch.exp(pred).T.cpu().data.numpy(), 
                                         y.cpu().data.numpy().T])
-                with open(output_preds_file, "a+") as pred_f:
-                    if first_dump:
-                        np.savetxt(pred_f, pred_results.T, 
-                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep, 
-                                header=f"s1_unicode{csv_sep}s2_unicode{csv_sep}prediction{csv_sep}p0{csv_sep}p1{csv_sep}label")
-                        first_dump = False
-                    else:
-                        np.savetxt(pred_f, pred_results.T, 
-                                fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep)
+                if output_preds_file:
+                    with open(output_preds_file, "a+") as pred_f:
+                        if first_dump:
+                            np.savetxt(pred_f, pred_results.T, 
+                                    fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep, 
+                                    header=f"s1_unicode{csv_sep}s2_unicode{csv_sep}prediction{csv_sep}p0{csv_sep}p1{csv_sep}label")
+                            first_dump = False
+                        else:
+                            np.savetxt(pred_f, pred_results.T, 
+                                    fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep)
 
             total_loss_test += loss.data
 
+    # here, we can exit the code
     if output_state_vectors:
-        return None 
-    elif output_preds:
-        return all_preds
-    else:
+        return None
+
+    if print_epoch or map_flag:
         test_acc = accuracy_score(y_true_test, y_pred_test)
         test_pre = precision_score(y_true_test, y_pred_test)
         test_rec = recall_score(y_true_test, y_pred_test)
@@ -485,8 +490,11 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         test_weightedf1 = f1_score(y_true_test, y_pred_test, average='weighted')
         test_loss = total_loss_test / len(test_dl)
 
-        if map_flag:
-
+        if not map_flag:
+            test_map = False
+            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
+                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1, test_weightedf1)
+        else:
             # computing MAP
             list_of_list_of_trues = []
             list_of_list_of_preds = []
@@ -501,19 +509,13 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
             epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
                datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1, test_map)
-        
-        else:
-            test_map = None
-            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
-                   datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1)
-
 
         cprint('[INFO]', bc.lred, epoch_log)
         if model_path:
             log_message(epoch_log + "\n", mode="a+", filename=os.path.join(model_path, "log.txt"))
         else:
             log_message(epoch_log + "\n", mode="a+")
-
+        
         if tboard_writer:
             # Record loss
             tboard_writer.add_scalar('Test/Loss', loss.item(), epoch)
@@ -523,11 +525,14 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             tboard_writer.add_scalar('Test/Recall', test_rec, epoch)
             tboard_writer.add_scalar('Test/MacroF1', test_macrof1, epoch)
             tboard_writer.add_scalar('Test/WeightedF1', test_weightedf1, epoch)
-            tboard_writer.add_scalar('Test/Map', test_map, epoch)
-
+            if test_map:
+               tboard_writer.add_scalar('Test/Map', test_map, epoch)
             tboard_writer.flush()
-            
-        return (test_acc, test_pre, test_rec, test_macrof1,test_weightedf1,test_map)
+
+    if output_preds or map_flag:
+        return all_preds
+    #elif map_flag:
+    #    return (test_acc, test_pre, test_rec, test_macrof1, test_weightedf1, test_map)
 
 # ------------------- two_parallel_rnns  --------------------
 class two_parallel_rnns(nn.Module):
@@ -555,11 +560,11 @@ class two_parallel_rnns(nn.Module):
 
         self.maxpool_kernel_size = maxpool_kernel_size
 
-        if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'context']:
+        if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'hstates']:
             fc1_multiplier = 4
-        elif self.pooling_mode in ["context_layers"]:
+        elif self.pooling_mode in ["hstates_layers"]:
             fc1_multiplier = 8
-        elif self.pooling_mode in ["context_layers_simple"]:
+        elif self.pooling_mode in ["hstates_layers_simple"]:
             fc1_multiplier = 4
         else:
             fc1_multiplier = 4
@@ -597,7 +602,7 @@ class two_parallel_rnns(nn.Module):
         self.fc2 = nn.Linear(self.fc1_out_features, self.output_dim)
 
     # ------------------- forward 
-    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='context', device="cpu", output_state_vectors=False, evaluation=False):
+    def forward(self, x1_seq, len1, x2_seq, len2, pooling_mode='hstates', device="cpu", output_state_vectors=False, evaluation=False):
 
         if evaluation:
             # XXX Set dropouts to zero manually
@@ -649,21 +654,21 @@ class two_parallel_rnns(nn.Module):
             pool_1 = F.adaptive_avg_pool1d(rnn_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
         elif pooling_mode in ['max', 'maximum']:
             pool_1 = F.adaptive_max_pool1d(rnn_out_1.permute(1, 2, 0), 1).view(x1_seq.size(1), -1)
-        elif pooling_mode in ['context']:
-            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
-            context_1 = context_1_fwd_bwd[self.rnn_n_layers - 1, 0]
+        elif pooling_mode in ['hstates']:
+            hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
+            hstates_1 = hstates_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
-                context_1 = torch.cat((context_1, context_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['context_layers', 'context_layers_simple']:
-            context_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
-            context_1 = context_1_fwd_bwd[0, 0]
+                hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_cosine']:
+            hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
+            hstates_1 = hstates_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
-                context_1 = torch.cat((context_1, context_1_fwd_bwd[rlayer, 0]), dim=1)
+                hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[rlayer, 0]), dim=1)
             if self.bidirectional:
-                context_1_bwd = context_1_fwd_bwd[0, 1]
+                hstates_1_bwd = hstates_1_fwd_bwd[0, 1]
                 for rlayer in range(1, self.rnn_n_layers):
-                    context_1_bwd = torch.cat((context_1_bwd, context_1_fwd_bwd[rlayer, 1]), dim=1)
-                context_1 = torch.cat((context_1, context_1_bwd), dim=1)
+                    hstates_1_bwd = torch.cat((hstates_1_bwd, hstates_1_fwd_bwd[rlayer, 1]), dim=1)
+                hstates_1 = torch.cat((hstates_1, hstates_1_bwd), dim=1)
 
         self.h2, self.c2 = self.init_hidden(x2_seq.size(1), device)
         x2_embs_not_packed = self.emb(x2_seq)
@@ -694,21 +699,21 @@ class two_parallel_rnns(nn.Module):
             pool_2 = F.adaptive_avg_pool1d(rnn_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
         elif pooling_mode in ['max', 'maximum']:
             pool_2 = F.adaptive_max_pool1d(rnn_out_2.permute(1, 2, 0), 1).view(x2_seq.size(1), -1)
-        elif pooling_mode in ['context']:
-            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
-            context_2 = context_2_fwd_bwd[self.rnn_n_layers - 1, 0]
+        elif pooling_mode in ['hstates']:
+            hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
+            hstates_2 = hstates_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
-                context_2 = torch.cat((context_2, context_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['context_layers', 'context_layers_simple']:
-            context_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
-            context_2 = context_2_fwd_bwd[0, 0]
+                hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_cosine']:
+            hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
+            hstates_2 = hstates_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
-                context_2 = torch.cat((context_2, context_2_fwd_bwd[rlayer, 0]), dim=1)
+                hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[rlayer, 0]), dim=1)
             if self.bidirectional:
-                context_2_bwd = context_2_fwd_bwd[0, 1]
+                hstates_2_bwd = hstates_2_fwd_bwd[0, 1]
                 for rlayer in range(1, self.rnn_n_layers):
-                    context_2_bwd = torch.cat((context_2_bwd, context_2_fwd_bwd[rlayer, 1]), dim=1)
-                context_2 = torch.cat((context_2, context_2_bwd), dim=1)
+                    hstates_2_bwd = torch.cat((hstates_2_bwd, hstates_2_fwd_bwd[rlayer, 1]), dim=1)
+                hstates_2 = torch.cat((hstates_2, hstates_2_bwd), dim=1)
 
         # Combine outputs from GRU1 and GRU2
         if pooling_mode in ['attention']:
@@ -725,15 +730,20 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((pool_rnn_cat,
                                          pool_rnn_mul,
                                          pool_rnn_dif), dim=1)
-        elif pooling_mode in ['context', 'context_layers']:
-            context_rnn_cat = torch.cat((context_1, context_2), dim=1)
-            context_rnn_mul = context_1 * context_2
-            context_rnn_dif = context_1 - context_2
-            output_combined = torch.cat((context_rnn_cat,
-                                         context_rnn_mul,
-                                         context_rnn_dif), dim=1)
-        elif pooling_mode in ['context_layers_simple']:
-            output_combined = torch.cat((context_1, context_2), dim=1)
+        elif pooling_mode in ['hstates', 'hstates_layers']:
+            hstates_rnn_cat = torch.cat((hstates_1, hstates_2), dim=1)
+            hstates_rnn_mul = hstates_1 * hstates_2
+            hstates_rnn_dif = hstates_1 - hstates_2
+            output_combined = torch.cat((hstates_rnn_cat,
+                                         hstates_rnn_mul,
+                                         hstates_rnn_dif), dim=1)
+        elif pooling_mode in ['hstates_layers_simple']:
+            output_combined = torch.cat((hstates_1, hstates_2), dim=1)
+
+        elif pooling_mode in ['hstates_cosine']:
+            sys.exit("[ERROR] hstates_cosine method is not implemented")
+            # hstates_cosine_sim = (nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2) + 1) / 2.
+            # return torch.log(torch.stack([1- hstates_cosine_sim, hstates_cosine_sim])).T
 
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))
@@ -755,7 +765,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
     start_time = time.time()
 
     if dl_inputs['inference']['output_preds_file'] in ["default"]:
-        output_preds_file = os.path.join(os.path.dirname(model_path), f"pred_results_{os.path.basename(dataset_path)}")
+        output_preds_file = os.path.join(os.path.dirname(model_path), 
+                                         f"pred_results_{os.path.basename(dataset_path)}")
     else:
         output_preds_file = dl_inputs['inference']['output_preds_file'] 
 
@@ -767,38 +778,33 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         output_state_vectors = False
         path_save_test_class = False
     else:
-        scenario_path = ""
-        if query_candidate_mode in ["c"]:
-            scenario_path = "./candidates/" + scenario + "/"
-            if not os.path.isdir(os.path.dirname(scenario_path)):
-                os.makedirs(os.path.dirname(scenario_path))
-            output_state_vectors = scenario_path + "embed_candidates/rnn"
-            path_save_test_class = scenario_path + "candidates.df"
-            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
-            if os.path.isdir(parent_dir):
-                shutil.rmtree(parent_dir)
-            if os.path.isfile(path_save_test_class):
-                os.remove(path_save_test_class)
-        elif query_candidate_mode in ["q"]:
-            scenario_path = "./queries/" + scenario + "/"
-            if not os.path.isdir(os.path.dirname(scenario_path)):
-                os.makedirs(os.path.dirname(scenario_path))
-            output_state_vectors = scenario_path + "embed_queries/rnn"
-            path_save_test_class = scenario_path + "queries.df"
-            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
-            if os.path.isdir(parent_dir):
-                shutil.rmtree(parent_dir)
-            if os.path.isfile(path_save_test_class):
-                os.remove(path_save_test_class)
-        shutil.copy2(input_file_path, os.path.dirname(scenario_path))
+        if query_candidate_mode in ["q"]:
+            query_candidate_mode = "queries"
+        elif query_candidate_mode in ["c"]:
+            query_candidate_mode = "candidates"
+        
+        # Set path according to query_candidate_mode
+        scenario_path = os.path.abspath(os.path.join(query_candidate_mode, scenario))
+        if not os.path.isdir(scenario_path):
+            os.makedirs(scenario_path)
+        output_state_vectors = os.path.join(scenario_path, f"embed_{query_candidate_mode}", "rnn")
+        path_save_test_class = os.path.join(scenario_path, f"{query_candidate_mode}.df")
+        parent_dir = os.path.dirname(os.path.abspath(output_state_vectors))
+        # Clean-up dirs/files
+        if os.path.isdir(parent_dir):
+            shutil.rmtree(parent_dir)
+        if os.path.isfile(path_save_test_class):
+            os.remove(path_save_test_class)
+
+        shutil.copy2(input_file_path, scenario_path)
         msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
         cur_dir = os.path.abspath(os.path.curdir)
         input_command_line = f"python"
         for one_arg in sys.argv:
             input_command_line += f" {one_arg}"
         msg += "\nCurrent directory: " + cur_dir + "\n"
-        log_message(msg, mode="w", filename=os.path.join(os.path.dirname(scenario_path), "log.txt"))
-        log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(scenario_path), "log.txt"))
+        log_message(msg, mode="w", filename=os.path.join(scenario_path, "log.txt"))
+        log_message(input_command_line + "\n", mode="a", filename=os.path.join(scenario_path, "log.txt"))
     
     # --- load torch model, send it to the device (CPU/GPU)
     model = torch.load(model_path, map_location=dl_inputs['general']['device'])
@@ -810,7 +816,9 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
     
     # create the actual class here
     test_dc = test_tokenize(
-        dataset_path, train_vocab,dl_inputs["preprocessing"]["missing_char_threshold"],
+        dataset_path, 
+        train_vocab, 
+        dl_inputs["preprocessing"]["missing_char_threshold"],
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
@@ -827,7 +835,6 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                          shuffle=False)
     num_batch_test = len(test_dl)
     
-    # --- output state vectors 
     test_model_output = test_model(model, 
                                    test_dl,
                                    eval_mode='test',
@@ -837,7 +844,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                                    output_state_vectors=output_state_vectors, 
                                    output_preds=dl_inputs['inference']['output_preds'],
                                    output_preds_file=output_preds_file,
-                                   csv_sep=dl_inputs['preprocessing']['csv_sep']
+                                   csv_sep=dl_inputs['preprocessing']['csv_sep'],
+                                   map_flag=dl_inputs['inference']['eval_map_metric']
                                    )
     
     print("--- %s seconds ---" % (time.time() - start_time))

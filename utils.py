@@ -33,6 +33,15 @@ def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin
     return s
 
 
+# ------------------- sort_key --------------------
+def sort_key(item):
+    key_pat = re.compile(r"^(\D+)(\d+)$")
+    item = os.path.abspath(item)
+    item2match = os.path.basename(item)
+    m = key_pat.match(item2match)
+    return m.group(1), int(m.group(2))
+
+
 # ------------------- set_seed_everywhere --------------------
 def set_seed_everywhere(seed):
     np.random.seed(seed)
@@ -253,6 +262,92 @@ def read_inference_command():
         sys.exit("[ERROR] {}".format(error))
     
     return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode, scenario
+
+# ------------------- read_command_combinevecs --------------------
+def read_command_combinevecs():
+    parser = ArgumentParser()
+
+    parser.add_argument("-qc", "--candidate_or_query",
+                        help="select mode: candidate (c) or query (q)")
+
+    parser.add_argument("-sc", "--candidate_query_scenario", 
+                        help="name of the candidate or query scenario")
+
+    parser.add_argument("-p", "--rnn_pass", 
+                        help="rnn pass: bwd (backward) or fwd (forward)")
+
+    parser.add_argument("-combs", "--combined_scenario",
+                        help="name of the combined scenario")
+
+    parser.add_argument("-i", "--input_file_path",
+                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
+                        default="default")
+
+    args = parser.parse_args()
+    qc_mode = args.candidate_or_query
+    cq_sc = args.candidate_query_scenario
+    rnn_pass = args.rnn_pass
+    combined_sc = args.combined_scenario
+    input_file_path = args.input_file_path
+    return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
+
+# ------------------- read_command_candidate_finder --------------------
+def read_command_candidate_finder():
+    parser = ArgumentParser()
+
+    parser.add_argument("-t", "--threshold",
+                        help="Selection criterion. NOTE: changes according to the ranking metric specified by -rm. " \
+                             "A candidate will be selected if:" \
+                             "faiss-distance <= threshold, " \
+                             "cosine-similarity >= threshold, " \
+                             "prediction-confidence >= threshold", 
+                        default=0.8)
+
+    parser.add_argument("-rm", "--ranking_metric",
+                        help="Choices between faiss, cosine, conf", 
+                        default="faiss")
+
+    parser.add_argument("-n", "--num_candidates",
+                        help="Number of candidates", default=10)
+
+    parser.add_argument("-o", "--output_filename",
+                        help="output filename")
+
+    parser.add_argument("-sz", "--search_size",
+                        help="search size", default=4)
+
+    parser.add_argument("-comb", "--combined_path",
+                        help="path of the combined folder")
+    
+    parser.add_argument("-i", "--input_file_path",
+                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
+                        default="default")
+    
+    parser.add_argument("-tn", "--number_test_rows",
+                        help="Only for testing", 
+                        default=-1)
+    
+    parser.add_argument("-mp", "--model_path",
+                        help="Path to a DeezyMatch model, normally /path/to/file.model", 
+                        default=False)
+    
+    parser.add_argument("-v", "--vocab_path",
+                        help="Path to a vocabulary file, normally /path/to/file.vocab", 
+                        default=False)
+
+    args = parser.parse_args()
+    num_candidates = int(args.num_candidates)
+    output_filename = args.output_filename
+    selection_threshold = float(args.threshold)
+    ranking_metric = args.ranking_metric
+    search_size = int(args.search_size)
+    comb_path = args.combined_path
+    input_file_path = args.input_file_path
+    number_test_rows = int(args.number_test_rows)
+    model_path = args.model_path
+    vocab_path = args.vocab_path
+    return output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
+           comb_path, input_file_path, number_test_rows, model_path, vocab_path
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):
