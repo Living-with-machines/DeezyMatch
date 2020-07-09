@@ -760,7 +760,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
     start_time = time.time()
 
     if dl_inputs['inference']['output_preds_file'] in ["default"]:
-        output_preds_file = os.path.join(os.path.dirname(model_path), f"pred_results_{os.path.basename(dataset_path)}")
+        output_preds_file = os.path.join(os.path.dirname(model_path), 
+                                         f"pred_results_{os.path.basename(dataset_path)}")
     else:
         output_preds_file = dl_inputs['inference']['output_preds_file'] 
 
@@ -772,38 +773,33 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         output_state_vectors = False
         path_save_test_class = False
     else:
-        scenario_path = ""
-        if query_candidate_mode in ["c"]:
-            scenario_path = "./candidates/" + scenario + "/"
-            if not os.path.isdir(os.path.dirname(scenario_path)):
-                os.makedirs(os.path.dirname(scenario_path))
-            output_state_vectors = scenario_path + "embed_candidates/rnn"
-            path_save_test_class = scenario_path + "candidates.df"
-            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
-            if os.path.isdir(parent_dir):
-                shutil.rmtree(parent_dir)
-            if os.path.isfile(path_save_test_class):
-                os.remove(path_save_test_class)
-        elif query_candidate_mode in ["q"]:
-            scenario_path = "./queries/" + scenario + "/"
-            if not os.path.isdir(os.path.dirname(scenario_path)):
-                os.makedirs(os.path.dirname(scenario_path))
-            output_state_vectors = scenario_path + "embed_queries/rnn"
-            path_save_test_class = scenario_path + "queries.df"
-            parent_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
-            if os.path.isdir(parent_dir):
-                shutil.rmtree(parent_dir)
-            if os.path.isfile(path_save_test_class):
-                os.remove(path_save_test_class)
-        shutil.copy2(input_file_path, os.path.dirname(scenario_path))
+        if query_candidate_mode in ["q"]:
+            query_candidate_mode = "queries"
+        elif query_candidate_mode in ["c"]:
+            query_candidate_mode = "candidates"
+        
+        # Set path according to query_candidate_mode
+        scenario_path = os.path.abspath(os.path.join(query_candidate_mode, scenario))
+        if not os.path.isdir(scenario_path):
+            os.makedirs(scenario_path)
+        output_state_vectors = os.path.join(scenario_path, f"embed_{query_candidate_mode}", "rnn")
+        path_save_test_class = os.path.join(scenario_path, f"{query_candidate_mode}.df")
+        parent_dir = os.path.dirname(os.path.abspath(output_state_vectors))
+        # Clean-up dirs/files
+        if os.path.isdir(parent_dir):
+            shutil.rmtree(parent_dir)
+        if os.path.isfile(path_save_test_class):
+            os.remove(path_save_test_class)
+
+        shutil.copy2(input_file_path, scenario_path)
         msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
         cur_dir = os.path.abspath(os.path.curdir)
         input_command_line = f"python"
         for one_arg in sys.argv:
             input_command_line += f" {one_arg}"
         msg += "\nCurrent directory: " + cur_dir + "\n"
-        log_message(msg, mode="w", filename=os.path.join(os.path.dirname(scenario_path), "log.txt"))
-        log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(scenario_path), "log.txt"))
+        log_message(msg, mode="w", filename=os.path.join(scenario_path, "log.txt"))
+        log_message(input_command_line + "\n", mode="a", filename=os.path.join(scenario_path, "log.txt"))
     
     # --- load torch model, send it to the device (CPU/GPU)
     model = torch.load(model_path, map_location=dl_inputs['general']['device'])
@@ -815,7 +811,9 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
     
     # create the actual class here
     test_dc = test_tokenize(
-        dataset_path, train_vocab,dl_inputs["preprocessing"]["missing_char_threshold"],
+        dataset_path, 
+        train_vocab, 
+        dl_inputs["preprocessing"]["missing_char_threshold"],
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
@@ -832,7 +830,6 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                          shuffle=False)
     num_batch_test = len(test_dl)
     
-    # --- output state vectors 
     test_model_output = test_model(model, 
                                    test_dl,
                                    eval_mode='test',
