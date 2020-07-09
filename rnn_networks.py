@@ -529,10 +529,10 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                tboard_writer.add_scalar('Test/Map', test_map, epoch)
             tboard_writer.flush()
 
-    if output_preds:
+    if output_preds or map_flag:
         return all_preds
-    elif map_flag:
-        return (test_acc, test_pre, test_rec, test_macrof1,test_weightedf1,test_map)
+    #elif map_flag:
+    #    return (test_acc, test_pre, test_rec, test_macrof1, test_weightedf1, test_map)
 
 # ------------------- two_parallel_rnns  --------------------
 class two_parallel_rnns(nn.Module):
@@ -844,7 +844,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                                    output_state_vectors=output_state_vectors, 
                                    output_preds=dl_inputs['inference']['output_preds'],
                                    output_preds_file=output_preds_file,
-                                   csv_sep=dl_inputs['preprocessing']['csv_sep']
+                                   csv_sep=dl_inputs['preprocessing']['csv_sep'],
+                                   map_flag=dl_inputs['inference']['eval_map_metric']
                                    )
     
     print("--- %s seconds ---" % (time.time() - start_time))
