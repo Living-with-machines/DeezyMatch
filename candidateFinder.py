@@ -204,15 +204,25 @@ for iq in range(len_vecs_query):
     mydict_faiss_dist = {}
     mydict_candid_id = {}
     mydict_cosine_sim = {}
+    if ranking_metric.lower() in ["faiss"]:
+        collect_neigh_pd = collect_neigh_pd.sort_values(by="faiss_dist")[:num_candidates]
+    elif ranking_metric.lower() in ["cosine"]:
+        collect_neigh_pd = collect_neigh_pd.sort_values(by="cosine_sim", ascending=False)[:num_candidates]
+    elif ranking_metric.lower() in ["conf"]:
+        collect_neigh_pd = collect_neigh_pd.sort_values(by="dl_match", ascending=False)[:num_candidates]
+
     for i_row, row in collect_neigh_pd.iterrows():
-        mydict_dl_match[row["s2"]] = row["dl_match"]
+        if not model_path in [False, None]:
+            mydict_dl_match[row["s2"]] = round(row["dl_match"], 4)
+        else:
+            mydict_dl_match[row["s2"]] = row["dl_match"]
         mydict_faiss_dist[row["s2"]] = round(row["faiss_dist"], 4)
         mydict_cosine_sim[row["s2"]] = round(row["cosine_sim"], 4)
         mydict_candid_id[row["s2"]] = row["s2_orig_ids"]
     one_row = {
         "id": orig_id_queries, 
         "toponym": all_queries[0], 
-        "DeezyMatch_score": [mydict_dl_match], 
+        "pred_score": [mydict_dl_match], 
         "faiss_distance": [mydict_faiss_dist], 
         "cosine_sim": [mydict_cosine_sim],
         "candidate_original_ids": [mydict_candid_id], 
