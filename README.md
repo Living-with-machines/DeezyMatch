@@ -233,6 +233,8 @@ A candidate will be selected if:
 
 `-sz` is the search size. At each iteration, the selected metric between a query and `-sz` candidates are computed, and if the number of desired candidates is not reached (specified by `-n`), a new batch of candidates with the size of `-sz` is examined.
 
+`-tn` should be used only for testing. The argument of `-tn` specifies the number of queries to be used for testing.
+
 This command creates a pandas dataframe stored in `combined/test/test_candidates_deezymatch.pkl` and the first few rows are:
 
 ```bash

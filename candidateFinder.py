@@ -80,7 +80,7 @@ print("Is faiss_id_candis already trained? %s" % faiss_id_candis.is_trained)
 faiss_id_candis.add(vecs_candidates.detach().cpu().numpy())
 
 if number_test_rows > 0:
-    len_vecs_query = number_test_rows
+    len_vecs_query = min(len(vecs_query), int(number_test_rows))
 else:
     len_vecs_query = len(vecs_query)
 
