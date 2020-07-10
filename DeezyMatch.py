@@ -12,11 +12,13 @@ import pickle
 import shutil
 import sys
 
+from combineVecs import combine_vecs
 from data_processing import csv_split_tokenize
 from rnn_networks import gru_lstm_network, fine_tuning
 from rnn_networks import inference as rnn_inference
 from utils import deezy_mode_detector
 from utils import read_inputs_command, read_inference_command, read_input_file
+from utils import read_command_combinevecs
 from utils import cprint, bc, log_message
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
@@ -269,6 +271,20 @@ def main():
                   inference_mode=inference_mode, 
                   query_candidate_mode=query_candidate_mode, 
                   scenario=scenario)
+    
+    elif dm_mode in ["combine_vecs"]:
+        # --- read args from the command line
+        qc_modes, input_scenario, rnn_passes, output_scenario, input_file_path = \
+            read_command_combinevecs()
+
+        # --- 
+        combine_vecs(input_file_path=input_file_path, 
+                     qc_modes=qc_modes, 
+                     rnn_passes=rnn_passes,
+                     input_scenario=input_scenario, 
+                     output_scenario=output_scenario)
+
+
 
 if __name__ == '__main__':
     main()

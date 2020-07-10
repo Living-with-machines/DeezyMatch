@@ -24,6 +24,7 @@ After [installing DeezyMatch on your machine](#installation), DeezyMatch can be 
 from DeezyMatch import train as dm_train
 from DeezyMatch import finetune as dm_finetune
 from DeezyMatch import inference as dm_inference
+from DeezyMatch import combine_vecs
 
 # train a new model
 dm_train(input_file_path="input_dfm.yaml", 
@@ -51,6 +52,13 @@ dm_inference(input_file_path="./input_dfm.yaml",
              inference_mode="vect",
              query_candidate_mode=["q", "c"],
              scenario="test")
+
+# combine vectors
+combine_vecs(qc_modes=['q', 'c'], 
+             rnn_passes=['fwd', 'bwd'], 
+             input_scenario='test', 
+             output_scenario='test', 
+             print_every=1)
 ```
 
 ### Command line
@@ -248,6 +256,12 @@ python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetu
 ```
 
 2. Combine vectors. This step is required if candidates or queries are distributed on several files. At this step, we combined those vectors.
+
+```bash
+python DeezyMatch.py --deezy_mode combine_vecs -qc q,c -sc test -p fwd,bwd -combs test
+```
+
+Alternatively:
 
 ```bash
 python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test

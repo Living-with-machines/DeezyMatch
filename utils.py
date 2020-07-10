@@ -98,13 +98,13 @@ def deezy_mode_detector():
 
     parser = ArgumentParser()
     parser.add_argument("--deezy_mode", 
-                        help="DeezyMatch mode (options: train, finetune, inference)",
+                        help="DeezyMatch mode (options: train, finetune, inference, combine_vecs)",
                         default="train",
                         )
     dm_mode, unknown = parser.parse_known_args()
     dm_mode = dm_mode.deezy_mode.lower()
-    if dm_mode not in ["train", "finetune", "inference"]:
-        parser.exit(f"ERROR: implemeted modes are: train | inference (input: {dm_mode})")     
+    if dm_mode not in ["train", "finetune", "inference", "combine_vecs"]:
+        parser.exit(f"ERROR: implemeted modes are: train, finetune, inference, combine_vecs (input: {dm_mode})")     
         
     return dm_mode
 
@@ -266,6 +266,11 @@ def read_inference_command():
 # ------------------- read_command_combinevecs --------------------
 def read_command_combinevecs():
     parser = ArgumentParser()
+
+    parser.add_argument("--deezy_mode",
+                    help="DeezyMatch mode",
+                    default="combine_vecs"
+                    )
 
     parser.add_argument("-qc", "--candidate_or_query",
                         help="select mode: candidate (c) or query (q)")
