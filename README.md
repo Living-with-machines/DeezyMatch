@@ -2,9 +2,10 @@
 
 ## A flexible Deep Neural Network framework for fuzzy string matching
 
-DeezyMatch has been applied to the following problems:
+DeezyMatch can be applied for performing the following tasks:
 
-- toponym matching
+- candidate selection for entity linking systems
+- record linkage
 
 Credits:
 
@@ -12,7 +13,85 @@ Credits:
 
 ### Run DeezyMatch
 
-After installing DeezyMatch on your machine, a new classifier can be trained by:
+After [installing DeezyMatch on your machine](#installation), DeezyMatch can be run in two ways:
+
+1. As a Python library
+2. Command line
+
+
+Examples on how to run DeezyMatch can be found [here](./examples).
+
+### DeezyMatch as a python library
+
+```python
+from DeezyMatch import train as dm_train
+from DeezyMatch import finetune as dm_finetune
+from DeezyMatch import inference as dm_inference
+from DeezyMatch import combine_vecs
+from DeezyMatch import candidate_finder
+
+# train a new model
+dm_train(input_file_path="input_dfm.yaml", 
+         dataset_path="dataset/dataset-string-similarity_test.txt", 
+         model_name="test001")
+
+# fine-tune a pretrained model
+dm_finetune(input_file_path="input_dfm.yaml", 
+            dataset_path="dataset/dataset-string-similarity_test.txt", 
+            model_name="finetuned_test001",
+            pretrained_model_path="./models/test001/test001.model", 
+            pretrained_vocab_path="./models/test001/test001.vocab")
+
+# model inference
+dm_inference(input_file_path="./input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab")
+
+# generate vectors for queries and candidates
+dm_inference(input_file_path="./input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
+             inference_mode="vect",
+             query_candidate_mode=["q", "c"],
+             scenario="test")
+
+# combine vectors
+combine_vecs(qc_modes=['q', 'c'], 
+             rnn_passes=['fwd', 'bwd'], 
+             input_scenario='test', 
+             output_scenario='test', 
+             print_every=1)
+
+# Find candidates
+candidates_pd = \
+    candidate_finder(scenario="./combined/test/", 
+                     ranking_metric="conf", 
+                     selection_threshold=0.51, 
+                     num_candidates=1, 
+                     search_size=4, 
+                     output_filename="test_candidates_deezymatch", 
+                     pretrained_model_path="./models/test001/test001.model", 
+                     pretrained_vocab_path="./models/test001/test001.vocab", 
+                     number_test_rows=20) 
+```
+
+In fine-tuning a pretrained model, it is possible to specify a directory name in the argument `pretrained_model_path`, e.g., 
+
+```python
+from DeezyMatch import finetune as dm_finetune
+# fine-tune a pretrained model
+dm_finetune(input_file_path="input_dfm.yaml", 
+            dataset_path="dataset/dataset-string-similarity_test.txt", 
+            model_name="finetuned_test001",
+            pretrained_model_path="./models/test001")
+```
+
+In this case, DeezyMatch will create the `pretrained_model_path` and `pretrained_vocab_path` using the input directory name.
+
+### Command line
+Train a new model: a new classifier can be trained by:
 
 ```bash
 python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
@@ -195,6 +274,8 @@ Candidate selection consists of the following steps:
 2. Combine vectors
 3. For each query, find a list of candidates
 
+----
+
 1. In the first step, we create vectors for both query and candidate tokens:
 
 ```bash
@@ -208,12 +289,24 @@ python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetu
 2. Combine vectors. This step is required if candidates or queries are distributed on several files. At this step, we combined those vectors.
 
 ```bash
+python DeezyMatch.py --deezy_mode combine_vecs -qc q,c -sc test -p fwd,bwd -combs test
+```
+
+Alternatively:
+
+```bash
 python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
 ```
 
 3. CandidateFinder. Various options are available to find a set of candidates (from a dataset) for a given query in the same or another dataset.
 
 * Select candidates based on L2-norm distance (aka faiss distance):
+
+```bash
+python DeezyMatch.py --deezy_mode candidate_finder -t 0.5 -rm faiss -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+```
+
+Alternatively:
 
 ```bash
 python candidateFinder.py -t 0.5 -rm faiss -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
@@ -258,13 +351,6 @@ python candidateFinder.py -t 0.51 -rm conf -n 1 -o test_candidates_deezymatch -s
 python candidateFinder.py -t 0.51 -rm cosine -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
 ```
 
-If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
-
-```bash
-pip install faiss-cpu --no-cache
-```
-
-Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
 **Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
 
@@ -292,39 +378,10 @@ conda activate py37deezy
 pip install -r requirements.txt
 ```
 
----
+:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
 
-Run `deepneuralnetwork.py`:
-
-```
-python deepneuralnetwork.py dataset/dataset-string-similarity_test.txt
+```bash
+pip install faiss-cpu --no-cache
 ```
 
-For testing, you can change `nb_epoch=20` to `nb_epoch=2` in deepneuralnetwork.py.
-
----
-
-**Changes**
-
-(from the original github repo https://github.com/ruipds/Toponym-Matching):
-
-
-* In `deepneuralnetwork.py`, we had to change the `call` function: (changes are based on https://github.com/richliao/textClassifier/issues/13)
-
-```
-    def call(self, x, mask=None):
-        eij = K.tanh(K.squeeze(K.dot(x, K.expand_dims(self.W)), axis=-1))
-        ai = K.exp(eij)
-        weights = ai/K.expand_dims(K.sum(ai, axis=1),1)
-        weighted_input = x*K.expand_dims(weights,2)
-        return K.sum(weighted_input, axis=1)
-
-        """
-        eij = K.tanh(K.dot(x, self.W))
-        ai = K.exp(eij)
-        weights = ai/K.sum(ai, axis=1).dimshuffle(0,'x')
-        weighted_input = x*weights.dimshuffle(0,1,'x')
-        self.attention = weights
-        return weighted_input.sum(axis=1)
-        """
-```
+Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
