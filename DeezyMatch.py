@@ -12,15 +12,13 @@ import pickle
 import shutil
 import sys
 
-from candidateFinder import candidate_finder
-from combineVecs import combine_vecs
+from candidateFinder import main as candidate_finder_main
+from combineVecs import main as combine_vecs_main
 from data_processing import csv_split_tokenize
 from rnn_networks import gru_lstm_network, fine_tuning
 from rnn_networks import inference as rnn_inference
 from utils import deezy_mode_detector
 from utils import read_inputs_command, read_inference_command, read_input_file
-from utils import read_command_combinevecs
-from utils import read_command_candidate_finder
 from utils import cprint, bc, log_message
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
@@ -275,34 +273,10 @@ def main():
                   scenario=scenario)
     
     elif dm_mode in ["combine_vecs"]:
-        # --- read args from the command line
-        qc_modes, input_scenario, rnn_passes, output_scenario, input_file_path = \
-            read_command_combinevecs()
+        combine_vecs_main()
 
-        # --- 
-        combine_vecs(input_file_path=input_file_path, 
-                     qc_modes=qc_modes, 
-                     rnn_passes=rnn_passes,
-                     input_scenario=input_scenario, 
-                     output_scenario=output_scenario)
-    
     elif dm_mode in ["candidate_finder"]:
-        # --- read args from the command line
-        output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
-            par_dir, input_file_path, number_test_rows, pretrained_model_path, pretrained_vocab_path = \
-            read_command_candidate_finder()
-    
-        # --- 
-        candidate_finder(input_file_path=input_file_path, 
-                         scenario=par_dir, 
-                         ranking_metric=ranking_metric, 
-                         selection_threshold=selection_threshold, 
-                         num_candidates=num_candidates, 
-                         search_size=search_size, 
-                         output_filename=output_filename,
-                         pretrained_model_path=pretrained_model_path, 
-                         pretrained_vocab_path=pretrained_vocab_path, 
-                         number_test_rows=number_test_rows)
+        candidate_finder_main()
 
 if __name__ == '__main__':
     main()
