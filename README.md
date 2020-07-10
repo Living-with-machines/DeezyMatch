@@ -1,27 +1,24 @@
-# DeezyMatch (Deep Fuzzy Match)
+# DeezyMatch (Deep Fuzzy string Matching)
 
-## A flexible Deep Neural Network framework for fuzzy string matching
+## A flexible Deep Neural Network approach to fuzzy string matching
 
 DeezyMatch can be applied for performing the following tasks:
 
 - candidate selection for entity linking systems
 - record linkage
 
-Credits:
+Table of contents
+-----------------
 
-- This project extensively uses the ideas/neural-network-architecture published in https://github.com/ruipds/Toponym-Matching. 
+- [DeezyMatch as a Python library](#deezymatch-as-a-python-library)
+deezymatch-as-a-python-library
+- [Examples](./examples) on how to run DeezyMatch can be found.
+- [Installation](#installation)
+- [Credits](#credits)
 
-### Run DeezyMatch
+### DeezyMatch as a Python library
 
-After [installing DeezyMatch on your machine](#installation), DeezyMatch can be run in two ways:
-
-1. As a Python library
-2. Command line
-
-
-Examples on how to run DeezyMatch can be found [here](./examples).
-
-### DeezyMatch as a python library
+Refer to [installation section](#installation) to set-up DeezyMatch on your local machine.
 
 ```python
 from DeezyMatch import train as dm_train
@@ -393,3 +390,7 @@ pip install faiss-cpu --no-cache
 ```
 
 Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
+
+### Credits
+
+This project extensively uses the ideas/neural-network-architecture published in https://github.com/ruipds/Toponym-Matching. 
