@@ -12,7 +12,49 @@ Credits:
 
 ### Run DeezyMatch
 
-After [installing DeezyMatch on your machine](#installation), a new classifier can be trained by:
+After [installing DeezyMatch on your machine](#installation), DeezyMatch can be run in two ways:
+
+1. As a Python library
+2. Command line
+
+
+### DeezyMatch as a python library
+
+```python
+from DeezyMatch import train as dm_train
+from DeezyMatch import finetune as dm_finetune
+from DeezyMatch import inference as dm_inference
+
+# train a new model
+dm_train(input_file_path="input_dfm.yaml", 
+         dataset_path="dataset/dataset-string-similarity_test.txt", 
+         model_name="test001")
+
+# fine-tune a pretrained model
+dm_finetune(input_file_path="input_dfm.yaml", 
+            dataset_path="dataset/dataset-string-similarity_test.txt", 
+            model_name="finetuned_test001",
+            pretrained_model_path="./models/test001/test001.model", 
+            pretrained_vocab_path="./models/test001/test001.vocab")
+
+# model inference
+dm_inference(input_file_path="./input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab")
+
+# generate vectors for queries and candidates
+dm_inference(input_file_path="./input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
+             inference_mode="vect",
+             query_candidate_mode=["q", "c"],
+             scenario="test")
+```
+
+### Command line
+Train a new model: a new classifier can be trained by:
 
 ```bash
 python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001

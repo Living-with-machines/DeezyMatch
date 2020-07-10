@@ -98,12 +98,12 @@ def deezy_mode_detector():
 
     parser = ArgumentParser()
     parser.add_argument("--deezy_mode", 
-                        help="DeezyMatch mode (options: train, inference)",
+                        help="DeezyMatch mode (options: train, finetune, inference)",
                         default="train",
                         )
     dm_mode, unknown = parser.parse_known_args()
     dm_mode = dm_mode.deezy_mode.lower()
-    if dm_mode not in ["train", "inference"]:
+    if dm_mode not in ["train", "finetune", "inference"]:
         parser.exit(f"ERROR: implemeted modes are: train | inference (input: {dm_mode})")     
         
     return dm_mode
@@ -122,27 +122,27 @@ def read_inputs_command():
                     )
 
     parser.add_argument("-i", "--input_file_path",
-                    help="add the path of the input file",
+                    help="Path of the input file",
                     default=None
                     )
     
     parser.add_argument("-d", "--dataset_path",
-                    help="add the path of the dataset",
+                    help="Path of the dataset",
                     default=None
                     )
     
     parser.add_argument("-m", "--model_name",
-                    help="add the name of the model to be saved",
+                    help="Name of the model to be saved",
                     default=None
                     )
     
     parser.add_argument("-f", "--fine_tuning",
-                    help="add the path to the folder of the model to be fine-tuned (note: if you use -v, then you should provide here the path to the .model file)",
+                    help="Path to the folder of the model to be fine-tuned (note: if you use -v, then you should provide here the path to the .model file)",
                     default=None
                     )
 
     parser.add_argument("-v", "--vocabulary",
-                    help="add the path to the vocabulary to be used when fine-tuning (note: in this case -f should point to the .model file)",
+                    help="Path to the vocabulary to be used when fine-tuning (note: in this case -f should point to the .model file)",
                     default=None
                     )
 
