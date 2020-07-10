@@ -44,3 +44,4 @@ setuptools.setup(
             'DeezyMatch = DeezyMatch.DeezyMatch:main',
         ],
     }
+)
