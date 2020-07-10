@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 """
-DeezyMatch main code: select the relevant module (train, finetune, inference, combine_vec, candidate_finder) 
+DeezyMatch main code: select the relevant module (train, finetune, inference, combine_vecs, candidate_finder) 
 based on the inputs.
 """
 
