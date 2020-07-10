@@ -19,6 +19,8 @@ After [installing DeezyMatch on your machine](#installation), DeezyMatch can be 
 2. Command line
 
 
+Examples on how to run DeezyMatch can be found [here](./examples).
+
 ### DeezyMatch as a python library
 
 ```python
