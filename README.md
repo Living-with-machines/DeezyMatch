@@ -1,6 +1,6 @@
-# DeezyMatch (Deep Fuzzy string Matching)
+# DeezyMatch (Deep Fuzzy String Matching)
 
-## A flexible Deep Neural Network approach to fuzzy string matching
+## A Flexible Deep Neural Network Approach to Fuzzy String Matching
 
 DeezyMatch can be applied for performing the following tasks:
 
@@ -13,12 +13,29 @@ Table of contents
 - [Run DeezyMatch as a Python library](#run-deezymatch-as-a-python-library)
 - [Run DeezyMatch via command line](#run-deezymatch-via-command-line)
 - [Examples](./examples) on how to run DeezyMatch can be found.
-- [Installation](#installation)
+- [Installation and setup](#installation)
 - [Credits](#credits)
 
 ## Run DeezyMatch as a Python library
 
-Refer to [installation section](#installation) to set-up DeezyMatch on your local machine.
+Refer to [installation section](#installation) to set-up DeezyMatch on your local machine. 
+
+:warning: In the following tutorials, we assume a directory structure specified in the [installation section](#installation).
+ 
+### Train a new model
+
+DeezyMatch `train` module can be used to train a new model:
+
+```python
+from DeezyMatch import train as dm_train
+
+# train a new model
+dm_train(input_file_path="input_dfm.yaml", 
+         dataset_path="dataset/dataset-string-similarity_test.txt", 
+         model_name="test001")
+```
+
+A new model called `test001` will be stored in `models` directory (as specified in the `models_dir` in the input file)
 
 ```python
 from DeezyMatch import train as dm_train
@@ -90,6 +107,9 @@ In this case, DeezyMatch will create the `pretrained_model_path` and `pretrained
 ---
 
 ## Run DeezyMatch via command line
+
+Refer to [installation section](#installation) to set-up DeezyMatch on your local machine.
+
 Train a new model: a new classifier can be trained by:
 
 ```bash
@@ -380,10 +400,24 @@ pip install -r requirements.txt
 4. Install DeezyMatch:
 
 ```
+cd /path/to/my/DeezyMatch
 python setup.py install
 ```
 
-5. Continue with the Tutorial!
+5. Continue with the Tutorial! In the tutorials, we assume the following directory structure:
+
+```bash
+.
+├── dataset
+│   ├── characters_v001.vocab
+│   └── dataset-string-similarity_test.txt
+└── inputs
+    └── input_dfm.yaml
+```
+
+These three files can be downloaded directly from `inputs` and `dataset` directories on [DeezyMatch repo](https://github.com/Living-with-machines/DeezyMatch).
+
+---
 
 :warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
 
