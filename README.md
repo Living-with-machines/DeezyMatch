@@ -75,6 +75,19 @@ candidates_pd = \
                      number_test_rows=20) 
 ```
 
+In fine-tuning a pretrained model, it is possible to specify a directory name in the argument `pretrained_model_path`, e.g., 
+
+```python
+from DeezyMatch import finetune as dm_finetune
+# fine-tune a pretrained model
+dm_finetune(input_file_path="input_dfm.yaml", 
+            dataset_path="dataset/dataset-string-similarity_test.txt", 
+            model_name="finetuned_test001",
+            pretrained_model_path="./models/test001")
+```
+
+In this case, DeezyMatch will create the `pretrained_model_path` and `pretrained_vocab_path` using the input directory name.
+
 ### Command line
 Train a new model: a new classifier can be trained by:
 
