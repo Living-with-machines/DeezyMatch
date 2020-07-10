@@ -11,7 +11,6 @@ Table of contents
 -----------------
 
 - [DeezyMatch as a Python library](#deezymatch-as-a-python-library)
-deezymatch-as-a-python-library
 - [Examples](./examples) on how to run DeezyMatch can be found.
 - [Installation](#installation)
 - [Credits](#credits)
