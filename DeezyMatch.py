@@ -135,6 +135,11 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
         for one_arg in sys.argv:
             input_command_line += f" {one_arg}"
     
+    if os.path.isdir(pretrained_model_path):
+        pt_model_name = os.path.basename(os.path.abspath(pretrained_model_path))
+        pretrained_vocab_path = os.path.join(pretrained_model_path, f"{pt_model_name}.vocab")
+        pretrained_model_path = os.path.join(pretrained_model_path, f"{pt_model_name}.model")
+    
     # --- read dataset and split into train/val/test sets
     train_prop = dl_inputs['gru_lstm']['train_proportion']
     val_prop = dl_inputs['gru_lstm']['val_proportion']

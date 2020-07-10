@@ -259,6 +259,8 @@ Candidate selection consists of the following steps:
 2. Combine vectors
 3. For each query, find a list of candidates
 
+----
+
 1. In the first step, we create vectors for both query and candidate tokens:
 
 ```bash
