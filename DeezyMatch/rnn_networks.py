@@ -423,7 +423,9 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         len2 = len2.numpy()
 
         with torch.no_grad():
-            pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, output_state_vectors=output_state_vectors, evaluation=evaluation)
+            pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, 
+                         device=device, output_state_vectors=output_state_vectors, 
+                         evaluation=evaluation)
             if output_state_vectors:
                 all_preds = []
                 continue
