@@ -37,6 +37,10 @@ dm_train(input_file_path="./inputs/input_dfm.yaml",
 
 A new model directory called `test001` will be stored in `models` directory (as specified in the `models_dir` in the input file).
 
+:warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
+* Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
+* Delimiter is fixed to \t for now.
+
 ### Finetune a pretrained model
 
 `finetune` module can be used to fine-tune a pretrained model:
@@ -52,9 +56,43 @@ dm_finetune(input_file_path="./inputs/input_dfm.yaml",
             pretrained_vocab_path="./models/test001/test001.vocab")
 ```
 
-A new fine-tuned model called `finetuned_test001` will be stored in `models` directory.
-
 `dataset_path` specifies the dataset to be used for finetuning. For this example, we use the same dataset as in training however, other datasets are normally used to finetune an already trained model. The paths to model and vocabulary of the pretrained model are specified in `pretrained_model_path` and `pretrained_vocab_path`, respectively.
+
+A new fine-tuned model called `finetuned_test001` will be stored in `models` directory. To fine-tune the pretrained model, two components in the neural network architecture were frozen or not changed (see `layers_to_freeze` in the input file). When running the above command, DeezyMatch lists the parameters in the model and whether or not they will be used in training:
+
+```
+============================================================
+List all parameters in the model
+============================================================
+emb.weight False
+rnn_1.weight_ih_l0 False
+rnn_1.weight_hh_l0 False
+rnn_1.bias_ih_l0 False
+rnn_1.bias_hh_l0 False
+rnn_1.weight_ih_l0_reverse False
+rnn_1.weight_hh_l0_reverse False
+rnn_1.bias_ih_l0_reverse False
+rnn_1.bias_hh_l0_reverse False
+rnn_1.weight_ih_l1 False
+rnn_1.weight_hh_l1 False
+rnn_1.bias_ih_l1 False
+rnn_1.bias_hh_l1 False
+rnn_1.weight_ih_l1_reverse False
+rnn_1.weight_hh_l1_reverse False
+rnn_1.bias_ih_l1_reverse False
+rnn_1.bias_hh_l1_reverse False
+attn_step1.weight False
+attn_step1.bias False
+attn_step2.weight False
+attn_step2.bias False
+fc1.weight True
+fc1.bias True
+fc2.weight True
+fc2.bias True
+============================================================
+```
+
+The first column lists the learnable parameters, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "rnn_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
 
 In fine-tuning, it is also possible to specify a directory name for the argument `pretrained_model_path`. For example: 
 
