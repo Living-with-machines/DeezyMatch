@@ -223,7 +223,7 @@ def candidate_finder(input_file_path="default", scenario=None, ranking_metric="f
             mydict_candid_id[row["s2"]] = row["s2_orig_ids"]
         one_row = {
             "id": orig_id_queries, 
-            "toponym": all_queries[0], 
+            "query": all_queries[0], 
             "pred_score": [mydict_dl_match], 
             "faiss_distance": [mydict_faiss_dist], 
             "cosine_sim": [mydict_cosine_sim],
