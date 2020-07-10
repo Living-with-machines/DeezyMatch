@@ -378,6 +378,14 @@ conda activate py37deezy
 pip install -r requirements.txt
 ```
 
+4. Install DeezyMatch:
+
+```
+python setup.py install
+```
+
+5. Continue with the Tutorial!
+
 :warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
 
 ```bash
