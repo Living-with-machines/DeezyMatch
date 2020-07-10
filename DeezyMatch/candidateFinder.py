@@ -19,12 +19,12 @@ import time
 import torch
 from torch.utils.data import DataLoader
 
-from data_processing import test_tokenize
-from rnn_networks import test_model
-from utils import read_input_file
-from utils import read_command_candidate_finder
+from .data_processing import test_tokenize
+from .rnn_networks import test_model
+from .utils import read_input_file
+from .utils import read_command_candidate_finder
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # skip future warnings for now XXX

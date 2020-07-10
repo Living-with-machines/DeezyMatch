@@ -22,11 +22,11 @@ import torch
 
 start_time = time.time()
 
-from utils import read_input_file
-from utils import sort_key
-from utils import read_command_combinevecs
+from .utils import read_input_file
+from .utils import sort_key
+from .utils import read_command_combinevecs
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # ------------------- combine_vecs --------------------

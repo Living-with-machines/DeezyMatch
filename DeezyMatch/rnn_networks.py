@@ -36,14 +36,14 @@ import glob
 import numpy as np
 import sys
 
-from data_processing import test_tokenize
-from utils import cprint, bc, log_message
-from utils import print_stats
-from utils import torch_summarize
-from utils import create_parent_dir
-from utils import eval_map
+from .data_processing import test_tokenize
+from .utils import cprint, bc, log_message
+from .utils import print_stats
+from .utils import torch_summarize
+from .utils import create_parent_dir
+from .utils import eval_map
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # skip future warnings for now XXX

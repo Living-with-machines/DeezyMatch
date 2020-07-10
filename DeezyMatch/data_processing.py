@@ -11,11 +11,11 @@ import unicodedata
 import pickle
 from torch.utils.data import Dataset
 
-from utils import cprint, bc
-from utils import string_split
-from utils import normalizeString
+from .utils import cprint, bc
+from .utils import string_split
+from .utils import normalizeString
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 
