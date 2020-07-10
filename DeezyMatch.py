@@ -12,6 +12,7 @@ import pickle
 import shutil
 import sys
 
+from candidateFinder import candidate_finder
 from combineVecs import combine_vecs
 from data_processing import csv_split_tokenize
 from rnn_networks import gru_lstm_network, fine_tuning
@@ -19,6 +20,7 @@ from rnn_networks import inference as rnn_inference
 from utils import deezy_mode_detector
 from utils import read_inputs_command, read_inference_command, read_input_file
 from utils import read_command_combinevecs
+from utils import read_command_candidate_finder
 from utils import cprint, bc, log_message
 # --- set seed for reproducibility
 from utils import set_seed_everywhere
@@ -204,7 +206,7 @@ def inference(input_file_path=None, dataset_path=None,
     query_candidate_mode
         Two modes: q (generate query vectors), c (generate candidate vectors)
     scenario
-        Name of the experiment
+        Name of the experiment/top-directory
     """
 
     # --- read input file
@@ -283,8 +285,24 @@ def main():
                      rnn_passes=rnn_passes,
                      input_scenario=input_scenario, 
                      output_scenario=output_scenario)
-
-
+    
+    elif dm_mode in ["candidate_finder"]:
+        # --- read args from the command line
+        output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
+            par_dir, input_file_path, number_test_rows, pretrained_model_path, pretrained_vocab_path = \
+            read_command_candidate_finder()
+    
+        # --- 
+        candidate_finder(input_file_path=input_file_path, 
+                         scenario=par_dir, 
+                         ranking_metric=ranking_metric, 
+                         selection_threshold=selection_threshold, 
+                         num_candidates=num_candidates, 
+                         search_size=search_size, 
+                         output_filename=output_filename,
+                         pretrained_model_path=pretrained_model_path, 
+                         pretrained_vocab_path=pretrained_vocab_path, 
+                         number_test_rows=number_test_rows)
 
 if __name__ == '__main__':
     main()

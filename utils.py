@@ -98,13 +98,13 @@ def deezy_mode_detector():
 
     parser = ArgumentParser()
     parser.add_argument("--deezy_mode", 
-                        help="DeezyMatch mode (options: train, finetune, inference, combine_vecs)",
+                        help="DeezyMatch mode (options: train, finetune, inference, combine_vecs, candidate_finder)",
                         default="train",
                         )
     dm_mode, unknown = parser.parse_known_args()
     dm_mode = dm_mode.deezy_mode.lower()
-    if dm_mode not in ["train", "finetune", "inference", "combine_vecs"]:
-        parser.exit(f"ERROR: implemeted modes are: train, finetune, inference, combine_vecs (input: {dm_mode})")     
+    if dm_mode not in ["train", "finetune", "inference", "combine_vecs", "candidate_finder"]:
+        parser.exit(f"ERROR: implemeted modes are: train, finetune, inference, combine_vecs, candidate_finder (input: {dm_mode})")     
         
     return dm_mode
 
@@ -299,6 +299,11 @@ def read_command_combinevecs():
 # ------------------- read_command_candidate_finder --------------------
 def read_command_candidate_finder():
     parser = ArgumentParser()
+
+    parser.add_argument("--deezy_mode",
+                    help="DeezyMatch mode",
+                    default="candidate_finder"
+                    )
 
     parser.add_argument("-t", "--threshold",
                         help="Selection criterion. NOTE: changes according to the ranking metric specified by -rm. " \

@@ -25,6 +25,7 @@ from DeezyMatch import train as dm_train
 from DeezyMatch import finetune as dm_finetune
 from DeezyMatch import inference as dm_inference
 from DeezyMatch import combine_vecs
+from DeezyMatch import candidate_finder
 
 # train a new model
 dm_train(input_file_path="input_dfm.yaml", 
@@ -59,6 +60,18 @@ combine_vecs(qc_modes=['q', 'c'],
              input_scenario='test', 
              output_scenario='test', 
              print_every=1)
+
+# Find candidates
+candidates_pd = \
+    candidate_finder(scenario="./combined/test/", 
+                     ranking_metric="conf", 
+                     selection_threshold=0.51, 
+                     num_candidates=1, 
+                     search_size=4, 
+                     output_filename="test_candidates_deezymatch", 
+                     pretrained_model_path="./models/test001/test001.model", 
+                     pretrained_vocab_path="./models/test001/test001.vocab", 
+                     number_test_rows=20) 
 ```
 
 ### Command line
@@ -270,6 +283,12 @@ python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
 3. CandidateFinder. Various options are available to find a set of candidates (from a dataset) for a given query in the same or another dataset.
 
 * Select candidates based on L2-norm distance (aka faiss distance):
+
+```bash
+python DeezyMatch.py --deezy_mode candidate_finder -t 0.5 -rm faiss -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+```
+
+Alternatively:
 
 ```bash
 python candidateFinder.py -t 0.5 -rm faiss -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
