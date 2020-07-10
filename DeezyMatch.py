@@ -30,7 +30,7 @@ set_seed_everywhere(1364)
 def train(input_file_path=None, dataset_path=None, model_name=None, 
           n_train_examples=None, run_command_line=False):
     """
-    Train/evaluate a new DeezyMatch model
+    Train a new DeezyMatch model
 
     Parameters
     ----------

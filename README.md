@@ -2,9 +2,10 @@
 
 ## A flexible Deep Neural Network framework for fuzzy string matching
 
-DeezyMatch has been applied to the following problems/applications:
+DeezyMatch can be applied for performing the following tasks:
 
-- toponym matching
+- candidate selection for entity linking systems
+- record linkage
 
 Credits:
 
