@@ -2,7 +2,7 @@
 
 ## A flexible Deep Neural Network framework for fuzzy string matching
 
-DeezyMatch has been applied to the following problems:
+DeezyMatch has been applied to the following problems/applications:
 
 - toponym matching
 
@@ -12,7 +12,7 @@ Credits:
 
 ### Run DeezyMatch
 
-After installing DeezyMatch on your machine, a new classifier can be trained by:
+After [installing DeezyMatch on your machine](#installation), a new classifier can be trained by:
 
 ```bash
 python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
