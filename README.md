@@ -334,13 +334,6 @@ python candidateFinder.py -t 0.51 -rm conf -n 1 -o test_candidates_deezymatch -s
 python candidateFinder.py -t 0.51 -rm cosine -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
 ```
 
-If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
-
-```bash
-pip install faiss-cpu --no-cache
-```
-
-Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
 **Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
 
@@ -368,39 +361,10 @@ conda activate py37deezy
 pip install -r requirements.txt
 ```
 
----
+:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
 
-Run `deepneuralnetwork.py`:
-
-```
-python deepneuralnetwork.py dataset/dataset-string-similarity_test.txt
+```bash
+pip install faiss-cpu --no-cache
 ```
 
-For testing, you can change `nb_epoch=20` to `nb_epoch=2` in deepneuralnetwork.py.
-
----
-
-**Changes**
-
-(from the original github repo https://github.com/ruipds/Toponym-Matching):
-
-
-* In `deepneuralnetwork.py`, we had to change the `call` function: (changes are based on https://github.com/richliao/textClassifier/issues/13)
-
-```
-    def call(self, x, mask=None):
-        eij = K.tanh(K.squeeze(K.dot(x, K.expand_dims(self.W)), axis=-1))
-        ai = K.exp(eij)
-        weights = ai/K.expand_dims(K.sum(ai, axis=1),1)
-        weighted_input = x*K.expand_dims(weights,2)
-        return K.sum(weighted_input, axis=1)
-
-        """
-        eij = K.tanh(K.dot(x, self.W))
-        ai = K.exp(eij)
-        weights = ai/K.sum(ai, axis=1).dimshuffle(0,'x')
-        weighted_input = x*weights.dimshuffle(0,1,'x')
-        self.attention = weights
-        return weighted_input.sum(axis=1)
-        """
-```
+Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
