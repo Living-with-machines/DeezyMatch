@@ -73,7 +73,7 @@ gru_lstm:
   create_tensor_board: False
 
   # Layers to freeze during fine-tuning
-  layers_to_freeze: ["emb", "gru_1", "attn"]
+  layers_to_freeze: ["emb", "rnn_1", "attn"]
 
 inference:
  # Output predictions and save the results in output_preds_file
