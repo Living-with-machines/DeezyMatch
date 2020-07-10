@@ -12,7 +12,9 @@ import pickle
 import shutil
 import sys
 
+from candidateFinder import candidate_finder
 from candidateFinder import main as candidate_finder_main
+from combineVecs import combine_vecs
 from combineVecs import main as combine_vecs_main
 from data_processing import csv_split_tokenize
 from rnn_networks import gru_lstm_network, fine_tuning
