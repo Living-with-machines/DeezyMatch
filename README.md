@@ -10,12 +10,13 @@ DeezyMatch can be applied for performing the following tasks:
 Table of contents
 -----------------
 
-- [DeezyMatch as a Python library](#deezymatch-as-a-python-library)
+- [Run DeezyMatch as a Python library](#run-deezymatch-as-a-python-library)
+- [Run DeezyMatch via command line](#run-deezymatch-via-command-line)
 - [Examples](./examples) on how to run DeezyMatch can be found.
 - [Installation](#installation)
 - [Credits](#credits)
 
-### DeezyMatch as a Python library
+## Run DeezyMatch as a Python library
 
 Refer to [installation section](#installation) to set-up DeezyMatch on your local machine.
 
@@ -86,7 +87,9 @@ dm_finetune(input_file_path="input_dfm.yaml",
 
 In this case, DeezyMatch will create the `pretrained_model_path` and `pretrained_vocab_path` using the input directory name.
 
-### Command line
+---
+
+## Run DeezyMatch via command line
 Train a new model: a new classifier can be trained by:
 
 ```bash
@@ -350,7 +353,7 @@ python candidateFinder.py -t 0.51 -rm cosine -n 1 -o test_candidates_deezymatch 
 
 **Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
 
-### Installation
+## Installation
 
 We strongly recommend installation via Anaconda:
 
@@ -390,6 +393,6 @@ pip install faiss-cpu --no-cache
 
 Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
-### Credits
+## Credits
 
 This project extensively uses the ideas/neural-network-architecture published in https://github.com/ruipds/Toponym-Matching. 
