@@ -11,6 +11,11 @@ Table of contents
 -----------------
 
 - [Run DeezyMatch as a Python library or via command line](#run-deezymatch-as-a-python-library-or-via-command-line)
+    * [Train a new model](#train-a-new-model)
+    * [Finetune a pretrained model](#finetune-a-pretrained-model)
+    * [Model inference](#model-inference)
+    * [Generate query and candidate vectors](#generate-query-and-candidate-vectors)
+    * [Candidate finder and assembling vector representations](#candidate-finder-and-assembling-vector-representations)
 - [Examples](./examples) on how to run DeezyMatch can be found.
 - [Installation and setup](#installation)
 - [Credits](#credits)
