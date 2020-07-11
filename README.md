@@ -491,7 +491,9 @@ cd /path/to/my/DeezyMatch
 python setup.py install
 ```
 
-7. Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)! In the tutorials, we assume the following directory structure:
+7. Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
+
+In the tutorials, we assume the following directory structure:
 
 ```bash
 .
@@ -500,6 +502,16 @@ python setup.py install
 │   └── dataset-string-similarity_test.txt
 └── inputs
     └── input_dfm.yaml
+```
+
+For this, we first create a test directory (**note that this directory should be outside of the DeezyMarch directory cloned in step 4**):
+
+```bash
+mkdir ./test_deezy
+cd ./test_deezy
+mkdir dataset inputs
+# Now, copy characters_v001.vocab, dataset-string-similarity_test.txt and input_dfm.yaml from DeezyMatch repo
+# Arrange the files according to the above directory structure
 ```
 
 These three files can be downloaded directly from `inputs` and `dataset` directories on [DeezyMatch repo](https://github.com/Living-with-machines/DeezyMatch).
