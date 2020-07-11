@@ -202,7 +202,7 @@ izumo-zaki      tsumo-zaki      1       0.3394  0.6606  1
 
 ### Generate query and candidate vectors
 
-`inference` module can also be used to generate vector representations for a set of strings in a dataset. This is a required step for alias selection (which we will talk about later). We first create vector representations for **query** mentions (we assume the query mentions are stored in `dataset/dataset-string-similarity_test.txt`):
+`inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for alias selection** (which we will [talk about later](#candidate-finder-and-assembling-vector-representations). We first create vector representations for **query** mentions (we assume the query mentions are stored in `dataset/dataset-string-similarity_test.txt`):
 
 ```python
 from DeezyMatch import inference as dm_inference
@@ -238,6 +238,7 @@ queries
     ├── log.txt
     └── queries.df
 ```
+(`embed_queries` contains all the vector representations).
 
 We repeat this step for `candidates` (again, we use the same dataset):
 
@@ -281,7 +282,7 @@ Before using the `candidate_finder` module of DeezyMatch, we need to:
 
 ----
 
-Step 1 is already discussed in details in the previous [section: Generate query and candidate vectors](#generate-query-and-candidate-vectors).
+Step 1 is already discussed in detail in the previous [section: Generate query and candidate vectors](#generate-query-and-candidate-vectors).
 
 #### Combine vector representations 
 
@@ -298,7 +299,7 @@ combine_vecs(qc_modes=['q', 'c'],
              print_every=10)
 ```
 
-Here, `qc_modes` specifies that `combine_vecs` should assemble both query and candidate embeddings stored in `input_scenario` directory (`input_scenario` is a directory inside `queries` or `candidates` top directories). `rnn_passes` tells `combine_vecs` to assemble all vectors generated in both forward and backward RNN/GRU/LSTM passes (we have a backward pass only if `bidirectional` is set to True in the input file).
+Here, `qc_modes` specifies that `combine_vecs` should assemble both query and candidate embeddings stored in `input_scenario` directory (`input_scenario` is a directory inside `queries` or `candidates` directories). `rnn_passes` tells `combine_vecs` to assemble all vectors generated in both forward and backward RNN/GRU/LSTM passes (we have a backward pass only if `bidirectional` is set to True in the input file).
 
 Similarly, this can be done via command line:
 
@@ -306,7 +307,7 @@ Similarly, this can be done via command line:
 DeezyMatch --deezy_mode combine_vecs -qc q,c -p fwd,bwd -sc test -combs test
 ```
 
-In this command compared to `combine_vecs` module explained above:
+In this command, compared to `combine_vecs` module explained above:
 * `-qc`: `qc_modes`
 * `-p`: `rnn_passes`
 * `-sc`: `input_scenario`
@@ -372,7 +373,7 @@ A candidate will be selected if:
 
 The DeezyMatch model and its vocabulary are specified by `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
 
-`number_test_rows`: only for testing. It specifies the number of queries to be used for testing.
+`number_test_rows`: **only for testing**. It specifies the number of queries to be used for testing.
 
 The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `combined/test/test_candidates_deezymatch.pkl` (specified by `output_filename`) which is in a pandas dataframe fromat. The first few rows are:
 
@@ -385,7 +386,7 @@ id
 3           sutangcun          {'sutangcun': 0.6194}          {'sutangcun': 0.0}          {'sutangcun': 1.0}          {'sutangcun': 3}                  3                 4
 ```
 
-As expected, queries and candidates (in `pred_score`, `faiss_distance`, `cosine_sim` and `candidate_original_ids`) are the same, as we used one dataset for both querie and candidate mentions.
+As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
 
 Similarly, the above results can be generated via command line:
 
@@ -393,7 +394,7 @@ Similarly, the above results can be generated via command line:
 DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm faiss -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
-In this command compared to `candidate_finder` module explained above:
+In this command, compared to `candidate_finder` module explained above:
 * `-comb`: `scenario`
 * `-rm`: `ranking_metric`
 * `-t`: `selection_threshold`
@@ -474,20 +475,23 @@ conda create -n py37deezy python=3.7
 conda activate py37deezy
 ```
 
-3. Install DeezyMatch dependencies:
+4. Clone DeezyMatch repositories on your local machine.
+
+5. Install DeezyMatch dependencies:
 
 ```
+cd /path/to/my/DeezyMatch
 pip install -r requirements.txt
 ```
 
-4. Install DeezyMatch:
+6. Install DeezyMatch:
 
 ```
 cd /path/to/my/DeezyMatch
 python setup.py install
 ```
 
-5. Continue with the Tutorial! In the tutorials, we assume the following directory structure:
+7. Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)! In the tutorials, we assume the following directory structure:
 
 ```bash
 .
