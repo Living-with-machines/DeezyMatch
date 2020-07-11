@@ -504,7 +504,7 @@ In the tutorials, we assume the following directory structure:
     └── input_dfm.yaml
 ```
 
-For this, we first create a test directory (**note that this directory should be outside of the DeezyMarch directory cloned in step 4**):
+For this, we first create a test directory (<ins>**note that this directory should be outside of the DeezyMarch directory cloned in step 4**</ins>):
 
 ```bash
 mkdir ./test_deezy
