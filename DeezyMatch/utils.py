@@ -201,7 +201,7 @@ def read_inputs_command():
                     parser.exit(f"ERROR: model {fine_tuning_model_path} not found!") 
                 
                 if os.path.exists(vocab_path) is False:
-                    parser.exit(f"ERROR: vocab {vocab} not found!")
+                    parser.exit(f"ERROR: vocab {vocab_path} not found!")
             
             else:
                 fine_tuning_model_name = os.path.split(fine_tuning_model)[-1]
