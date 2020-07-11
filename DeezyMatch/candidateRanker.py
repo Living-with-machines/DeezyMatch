@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 from .data_processing import test_tokenize
 from .rnn_networks import test_model
 from .utils import read_input_file
-from .utils import read_command_candidate_finder
+from .utils import read_command_candidate_ranker
 # --- set seed for reproducibility
 from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -31,8 +31,8 @@ set_seed_everywhere(1364)
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-# ------------------- candidate_finder --------------------
-def candidate_finder(input_file_path="default", scenario=None, ranking_metric="faiss", selection_threshold=0.8, 
+# ------------------- candidate_ranker --------------------
+def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="faiss", selection_threshold=0.8, 
                      num_candidates=10, search_size=4, output_filename=None,
                      pretrained_model_path=None, pretrained_vocab_path=None, number_test_rows=-1):
 
@@ -243,10 +243,10 @@ def main():
     # --- read args from the command line
     output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
         par_dir, input_file_path, number_test_rows, pretrained_model_path, pretrained_vocab_path = \
-        read_command_candidate_finder()
+        read_command_candidate_ranker()
     
     # --- 
-    candidate_finder(input_file_path=input_file_path, 
+    candidate_ranker(input_file_path=input_file_path, 
                      scenario=par_dir, 
                      ranking_metric=ranking_metric, 
                      selection_threshold=selection_threshold, 

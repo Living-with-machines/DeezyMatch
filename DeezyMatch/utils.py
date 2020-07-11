@@ -98,13 +98,13 @@ def deezy_mode_detector():
 
     parser = ArgumentParser()
     parser.add_argument("--deezy_mode", 
-                        help="DeezyMatch mode (options: train, finetune, inference, combine_vecs, candidate_finder)",
+                        help="DeezyMatch mode (options: train, finetune, inference, combine_vecs, candidate_ranker)",
                         default="train",
                         )
     dm_mode, unknown = parser.parse_known_args()
     dm_mode = dm_mode.deezy_mode.lower()
-    if dm_mode not in ["train", "finetune", "inference", "combine_vecs", "candidate_finder"]:
-        parser.exit(f"ERROR: implemeted modes are: train, finetune, inference, combine_vecs, candidate_finder (input: {dm_mode})")     
+    if dm_mode not in ["train", "finetune", "inference", "combine_vecs", "candidate_ranker"]:
+        parser.exit(f"ERROR: implemeted modes are: train, finetune, inference, combine_vecs, candidate_ranker (input: {dm_mode})")     
         
     return dm_mode
 
@@ -296,13 +296,13 @@ def read_command_combinevecs():
     input_file_path = args.input_file_path
     return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
 
-# ------------------- read_command_candidate_finder --------------------
-def read_command_candidate_finder():
+# ------------------- read_command_candidate_ranker --------------------
+def read_command_candidate_ranker():
     parser = ArgumentParser()
 
     parser.add_argument("--deezy_mode",
                     help="DeezyMatch mode",
-                    default="candidate_finder"
+                    default="candidate_ranker"
                     )
 
     parser.add_argument("-t", "--threshold",

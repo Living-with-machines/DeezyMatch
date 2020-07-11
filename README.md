@@ -15,7 +15,7 @@ Table of contents
     * [Finetune a pretrained model](#finetune-a-pretrained-model)
     * [Model inference](#model-inference)
     * [Generate query and candidate vectors](#generate-query-and-candidate-vectors)
-    * [Candidate finder and assembling vector representations](#candidate-finder-and-assembling-vector-representations)
+    * [Candidate ranker and assembling vector representations](#candidate-ranker-and-assembling-vector-representations)
 - [Examples on how to run DeezyMatch](./examples)
 - [Installation and setup](#installation)
 - [Credits](#credits)
@@ -202,7 +202,7 @@ izumo-zaki      tsumo-zaki      1       0.3394  0.6606  1
 
 ### Generate query and candidate vectors
 
-`inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for alias selection** (which we will [talk about later](#candidate-finder-and-assembling-vector-representations). We first create vector representations for **query** mentions (we assume the query mentions are stored in `dataset/dataset-string-similarity_test.txt`):
+`inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for alias selection** (which we will [talk about later](#candidate-ranker-and-assembling-vector-representations). We first create vector representations for **query** mentions (we assume the query mentions are stored in `dataset/dataset-string-similarity_test.txt`):
 
 ```python
 from DeezyMatch import inference as dm_inference
@@ -273,9 +273,9 @@ candidates
     └── log.txt
 ```
 
-### Candidate finder and assembling vector representations
+### Candidate ranker and assembling vector representations
 
-Before using the `candidate_finder` module of DeezyMatch, we need to:
+Before using the `candidate_ranker` module of DeezyMatch, we need to:
 
 1. Generate vector representations for both query and candidate mentions (see [Generate query and candidate vectors](#generate-query-and-candidate-vectors))
 2. Combine vector representations
@@ -334,18 +334,18 @@ combined
     └── test_candidates_deezymatch.pkl
 ```
 
-#### CandidateFinder
+#### CandidateRanker
 
 Various options are available to find a set of candidates (from a dataset) for a given query in the same or another dataset.
 
 * Select candidates based on L2-norm distance (aka faiss distance):
 
 ```python
-from DeezyMatch import candidate_finder
+from DeezyMatch import candidate_ranker
 
 # Find candidates
 candidates_pd = \
-    candidate_finder(scenario="./combined/test/", 
+    candidate_ranker(scenario="./combined/test/", 
                      ranking_metric="faiss", 
                      selection_threshold=0.51, 
                      num_candidates=1, 
@@ -391,10 +391,10 @@ As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim`
 Similarly, the above results can be generated via command line:
 
 ```bash
-DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm faiss -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm faiss -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
-In this command, compared to `candidate_finder` module explained above:
+In this command, compared to `candidate_ranker` module explained above:
 * `-comb`: `scenario`
 * `-rm`: `ranking_metric`
 * `-t`: `selection_threshold`
@@ -410,11 +410,11 @@ In this command, compared to `candidate_finder` module explained above:
 * Select candidates based on DeezyMatch predictions and their confidence:
 
 ```python
-from DeezyMatch import candidate_finder
+from DeezyMatch import candidate_ranker
 
 # Find candidates
 candidates_pd = \
-    candidate_finder(scenario="./combined/test/", 
+    candidate_ranker(scenario="./combined/test/", 
                      ranking_metric="conf", 
                      selection_threshold=0.51, 
                      num_candidates=1, 
@@ -430,17 +430,17 @@ Note that the only difference compared to the previous command is `ranking_metri
 Similarly via command line:
 
 ```bash
-DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm conf -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm conf -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
 * Select candidates based on cosine similarity:
 
 ```python
-from DeezyMatch import candidate_finder
+from DeezyMatch import candidate_ranker
 
 # Find candidates
 candidates_pd = \
-    candidate_finder(scenario="./combined/test/", 
+    candidate_ranker(scenario="./combined/test/", 
                      ranking_metric="cosine", 
                      selection_threshold=0.51, 
                      num_candidates=1, 
@@ -454,7 +454,7 @@ candidates_pd = \
 Or via command line:
 
 ```bash
-DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
 ## Installation
@@ -520,7 +520,7 @@ These three files can be downloaded directly from `inputs` and `dataset` directo
 
 ---
 
-:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
+:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateRanker.py`, one way to solve this issue is by:
 
 ```bash
 pip install faiss-cpu --no-cache
