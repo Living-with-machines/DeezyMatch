@@ -346,9 +346,9 @@ candidates_pd = \
                      num_candidates=1, 
                      search_size=4, 
                      output_filename="test_candidates_deezymatch", 
-                     pretrained_model_path="./models/test001/test001.model", 
-                     pretrained_vocab_path="./models/test001/test001.vocab", 
-                     number_test_rows=20) 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
 ```
 
 `scenario` is the directory that contains all the assembled vectors [(see)](#combine-vector-representations). 
@@ -386,10 +386,21 @@ As expected, queries and candidates (in `pred_score`, `faiss_distance`, `cosine_
 Similarly, the above results can be generated via command line:
 
 ```bash
-DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm faiss -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm faiss -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
-Other methods:
+In this command compared to `candidate_finder` module explained above:
+* `-comb`: `scenario`
+* `-rm`: `ranking_metric`
+* `-t`: `selection_threshold`
+* `-n`: `num_candidates`
+* `-sz`: `search_size`
+* `-o`: `output_filename`
+* `-mp`: `pretrained_model_path`
+* `-v`: `pretrained_vocab_path`
+* `-tn`: `number_test_rows`
+
+**Other methods**
 
 * Select candidates based on DeezyMatch predictions and their confidence:
 
@@ -404,12 +415,18 @@ candidates_pd = \
                      num_candidates=1, 
                      search_size=4, 
                      output_filename="test_candidates_deezymatch", 
-                     pretrained_model_path="./models/test001/test001.model", 
-                     pretrained_vocab_path="./models/test001/test001.vocab", 
-                     number_test_rows=20) 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
 ```
 
 Note that the only difference compared to the previous command is `ranking_metric="conf"`.
+
+Similarly via command line:
+
+```bash
+DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm conf -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+```
 
 * Select candidates based on cosine similarity:
 
@@ -424,9 +441,15 @@ candidates_pd = \
                      num_candidates=1, 
                      search_size=4, 
                      output_filename="test_candidates_deezymatch", 
-                     pretrained_model_path="./models/test001/test001.model", 
-                     pretrained_vocab_path="./models/test001/test001.vocab", 
-                     number_test_rows=20) 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
+```
+
+Or via command line:
+
+```bash
+DeezyMatch --deezy_mode candidate_finder -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
 ## Installation
