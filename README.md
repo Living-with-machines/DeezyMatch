@@ -4,23 +4,23 @@
 
 DeezyMatch can be applied for performing the following tasks:
 
-- candidate selection for entity linking systems
-- record linkage
+- Candidate selection for entity linking systems
+- Record linkage
 
 Table of contents
 -----------------
 
-- [Run DeezyMatch as a Python library or via command line](#run-deezymatch-as-a-python-library-or-via-command-line)
+- [Run DeezyMatch as a Python module or via command line](#run-deezymatch-as-a-python-module-or-via-command-line)
     * [Train a new model](#train-a-new-model)
     * [Finetune a pretrained model](#finetune-a-pretrained-model)
     * [Model inference](#model-inference)
     * [Generate query and candidate vectors](#generate-query-and-candidate-vectors)
     * [Candidate finder and assembling vector representations](#candidate-finder-and-assembling-vector-representations)
-- [Examples](./examples) on how to run DeezyMatch can be found.
+- [Examples on how to run DeezyMatch](./examples)
 - [Installation and setup](#installation)
 - [Credits](#credits)
 
-## Run DeezyMatch as a Python library
+## Run DeezyMatch as a Python module or via command line
 
 Refer to [installation section](#installation) to set-up DeezyMatch on your local machine. 
 
@@ -41,17 +41,17 @@ dm_train(input_file_path="./inputs/input_dfm.yaml",
          model_name="test001")
 ```
 
-Similarly, the same model can be trained via command line:
+The same model can be trained via command line:
 
 ```bash
 DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
-A new model directory called `test001` will be stored in `models` directory (as specified in the `models_dir` in the input file).
+A new model directory called `test001` will be created in `models` directory (as specified in the `models_dir` in the input file).
 
 :warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
 * Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
-* Delimiter is fixed to \t for now.
+* Delimiter is fixed to `\t` for now.
 
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
@@ -98,15 +98,15 @@ dm_finetune(input_file_path="./inputs/input_dfm.yaml",
 
 `dataset_path` specifies the dataset to be used for finetuning. For this example, we use the same dataset as in training however, other datasets are normally used to finetune an already trained model. The paths to model and vocabulary of the pretrained model are specified in `pretrained_model_path` and `pretrained_vocab_path`, respectively.
 
-Similarly, the same can be done via command line:
+The same can be done via command line:
 
 ```bash
 DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m finetuned_test001 -f ./models/test001/test001.model -v ./models/test001/test001.vocab 
 ```
 
-(Note that it is also possible to add the argument `-n 100` to only use the first 100 rows for fine-tuning. In the above command, we use all the rows.)
+(Note that it is also possible to add the argument `-n 100` to the above command to only use the first 100 rows for fine-tuning. In this example, we use all the rows.)
 
-A new fine-tuned model called `finetuned_test001` will be stored in `models` directory. To fine-tune the pretrained model, two components in the neural network architecture were frozen, that is, not changed during fine-tuning (see `layers_to_freeze` in the input file). When running the above command, DeezyMatch lists the parameters in the model and whether or not they will be used in training:
+A new fine-tuned model called `finetuned_test001` will be stored in `models` directory. To fine-tune the pretrained model, two components in the neural network architecture were frozen, that is, not changed during fine-tuning (see `layers_to_freeze` in the input file). When running the above command, DeezyMatch lists the parameters in the model and whether or not they will be used in finetuning:
 
 ```
 ============================================================
@@ -140,7 +140,7 @@ fc2.bias True
 ============================================================
 ```
 
-The first column lists the learnable parameters, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "rnn_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
+The first column lists the parameters in the model, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "rnn_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
 
 In fact, it is possible to print all parameters in a model by:
 
@@ -184,7 +184,7 @@ Similarly via command line:
 DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model  -v ./models/finetuned_test001/finetuned_test001.vocab  -mode test
 ```
 
-The `inference` module or the above command creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
+The inference component creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
 
 ```bash
 # s1_unicode    s2_unicode      prediction      p0      p1      label
@@ -198,8 +198,7 @@ engeskjæran     abrahamskjeret  0       0.8976  0.1024  0
 izumo-zaki      tsumo-zaki      1       0.3394  0.6606  1
 ```
 
-`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8365`. In these examples, DeezyMatch correctly predicts the label in all rows except for `sutangcun       羊山村`. By looking at the confidence scores, it is clear that DeezyMatch is not confident which label to assign (`p0=0.4821` and `p1=0.5179`). It should be noted that the DeezyMatch model was trained and used for model inference on one dataset. This is just to show-case DeezyMatch functionalities. In practice, we train a model on a dataset and use it for prediction on other datasets.  
-
+`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8365`. In these examples, DeezyMatch correctly predicts the label in all rows except for `sutangcun       羊山村`. By looking at the confidence scores, it is clear that DeezyMatch is not confident which label to assign (`p0=0.4821` and `p1=0.5179`). It should be noted, in this example and for showcasing DeezyMatch's functionalities, the model was trained and used for model inference on one dataset. In practice, we train a model on a dataset and use it for prediction on another dataset(s). Also, the dataset used to train the above model has around ~10K rows. Again, in practice, we use larger datasets for training and fine-tuning.
 
 ### Generate query and candidate vectors
 
