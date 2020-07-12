@@ -526,6 +526,12 @@ conda create -n py37deezy python=3.7
 conda activate py37deezy
 ```
 
+We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+
+```bash
+python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+```
+
 4. Clone DeezyMatch repositories on your local machine.
 
 5. Install DeezyMatch dependencies:
