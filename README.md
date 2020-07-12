@@ -548,6 +548,13 @@ cd /path/to/my/DeezyMatch
 python setup.py install
 ```
 
+Alternatively:
+
+```
+cd /path/to/my/DeezyMatch
+pip install -v -e .
+```
+
 7. Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
 
 ---
