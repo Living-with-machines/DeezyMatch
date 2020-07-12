@@ -78,7 +78,7 @@ DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.
 A new model directory called `test001` will be created in `models` directory (as specified in the `models_dir` in the input file).
 
 :warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
-* Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
+* Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
 * Delimiter is fixed to `\t` for now.
 
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
