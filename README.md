@@ -414,6 +414,8 @@ A candidate will be selected if:
     prediction-confidence >= threshold
 ```
 
+:warning: Note that `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
+
 `search_size`: At each iteration, the selected ranking metric between a query and candidates (with the size of `search_size`) are computed, and if the number of desired candidates (specified by `num_candidates`) is not reached, a new batch of candidates with the size of `search_size` is tested. This continues until candidates with the size of `num_candidates` are found or all the candidates are tested.
 
 The DeezyMatch model and its vocabulary are specified by `pretrained_model_path` and `pretrained_vocab_path`, respectively. 

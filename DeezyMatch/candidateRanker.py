@@ -195,6 +195,15 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     
             if num_found_candidates > 0:
                 collect_neigh_pd = collect_neigh_pd.append(query_candidate_filtered_pd)
+            
+            if ranking_metric.lower() in ["faiss"]:
+                # 1.01 is multiplied to avoid issues with float numbers and rounding erros
+                if query_candidate_pd["faiss_dist"].max() > (selection_threshold*1.01):
+                    break
+            elif ranking_metric.lower() in ["cosine"]:
+                # 0.99 is multiplied to avoid issues with float numbers and rounding errors
+                if query_candidate_pd["cosine_sim"].min() < (selection_threshold*0.99):
+                    break 
     
             # Go to the next zone    
             if (num_found_candidates < num_candidates):
