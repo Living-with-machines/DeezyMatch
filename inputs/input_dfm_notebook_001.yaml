@@ -18,7 +18,7 @@ preprocessing:
   # (number of its characters found in the vocabulary)/(total number its characters) >= missing_char_threshold
   missing_char_threshold: 0.5
   # read a list of characters and add to the vocabulary
-  read_list_chars: "./dataset/characters_v001.vocab"
+  read_list_chars: "../dataset/characters_v001.vocab"
 
 # --- RNN/GRU/LSTM architecture/misc info
 gru_lstm:
@@ -73,7 +73,7 @@ gru_lstm:
   create_tensor_board: False
 
   # Layers to freeze during fine-tuning
-  layers_to_freeze: ["emb", "gru_1", "attn"]
+  layers_to_freeze: ["emb", "rnn_1", "attn"]
 
 inference:
  # Output predictions and save the results in output_preds_file

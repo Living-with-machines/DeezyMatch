@@ -19,20 +19,20 @@ import time
 import torch
 from torch.utils.data import DataLoader
 
-from data_processing import test_tokenize
-from rnn_networks import test_model
-from utils import read_input_file
-from utils import read_command_candidate_finder
+from .data_processing import test_tokenize
+from .rnn_networks import test_model
+from .utils import read_input_file
+from .utils import read_command_candidate_ranker
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # skip future warnings for now XXX
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-# ------------------- candidate_finder --------------------
-def candidate_finder(input_file_path="default", scenario=None, ranking_metric="faiss", selection_threshold=0.8, 
+# ------------------- candidate_ranker --------------------
+def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="faiss", selection_threshold=0.8, 
                      num_candidates=10, search_size=4, output_filename=None,
                      pretrained_model_path=None, pretrained_vocab_path=None, number_test_rows=-1):
 
@@ -191,10 +191,19 @@ def candidate_finder(input_file_path="default", scenario=None, ranking_metric="f
                 sys.exit(f"[ERROR] ranking_metric: {ranking_metric} is not implemented. See the documentation.")
     
             num_found_candidates += len(query_candidate_filtered_pd)
-            print("ID: %s/%s -- Number of found candidates so far: %s, search span: 0, %s" % (iq, len(vecs_query), num_found_candidates, id_1_neigh))
+            print("ID: %s/%s -- Number of found candidates so far: %s, searched: %s" % (iq+1, len(vecs_query), num_found_candidates, id_1_neigh))
     
             if num_found_candidates > 0:
                 collect_neigh_pd = collect_neigh_pd.append(query_candidate_filtered_pd)
+            
+            if ranking_metric.lower() in ["faiss"]:
+                # 1.01 is multiplied to avoid issues with float numbers and rounding erros
+                if query_candidate_pd["faiss_dist"].max() > (selection_threshold*1.01):
+                    break
+            elif ranking_metric.lower() in ["cosine"]:
+                # 0.99 is multiplied to avoid issues with float numbers and rounding errors
+                if query_candidate_pd["cosine_sim"].min() < (selection_threshold*0.99):
+                    break 
     
             # Go to the next zone    
             if (num_found_candidates < num_candidates):
@@ -223,7 +232,7 @@ def candidate_finder(input_file_path="default", scenario=None, ranking_metric="f
             mydict_candid_id[row["s2"]] = row["s2_orig_ids"]
         one_row = {
             "id": orig_id_queries, 
-            "toponym": all_queries[0], 
+            "query": all_queries[0], 
             "pred_score": [mydict_dl_match], 
             "faiss_distance": [mydict_faiss_dist], 
             "cosine_sim": [mydict_cosine_sim],
@@ -243,10 +252,10 @@ def main():
     # --- read args from the command line
     output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
         par_dir, input_file_path, number_test_rows, pretrained_model_path, pretrained_vocab_path = \
-        read_command_candidate_finder()
+        read_command_candidate_ranker()
     
     # --- 
-    candidate_finder(input_file_path=input_file_path, 
+    candidate_ranker(input_file_path=input_file_path, 
                      scenario=par_dir, 
                      ranking_metric=ranking_metric, 
                      selection_threshold=selection_threshold, 

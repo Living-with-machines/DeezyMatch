@@ -36,14 +36,14 @@ import glob
 import numpy as np
 import sys
 
-from data_processing import test_tokenize
-from utils import cprint, bc, log_message
-from utils import print_stats
-from utils import torch_summarize
-from utils import create_parent_dir
-from utils import eval_map
+from .data_processing import test_tokenize
+from .utils import cprint, bc, log_message
+from .utils import print_stats
+from .utils import torch_summarize
+from .utils import create_parent_dir
+from .utils import eval_map
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # skip future warnings for now XXX
@@ -400,7 +400,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
     if eval_mode == 'valid':
         eval_desc = valid_desc
     elif eval_mode == 'test':
-        eval_desc = "test"
+        eval_desc = 'Epoch: 0/0; Test'
     
     t_test.set_description(eval_mode)
     
@@ -423,7 +423,9 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         len2 = len2.numpy()
 
         with torch.no_grad():
-            pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, device=device, output_state_vectors=output_state_vectors, evaluation=evaluation)
+            pred = model(x1, len1, x2, len2, pooling_mode=pooling_mode, 
+                         device=device, output_state_vectors=output_state_vectors, 
+                         evaluation=evaluation)
             if output_state_vectors:
                 all_preds = []
                 continue
@@ -845,7 +847,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                                    output_preds=dl_inputs['inference']['output_preds'],
                                    output_preds_file=output_preds_file,
                                    csv_sep=dl_inputs['preprocessing']['csv_sep'],
-                                   map_flag=dl_inputs['inference']['eval_map_metric']
+                                   map_flag=dl_inputs['inference']['eval_map_metric'],
+                                   model_path=os.path.dirname(os.path.abspath(model_path))
                                    )
     
     print("--- %s seconds ---" % (time.time() - start_time))

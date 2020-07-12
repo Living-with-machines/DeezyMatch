@@ -98,13 +98,13 @@ def deezy_mode_detector():
 
     parser = ArgumentParser()
     parser.add_argument("--deezy_mode", 
-                        help="DeezyMatch mode (options: train, finetune, inference, combine_vecs, candidate_finder)",
+                        help="DeezyMatch mode (options: train, finetune, inference, combine_vecs, candidate_ranker)",
                         default="train",
                         )
     dm_mode, unknown = parser.parse_known_args()
     dm_mode = dm_mode.deezy_mode.lower()
-    if dm_mode not in ["train", "finetune", "inference", "combine_vecs", "candidate_finder"]:
-        parser.exit(f"ERROR: implemeted modes are: train, finetune, inference, combine_vecs, candidate_finder (input: {dm_mode})")     
+    if dm_mode not in ["train", "finetune", "inference", "combine_vecs", "candidate_ranker"]:
+        parser.exit(f"ERROR: implemeted modes are: train, finetune, inference, combine_vecs, candidate_ranker (input: {dm_mode})")     
         
     return dm_mode
 
@@ -201,7 +201,7 @@ def read_inputs_command():
                     parser.exit(f"ERROR: model {fine_tuning_model_path} not found!") 
                 
                 if os.path.exists(vocab_path) is False:
-                    parser.exit(f"ERROR: vocab {vocab} not found!")
+                    parser.exit(f"ERROR: vocab {vocab_path} not found!")
             
             else:
                 fine_tuning_model_name = os.path.split(fine_tuning_model)[-1]
@@ -296,13 +296,13 @@ def read_command_combinevecs():
     input_file_path = args.input_file_path
     return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
 
-# ------------------- read_command_candidate_finder --------------------
-def read_command_candidate_finder():
+# ------------------- read_command_candidate_ranker --------------------
+def read_command_candidate_ranker():
     parser = ArgumentParser()
 
     parser.add_argument("--deezy_mode",
                     help="DeezyMatch mode",
-                    default="candidate_finder"
+                    default="candidate_ranker"
                     )
 
     parser.add_argument("-t", "--threshold",
@@ -558,7 +558,9 @@ def log_plotter(path2log, dataset="DEFAULT"):
     train_arr = []
     valid_arr = []
     time_arr = []
-    for one_line in log[3:]:
+    for one_line in log[2:]:
+        if one_line.lower().strip().startswith("python"):
+            continue
         line_split = one_line.split()
         datetime_str = line_split[0]
         epoch = int(line_split[3].split("/")[0])
@@ -655,6 +657,12 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.subplot(3, 2, 5)
     plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
     plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
+
+    # If min_valid_arg is 0 (the first model has the lowest valid loss)
+    # Increment min_valid_arg for Time as we use cumsum (lose one point in the plot)
+    if min_valid_arg == 0:
+        min_valid_arg += 1
+
     if plot_valid:
         plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
         plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 

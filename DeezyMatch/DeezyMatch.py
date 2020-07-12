@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 """
-DeezyMatch main code: select the relevant module (train, finetune, inference, combine_vecs, candidate_finder) 
+DeezyMatch main code: select the relevant module (train, finetune, inference, combine_vecs, candidate_ranker) 
 based on the inputs.
 """
 
@@ -12,18 +12,18 @@ import pickle
 import shutil
 import sys
 
-from candidateFinder import candidate_finder
-from candidateFinder import main as candidate_finder_main
-from combineVecs import combine_vecs
-from combineVecs import main as combine_vecs_main
-from data_processing import csv_split_tokenize
-from rnn_networks import gru_lstm_network, fine_tuning
-from rnn_networks import inference as rnn_inference
-from utils import deezy_mode_detector
-from utils import read_inputs_command, read_inference_command, read_input_file
-from utils import cprint, bc, log_message
+from .candidateRanker import candidate_ranker
+from .candidateRanker import main as candidate_ranker_main
+from .combineVecs import combine_vecs
+from .combineVecs import main as combine_vecs_main
+from .data_processing import csv_split_tokenize
+from .rnn_networks import gru_lstm_network, fine_tuning
+from .rnn_networks import inference as rnn_inference
+from .utils import deezy_mode_detector
+from .utils import read_inputs_command, read_inference_command, read_input_file
+from .utils import cprint, bc, log_message
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 # ------------------- train --------------------
@@ -282,8 +282,8 @@ def main():
     elif dm_mode in ["combine_vecs"]:
         combine_vecs_main()
 
-    elif dm_mode in ["candidate_finder"]:
-        candidate_finder_main()
+    elif dm_mode in ["candidate_ranker"]:
+        candidate_ranker_main()
 
 if __name__ == '__main__':
     main()

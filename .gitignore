@@ -1,8 +1,7 @@
 __pycache__
 .ipynb_checkpoints
-log.txt
-models
-pred_results.txt
 .DS_Store
 default.profraw
-log_test001.png
+DeezyMatch.egg-info
+build
+dist

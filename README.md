@@ -1,200 +1,166 @@
-# DeezyMatch (Deep Fuzzy Match)
+# DeezyMatch (Deep Fuzzy String Matching)
 
-## A flexible Deep Neural Network framework for fuzzy string matching
+## A Flexible Deep Neural Network Approach to Fuzzy String Matching
 
 DeezyMatch can be applied for performing the following tasks:
 
-- candidate selection for entity linking systems
-- record linkage
+- Toponym matching
+- Candidate selection for entity linking systems
+- Record linkage
 
-Credits:
+Table of contents
+-----------------
 
-- This project extensively uses the ideas/neural-network-architecture published in https://github.com/ruipds/Toponym-Matching. 
+- [Run DeezyMatch as a Python module or via command line](#run-deezymatch-as-a-python-module-or-via-command-line)
+    * [Data and directory structure in tutorials](#data-and-directory-structure-in-tutorials)
+    * [Train a new model](#train-a-new-model)
+    * [Finetune a pretrained model](#finetune-a-pretrained-model)
+    * [Model inference](#model-inference)
+    * [Generate query and candidate vectors](#generate-query-and-candidate-vectors)
+    * [Candidate ranker and assembling vector representations](#candidate-ranker-and-assembling-vector-representations)
+- [Examples on how to run DeezyMatch](./examples)
+- [Installation and setup](#installation)
+- [Credits](#credits)
 
-### Run DeezyMatch
+## Data and directory structure in tutorials
 
-After [installing DeezyMatch on your machine](#installation), DeezyMatch can be run in two ways:
+In the tutorials, we assume the following directory structure:
 
-1. As a Python library
-2. Command line
+```bash
+.
+├── dataset
+│   ├── characters_v001.vocab
+│   └── dataset-string-similarity_test.txt
+└── inputs
+    └── input_dfm.yaml
+```
+
+For this, we first create a test directory (<ins>**note that we strongly recommend creating this directory outside of the DeezyMarch directory cloned and installed following the installation section. After installation, DeezyMatch command lines and modules are accessible from anywhere on your local machine.**</ins>):
+
+```bash
+mkdir ./test_deezy
+cd ./test_deezy
+mkdir dataset inputs
+# Now, copy characters_v001.vocab, dataset-string-similarity_test.txt and input_dfm.yaml from DeezyMatch repo
+# Arrange the files according to the above directory structure
+```
+
+These three files can be downloaded directly from `inputs` and `dataset` directories on [DeezyMatch repo](https://github.com/Living-with-machines/DeezyMatch).
+
+**Note on vocabulary:** `characters_v001.vocab` combines all characters from the different datasets we have used in our experiments (Santos et al, 2018 and other datasets which will be described in a forthcoming publication). It consists of 7,540 characters from multiple alphabets, containing special characters.
+
+`dataset-string-similarity_test.txt` contains 9995 example rows. The original dataset can be found here: https://github.com/ruipds/Toponym-Matching.
 
 
-Examples on how to run DeezyMatch can be found [here](./examples).
+## Run DeezyMatch as a Python module or via command line
 
-### DeezyMatch as a python library
+Refer to [installation section](#installation) to set-up DeezyMatch on your local machine. 
+
+:warning: In the following tutorials, we assume a directory structure specified in the [this section](#data-and-directory-structure-in-tutorials).
+ 
+ Written in the Python programming language, DeezyMatch can be used as a stand-alone command-line tool or can be integrated as a module with other Python codes. In what follows, we describe DeezyMatch's functionalities in different examples and by providing both command lines and python modules syntaxes.
+
+### Train a new model
+
+DeezyMatch `train` module can be used to train a new model:
 
 ```python
 from DeezyMatch import train as dm_train
-from DeezyMatch import finetune as dm_finetune
-from DeezyMatch import inference as dm_inference
-from DeezyMatch import combine_vecs
-from DeezyMatch import candidate_finder
 
 # train a new model
-dm_train(input_file_path="input_dfm.yaml", 
+dm_train(input_file_path="./inputs/input_dfm.yaml", 
          dataset_path="dataset/dataset-string-similarity_test.txt", 
          model_name="test001")
-
-# fine-tune a pretrained model
-dm_finetune(input_file_path="input_dfm.yaml", 
-            dataset_path="dataset/dataset-string-similarity_test.txt", 
-            model_name="finetuned_test001",
-            pretrained_model_path="./models/test001/test001.model", 
-            pretrained_vocab_path="./models/test001/test001.vocab")
-
-# model inference
-dm_inference(input_file_path="./input_dfm.yaml",
-             dataset_path="dataset/dataset-string-similarity_test.txt", 
-             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
-             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab")
-
-# generate vectors for queries and candidates
-dm_inference(input_file_path="./input_dfm.yaml",
-             dataset_path="dataset/dataset-string-similarity_test.txt", 
-             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
-             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
-             inference_mode="vect",
-             query_candidate_mode=["q", "c"],
-             scenario="test")
-
-# combine vectors
-combine_vecs(qc_modes=['q', 'c'], 
-             rnn_passes=['fwd', 'bwd'], 
-             input_scenario='test', 
-             output_scenario='test', 
-             print_every=1)
-
-# Find candidates
-candidates_pd = \
-    candidate_finder(scenario="./combined/test/", 
-                     ranking_metric="conf", 
-                     selection_threshold=0.51, 
-                     num_candidates=1, 
-                     search_size=4, 
-                     output_filename="test_candidates_deezymatch", 
-                     pretrained_model_path="./models/test001/test001.model", 
-                     pretrained_vocab_path="./models/test001/test001.vocab", 
-                     number_test_rows=20) 
 ```
 
-In fine-tuning a pretrained model, it is possible to specify a directory name in the argument `pretrained_model_path`, e.g., 
-
-```python
-from DeezyMatch import finetune as dm_finetune
-# fine-tune a pretrained model
-dm_finetune(input_file_path="input_dfm.yaml", 
-            dataset_path="dataset/dataset-string-similarity_test.txt", 
-            model_name="finetuned_test001",
-            pretrained_model_path="./models/test001")
-```
-
-In this case, DeezyMatch will create the `pretrained_model_path` and `pretrained_vocab_path` using the input directory name.
-
-### Command line
-Train a new model: a new classifier can be trained by:
+The same model can be trained via command line:
 
 ```bash
-python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
+DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
-NOTE: 
-* Currently, the third column (label column) should be one of: ["true", "false", "1", "0"]
-* Delimiter is fixed to \t for now.
+A new model directory called `test001` will be created in `models` directory (as specified in the `models_dir` in the input file).
+
+:warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
+* Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
+* Delimiter is fixed to `\t` for now.
 
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
 ```bash
-python DeezyMatch.py -lp ./models/test001/log.txt -ld test001
+DeezyMatch -lp ./models/test001/log.txt -ld test001
 ```
 
-In this command, `-lp`: runs the log plotter and `-ld` is a name assigned to the log which will be used in the figure. This command generates a figure `log_test001.png`.
+In this command, 
+* `-lp`: runs the log plotter
+* `-ld` is a name assigned to the log which will be used in the figure. 
 
----
+This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
-There are three steps needed to fine-tune a previously trained DeezyMatch model:
-
-1. Print all parameters in the model
+DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure:
 
 ```bash
-python DeezyMatch.py -pm ./models/test001/test001.model
+models/test001
+├── checkpoint00000.model
+├── checkpoint00001.model
+├── checkpoint00002.model
+├── checkpoint00003.model
+├── checkpoint00004.model
+├── input_dfm.yaml
+├── log.txt
+├── log_test001.png
+├── test001.model
+└── test001.vocab
 ```
 
-which generates:
+### Finetune a pretrained model
 
-```bash
-============================================================
-List all parameters in ./models/test001/test001.model
-============================================================
-emb.weight True
-gru_1.weight_ih_l0 True
-gru_1.weight_hh_l0 True
-gru_1.bias_ih_l0 True
-gru_1.bias_hh_l0 True
-gru_1.weight_ih_l0_reverse True
-gru_1.weight_hh_l0_reverse True
-gru_1.bias_ih_l0_reverse True
-gru_1.bias_hh_l0_reverse True
-gru_1.weight_ih_l1 True
-gru_1.weight_hh_l1 True
-gru_1.bias_ih_l1 True
-gru_1.bias_hh_l1 True
-gru_1.weight_ih_l1_reverse True
-gru_1.weight_hh_l1_reverse True
-gru_1.bias_ih_l1_reverse True
-gru_1.bias_hh_l1_reverse True
-attn_step1.weight True
-attn_step1.bias True
-attn_step2.weight True
-attn_step2.bias True
-fc1.weight True
-fc1.bias True
-fc2.weight True
-fc2.bias True
-============================================================
-Any of the above parameters can be freezed for fine-tuning.
-You can also input, e.g., 'gru_1' and in this case, all weights/biases related to that layer will be freezed.
-See input file.
-============================================================
-Exit normally
+`finetune` module can be used to fine-tune a pretrained model:
+
+```python
+from DeezyMatch import finetune as dm_finetune
+
+# fine-tune a pretrained model
+dm_finetune(input_file_path="./inputs/input_dfm.yaml", 
+            dataset_path="dataset/dataset-string-similarity_test.txt", 
+            model_name="finetuned_test001",
+            pretrained_model_path="./models/test001/test001.model", 
+            pretrained_vocab_path="./models/test001/test001.vocab")
 ```
 
-2. Modify the input file:
+`dataset_path` specifies the dataset to be used for finetuning. For this example, we use the same dataset as in training however, other datasets are normally used to finetune an already trained model. The paths to model and vocabulary of the pretrained model are specified in `pretrained_model_path` and `pretrained_vocab_path`, respectively.
+
+The same can be done via command line:
 
 ```bash
-layers_to_freeze: ["emb", "gru_1", "attn"]
+DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m finetuned_test001 -f ./models/test001/test001.model -v ./models/test001/test001.vocab 
 ```
 
-3. Fine-tune on a dataset (in this example, we fine-tune on the same dataset, but the argument of `-d` can point to other datasets):
+:warning: Note that it is also possible to add the argument `-n 100` to the above command to only use 100 rows for fine-tuning. In this example, we use all the rows. If `-n` flag is not specified, the train/valid/test proportions are read from the input file.
 
-```bash
-python DeezyMatch.py -i input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -f ./models/test001 -m finetuned_test001
+A new fine-tuned model called `finetuned_test001` will be stored in `models` directory. To fine-tune the pretrained model, two components in the neural network architecture were frozen, that is, not changed during fine-tuning (see `layers_to_freeze` in the input file). When running the above command, DeezyMatch lists the parameters in the model and whether or not they will be used in finetuning:
+
 ```
-
-Note that it is also possible to add the argument `-n 100` to only use the first 100 rows for fine-tuning. In the above command, we use all the rows.
-
-The above command outputs:
-
-```bash
 ============================================================
 List all parameters in the model
 ============================================================
 emb.weight False
-gru_1.weight_ih_l0 False
-gru_1.weight_hh_l0 False
-gru_1.bias_ih_l0 False
-gru_1.bias_hh_l0 False
-gru_1.weight_ih_l0_reverse False
-gru_1.weight_hh_l0_reverse False
-gru_1.bias_ih_l0_reverse False
-gru_1.bias_hh_l0_reverse False
-gru_1.weight_ih_l1 False
-gru_1.weight_hh_l1 False
-gru_1.bias_ih_l1 False
-gru_1.bias_hh_l1 False
-gru_1.weight_ih_l1_reverse False
-gru_1.weight_hh_l1_reverse False
-gru_1.bias_ih_l1_reverse False
-gru_1.bias_hh_l1_reverse False
+rnn_1.weight_ih_l0 False
+rnn_1.weight_hh_l0 False
+rnn_1.bias_ih_l0 False
+rnn_1.bias_hh_l0 False
+rnn_1.weight_ih_l0_reverse False
+rnn_1.weight_hh_l0_reverse False
+rnn_1.bias_ih_l0_reverse False
+rnn_1.bias_hh_l0_reverse False
+rnn_1.weight_ih_l1 False
+rnn_1.weight_hh_l1 False
+rnn_1.bias_ih_l1 False
+rnn_1.bias_hh_l1 False
+rnn_1.weight_ih_l1_reverse False
+rnn_1.weight_hh_l1_reverse False
+rnn_1.bias_ih_l1_reverse False
+rnn_1.bias_hh_l1_reverse False
 attn_step1.weight False
 attn_step1.bias False
 attn_step2.weight False
@@ -206,155 +172,343 @@ fc2.bias True
 ============================================================
 ```
 
-The first column lists the learnable parameters, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "gru_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
+The first column lists the parameters in the model, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "rnn_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
 
-DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure:
+In fact, it is possible to print all parameters in a model by:
 
 ```bash
-models
-├── finetuned_test001
-│   ├── checkpoint00000.model
-│   ├── checkpoint00001.model
-│   ├── checkpoint00002.model
-│   ├── checkpoint00003.model
-│   ├── checkpoint00004.model
-│   ├── finetuned_test001.model
-│   ├── finetuned_test001.vocab
-│   ├── input_dfm.yaml
-│   └── log.txt
-└── test001
-    ├── checkpoint00000.model
-    ├── checkpoint00001.model
-    ├── checkpoint00002.model
-    ├── checkpoint00003.model
-    ├── checkpoint00004.model
-    ├── input_dfm.yaml
-    ├── log.txt
-    ├── test001.model
-    └── test001.vocab
+DeezyMatch -pm models/finetuned_test001/finetuned_test001.model
 ```
 
-After training/fine-tuning a model, DeezyMatch model can be used for inference or for candidate selection. 
+which generates similar output as above.
+
+In fine-tuning, it is also possible to specify a directory name for the argument `pretrained_model_path`. For example: 
+
+```python
+from DeezyMatch import finetune as dm_finetune
+
+# fine-tune a pretrained model
+dm_finetune(input_file_path="./inputs/input_dfm.yaml", 
+            dataset_path="dataset/dataset-string-similarity_test.txt", 
+            model_name="finetuned_test001",
+            pretrained_model_path="./models/test001")
+```
+
+In this case, DeezyMatch will create the `pretrained_model_path` and `pretrained_vocab_path` using the input directory name, namely, `./models/test001/test001.model` and `./models/test001/test001.vocab`.
 
 ### Model inference
 
-To use an already trained model for inference/prediction:
+When a model is trained/fine-tuned, `inference` module can be used for predictions/model-inference. Again, we use the same dataset (`dataset/dataset-string-similarity_test.txt`) as before in this example. The paths to model and vocabulary of the pretrained model are specified in `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
 
-```bash
-python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode test
+```python
+from DeezyMatch import inference as dm_inference
+
+# model inference
+dm_inference(input_file_path="./inputs/input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab")
 ```
 
-This command creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
+Similarly via command line:
+
+```bash
+DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model  -v ./models/finetuned_test001/finetuned_test001.vocab  -mode test
+```
+
+The inference component creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
 
 ```bash
 # s1_unicode    s2_unicode      prediction      p0      p1      label
-la dom nxy      ลําโดมน้อย        1       0.1482  0.8518  1
-krutoy  крутой  1       0.0605  0.9395  1
-sharunyata      shartjugskij    0       0.9568  0.0432  0
-sutangcun       羊山村  1       0.1534  0.8466  0
-jowkār-e shafī‘ جوکار شفیع      1       0.0226  0.9774  1
-rongreiyn ban hwy h wk cxmthxng rongreiyn ban hnxng xu  0       0.8948  0.1052  0
-同心村  tong xin cun    1       0.0572  0.9428  1
-engeskjæran     abrahamskjeret  0       0.9289  0.0711  0
-izumo-zaki      tsumo-zaki      1       0.4662  0.5338  1
+la dom nxy      ลําโดมน้อย        1       0.1635  0.8365  1
+krutoy  крутой  1       0.0632  0.9368  1
+sharunyata      shartjugskij    0       0.8696  0.1304  0
+sutangcun       羊山村  1       0.4821  0.5179  0
+rongreiyn ban hwy h wk cxmthxng rongreiyn ban hnxng xu  0       0.9156  0.0844  0
+同心村  tong xin cun    1       0.1178  0.8822  1
+engeskjæran     abrahamskjeret  0       0.8976  0.1024  0
+izumo-zaki      tsumo-zaki      1       0.3394  0.6606  1
 ```
 
-`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is 0.8518.
+`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8365`. In these examples, DeezyMatch correctly predicts the label in all rows except for `sutangcun       羊山村`. By looking at the confidence scores, it is clear that DeezyMatch is not confident which label to assign (`p0=0.4821` and `p1=0.5179`). It should be noted, in this example and for showcasing DeezyMatch's functionalities, the model was trained and used for model inference on one dataset. In practice, we train a model on a dataset and use it for prediction on another dataset(s). Also, the dataset used to train the above model has around ~10K rows. Again, in practice, we use larger datasets for training and fine-tuning.
 
-In the above example, we used a fine-tuned model. The model inference can be done with any trained models, e.g., 
+### Generate query and candidate vectors
+
+`inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for alias selection** (which we will [talk about later](#candidate-ranker-and-assembling-vector-representations). We first create vector representations for **query** mentions (we assume the query mentions are stored in `dataset/dataset-string-similarity_test.txt`):
+
+```python
+from DeezyMatch import inference as dm_inference
+
+# generate vectors for queries and candidates
+dm_inference(input_file_path="./inputs/input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
+             inference_mode="vect",
+             query_candidate_mode="q",
+             scenario="test")
+```
+
+Compared to the previous section, here we have three additional arguments: 
+* `inference_mode="vect"`: generate vector representations for the first column in `dataset_path`.
+* `query_candidate_mode`: can be `"q"` or `"c"` for `queries` and `candidates`, respectively.
+* `scenario`: directory (inside `queries` or `candidates` directories) where all the vector representations are stored.
+
+Alternatively, the same can be done via command line:
 
 ```bash
-python DeezyMatch.py --deezy_mode inference -m ./models/test001/test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/test001/test001.vocab -i ./input_dfm.yaml -mode test
+DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect -qc q --scenario test
 ```
 
-### Candidate selection
+The resulting directory structure is:
 
-Candidate selection consists of the following steps:
-1. Generate vectors for both queries and candidates
-2. Combine vectors
-3. For each query, find a list of candidates
+```
+queries
+└── test
+    ├── embed_queries
+    ├── input_dfm.yaml
+    ├── log.txt
+    └── queries.df
+```
+(`embed_queries` contains all the vector representations).
+
+We repeat this step for `candidates` (again, we use the same dataset):
+
+```python
+from DeezyMatch import inference as dm_inference
+
+# generate vectors for queries and candidates
+# Note the only difference compared to the previous command is query_candidate_mode="c"
+dm_inference(input_file_path="./inputs/input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
+             inference_mode="vect",
+             query_candidate_mode="c",
+             scenario="test")
+```
+
+or via command line:
+
+```bash
+DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect -qc c --scenario test
+```
+
+The resulting directory structure is:
+
+```
+candidates
+└── test
+    ├── candidates.df
+    ├── embed_candidates
+    ├── input_dfm.yaml
+    └── log.txt
+```
+
+### Candidate ranker and assembling vector representations
+
+Before using the `candidate_ranker` module of DeezyMatch, we need to:
+
+1. Generate vector representations for both query and candidate mentions
+2. Combine vector representations
 
 ----
 
-1. In the first step, we create vectors for both query and candidate tokens:
+Step 1 is already discussed in detail in the previous [section: Generate query and candidate vectors](#generate-query-and-candidate-vectors).
+
+:warning: `queries` and `candidates` directories need to be in the same directory, for example:
 
 ```bash
-# queries
-python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode vect --scenario test -qc q
-
-# candidates
-python DeezyMatch.py --deezy_mode inference -m ./models/finetuned_test001/finetuned_test001.model -d dataset/dataset-string-similarity_test.txt -v ./models/finetuned_test001/finetuned_test001.vocab -i ./input_dfm.yaml -mode vect --scenario test -qc c
+├── candidates
+│   └── test
+├── dataset
+│   ├── characters_v001.vocab
+│   └── dataset-string-similarity_test.txt
+├── inputs
+│   └── input_dfm.yaml
+├── models
+│   ├── finetuned_test001
+│   └── test001
+└── queries
+    └── test
 ```
 
-2. Combine vectors. This step is required if candidates or queries are distributed on several files. At this step, we combined those vectors.
+#### Combine vector representations 
+
+This step is required if query or candidate vectors are stored on several files (normally the case!). `combine_vecs` module can assemble those vector representations and store the results in `combined/output_scenario` directory (`output_scenario` is an argument in `combine_vecs` function): 
+
+```python
+from DeezyMatch import combine_vecs
+
+# combine vectors
+combine_vecs(qc_modes=['q', 'c'], 
+             rnn_passes=['fwd', 'bwd'], 
+             input_scenario='test', 
+             output_scenario='test', 
+             print_every=10)
+```
+
+Here, `qc_modes` specifies that `combine_vecs` should assemble both query and candidate embeddings stored in `input_scenario` directory (`input_scenario` is a directory inside `queries` or `candidates` directories). `rnn_passes` tells `combine_vecs` to assemble all vectors generated in both forward and backward RNN/GRU/LSTM passes (we have a backward pass only if `bidirectional` is set to True in the input file).
+
+Similarly, this can be done via command line:
 
 ```bash
-python DeezyMatch.py --deezy_mode combine_vecs -qc q,c -sc test -p fwd,bwd -combs test
+DeezyMatch --deezy_mode combine_vecs -qc q,c -p fwd,bwd -sc test -combs test
 ```
 
-Alternatively:
+In this command, compared to `combine_vecs` module explained above:
+* `-qc`: `qc_modes`
+* `-p`: `rnn_passes`
+* `-sc`: `input_scenario`
+* `-combs`: `output_scenario`
+
+The results are sored in the `output_scenario` (in python module mode) or `-combs` (in command-line mode) as follows:
 
 ```bash
-python combineVecs.py -qc q,c -sc test -p fwd,bwd -combs test
+combined
+└── test
+    ├── candidates_bwd.pt
+    ├── candidates_bwd_id.pt
+    ├── candidates_bwd_items.npy
+    ├── candidates_fwd.pt
+    ├── candidates_fwd_id.pt
+    ├── candidates_fwd_items.npy
+    ├── input_dfm.yaml
+    ├── queries_bwd.pt
+    ├── queries_bwd_id.pt
+    ├── queries_bwd_items.npy
+    ├── queries_fwd.pt
+    ├── queries_fwd_id.pt
+    ├── queries_fwd_items.npy
+    └── test_candidates_deezymatch.pkl
 ```
 
-3. CandidateFinder. Various options are available to find a set of candidates (from a dataset) for a given query in the same or another dataset.
+#### CandidateRanker
+
+Various options are available to find a set of candidates (from a dataset) for a given query in the same or another dataset.
 
 * Select candidates based on L2-norm distance (aka faiss distance):
 
-```bash
-python DeezyMatch.py --deezy_mode candidate_finder -t 0.5 -rm faiss -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+```python
+from DeezyMatch import candidate_ranker
+
+# Find candidates
+candidates_pd = \
+    candidate_ranker(scenario="./combined/test/", 
+                     ranking_metric="faiss", 
+                     selection_threshold=5., 
+                     num_candidates=1, 
+                     search_size=4, 
+                     output_filename="test_candidates_deezymatch", 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
 ```
 
-Alternatively:
+`scenario` is the directory that contains all the assembled vectors [(see)](#combine-vector-representations). 
 
-```bash
-python candidateFinder.py -t 0.5 -rm faiss -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
-```
+`ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs). 
 
-in which `-t` is threshold:
+`selection_threshold`: changes according to the `ranking_metric`:
 
 ```text
-Selection criterion. NOTE: changes according to the ranking metric specified by -rm.
 A candidate will be selected if:
-    faiss-distance <= threshold, 
-    cosine-similarity >= threshold,
+    faiss-distance <= threshold
+    cosine-similarity >= threshold
     prediction-confidence >= threshold
 ```
 
-`-rm` specifies the ranking metric, choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs).
+:warning: Note that `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
 
-`-sz` is the search size. At each iteration, the selected metric between a query and `-sz` candidates are computed, and if the number of desired candidates is not reached (specified by `-n`), a new batch of candidates with the size of `-sz` is examined.
+`search_size`: At each iteration, the selected ranking metric between a query and candidates (with the size of `search_size`) are computed, and if the number of desired candidates (specified by `num_candidates`) is not reached, a new batch of candidates with the size of `search_size` is tested. This continues until candidates with the size of `num_candidates` are found or all the candidates are tested.
 
-`-tn` should be used only for testing. The argument of `-tn` specifies the number of queries to be used for testing.
+The DeezyMatch model and its vocabulary are specified by `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
 
-This command creates a pandas dataframe stored in `combined/test/test_candidates_deezymatch.pkl` and the first few rows are:
+`number_test_rows`: **only for testing**. It specifies the number of queries to be used for testing.
+
+The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `combined/test/test_candidates_deezymatch.pkl` (specified by `output_filename`) which is in a pandas dataframe fromat. The first few rows are:
 
 ```bash
-                            toponym                                   DeezyMatch_score                            faiss_distance                                cosine_sim                  candidate_original_ids  query_original_id  num_all_searches
-id                                                                                                                                                                                                                                                     
-0                        la dom nxy                 {'la dom nxy': 0.7220154404640198}                       {'la dom nxy': 0.0}                       {'la dom nxy': 1.0}                       {'la dom nxy': 0}                  0                 4
-1                            krutoy                       {'krutoy': 0.79023677110672}                           {'krutoy': 0.0}                           {'krutoy': 1.0}                           {'krutoy': 1}                  1                 4
-2                        sharunyata                 {'sharunyata': 0.8818759322166443}                       {'sharunyata': 0.0}                       {'sharunyata': 1.0}                       {'sharunyata': 2}                  2                 4
-3                         sutangcun                  {'sutangcun': 0.7015400528907776}                        {'sutangcun': 0.0}                        {'sutangcun': 1.0}                        {'sutangcun': 3}                  3                 4
+                query                     pred_score              faiss_distance                  cosine_sim    candidate_original_ids  query_original_id  num_all_searches
+id                                                                                                                                                                         
+0          la dom nxy         {'la dom nxy': 0.7165}         {'la dom nxy': 0.0}         {'la dom nxy': 1.0}         {'la dom nxy': 0}                  0                 4
+1              krutoy             {'krutoy': 0.7733}             {'krutoy': 0.0}             {'krutoy': 1.0}             {'krutoy': 1}                  1                 4
+2          sharunyata         {'sharunyata': 0.7062}         {'sharunyata': 0.0}         {'sharunyata': 1.0}         {'sharunyata': 2}                  2                 4
+3           sutangcun          {'sutangcun': 0.6194}          {'sutangcun': 0.0}          {'sutangcun': 1.0}          {'sutangcun': 3}                  3                 4
 ```
+
+As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
+
+Similarly, the above results can be generated via command line:
+
+```bash
+DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm faiss -t 5 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+```
+
+In this command, compared to `candidate_ranker` module explained above:
+* `-comb`: `scenario`
+* `-rm`: `ranking_metric`
+* `-t`: `selection_threshold`
+* `-n`: `num_candidates`
+* `-sz`: `search_size`
+* `-o`: `output_filename`
+* `-mp`: `pretrained_model_path`
+* `-v`: `pretrained_vocab_path`
+* `-tn`: `number_test_rows`
+
+**Other methods**
 
 * Select candidates based on DeezyMatch predictions and their confidence:
 
+```python
+from DeezyMatch import candidate_ranker
+
+# Find candidates
+candidates_pd = \
+    candidate_ranker(scenario="./combined/test/", 
+                     ranking_metric="conf", 
+                     selection_threshold=0.51, 
+                     num_candidates=1, 
+                     search_size=4, 
+                     output_filename="test_candidates_deezymatch", 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
+```
+
+Note that the only difference compared to the previous command is `ranking_metric="conf"`.
+
+Similarly via command line:
+
 ```bash
-python candidateFinder.py -t 0.51 -rm conf -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm conf -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
 * Select candidates based on cosine similarity:
 
-```bash
-python candidateFinder.py -t 0.51 -rm cosine -n 1 -o test_candidates_deezymatch -sz 4 -comb combined/test -mp ./models/test001/test001.model -v ./models/test001/test001.vocab -tn 20
+```python
+from DeezyMatch import candidate_ranker
+
+# Find candidates
+candidates_pd = \
+    candidate_ranker(scenario="./combined/test/", 
+                     ranking_metric="cosine", 
+                     selection_threshold=0.51, 
+                     num_candidates=1, 
+                     search_size=4, 
+                     output_filename="test_candidates_deezymatch", 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
 ```
 
+Or via command line:
 
-**Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
+```bash
+DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+```
 
-### Installation
+## Installation
 
 We strongly recommend installation via Anaconda:
 
@@ -372,16 +526,47 @@ conda create -n py37deezy python=3.7
 conda activate py37deezy
 ```
 
-3. Install DeezyMatch dependencies:
+We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+
+```bash
+python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+```
+
+4. Clone DeezyMatch repositories on your local machine.
+
+5. Install DeezyMatch dependencies:
 
 ```
+cd /path/to/my/DeezyMatch
 pip install -r requirements.txt
 ```
 
-:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateFinder.py`, one way to solve this issue is by:
+6. Install DeezyMatch:
+
+```
+cd /path/to/my/DeezyMatch
+python setup.py install
+```
+
+Alternatively:
+
+```
+cd /path/to/my/DeezyMatch
+pip install -v -e .
+```
+
+7. Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
+
+---
+
+:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateRanker.py`, one way to solve this issue is by:
 
 ```bash
 pip install faiss-cpu --no-cache
 ```
 
 Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
+
+## Credits
+
+This project extensively uses the ideas/neural-network-architecture published in https://github.com/ruipds/Toponym-Matching. 

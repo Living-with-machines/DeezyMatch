@@ -11,11 +11,11 @@ import unicodedata
 import pickle
 from torch.utils.data import Dataset
 
-from utils import cprint, bc
-from utils import string_split
-from utils import normalizeString
+from .utils import cprint, bc
+from .utils import string_split
+from .utils import normalizeString
 # --- set seed for reproducibility
-from utils import set_seed_everywhere
+from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
 
 
@@ -70,7 +70,10 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         n_total = len(rows_one_label)
         
         if n_train_examples:
-            # number of positive examples
+            # We have two sets of labels: True and False
+            # Here, we divide the number of requested rows by two
+            # This way 50% of the requested rows will be True and 50% will be False
+            # Compare this with n_train = int(train_prop * n_total) 
             n_pos = int(int(n_train_examples)/2)
             n_train = n_pos
         else:
