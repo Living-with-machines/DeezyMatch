@@ -1,8 +1,5 @@
 import setuptools
 
-with open('requirements.txt') as f:
-    install_requires = f.read().splitlines()
-
 setuptools.setup(
     name="DeezyMatch",
     version="1.0.0",
@@ -20,7 +17,7 @@ setuptools.setup(
     include_package_data = True,
     platforms="OS Independent",
     python_requires='>=3.7',
-    install_requires=install_requires,
+    install_requires=['torch==1.5.0', 'torchvision==0.6.0', 'ipywidgets==7.5.1', 'PyYAML==5.3.1', 'scikit-learn==0.23.1', 'pandas==1.0.3', 'faiss-cpu==1.6.3', 'tqdm==4.46.0', 'tensorboard==2.2.2', 'matplotlib==3.2.1'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
