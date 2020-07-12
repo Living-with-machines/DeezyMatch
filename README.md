@@ -11,6 +11,7 @@ Table of contents
 -----------------
 
 - [Run DeezyMatch as a Python module or via command line](#run-deezymatch-as-a-python-module-or-via-command-line)
+    * [Data and directory structure in tutorials](#data-and-directory-structure-in-tutorials)
     * [Train a new model](#train-a-new-model)
     * [Finetune a pretrained model](#finetune-a-pretrained-model)
     * [Model inference](#model-inference)
@@ -20,11 +21,38 @@ Table of contents
 - [Installation and setup](#installation)
 - [Credits](#credits)
 
+## Data and directory structure in tutorials
+
+In the tutorials, we assume the following directory structure:
+
+```bash
+.
+├── dataset
+│   ├── characters_v001.vocab
+│   └── dataset-string-similarity_test.txt
+└── inputs
+    └── input_dfm.yaml
+```
+
+For this, we first create a test directory (<ins>**note that this directory should be outside of the DeezyMarch directory cloned and installed in the installation section**</ins>):
+
+```bash
+mkdir ./test_deezy
+cd ./test_deezy
+mkdir dataset inputs
+# Now, copy characters_v001.vocab, dataset-string-similarity_test.txt and input_dfm.yaml from DeezyMatch repo
+# Arrange the files according to the above directory structure
+```
+
+These three files can be downloaded directly from `inputs` and `dataset` directories on [DeezyMatch repo](https://github.com/Living-with-machines/DeezyMatch).
+
+**Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
+
 ## Run DeezyMatch as a Python module or via command line
 
 Refer to [installation section](#installation) to set-up DeezyMatch on your local machine. 
 
-:warning: In the following tutorials, we assume a directory structure specified in the [installation section](#installation).
+:warning: In the following tutorials, we assume a directory structure specified in the [this section](#data-and-directory-structure-in-tutorials).
  
  Written in the Python programming language, DeezyMatch can be used as a stand-alone command-line tool or can be integrated as a module with other Python codes. In what follows, we describe DeezyMatch's functionalities in different examples and by providing both command lines and python modules syntaxes.
 
@@ -509,31 +537,6 @@ python setup.py install
 ```
 
 7. Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
-
-In the tutorials, we assume the following directory structure:
-
-```bash
-.
-├── dataset
-│   ├── characters_v001.vocab
-│   └── dataset-string-similarity_test.txt
-└── inputs
-    └── input_dfm.yaml
-```
-
-For this, we first create a test directory (<ins>**note that this directory should be outside of the DeezyMarch directory cloned in step 4**</ins>):
-
-```bash
-mkdir ./test_deezy
-cd ./test_deezy
-mkdir dataset inputs
-# Now, copy characters_v001.vocab, dataset-string-similarity_test.txt and input_dfm.yaml from DeezyMatch repo
-# Arrange the files according to the above directory structure
-```
-
-These three files can be downloaded directly from `inputs` and `dataset` directories on [DeezyMatch repo](https://github.com/Living-with-machines/DeezyMatch).
-
-**Note on vocabulary:** `characters_v001.vocab` contains all characters in the wikigaz, OCR, gb1900, and santos training and test datasets (7,540 characters from multiple alphabets, containing special characters). 
 
 ---
 
