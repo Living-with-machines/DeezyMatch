@@ -4,6 +4,7 @@
 
 DeezyMatch can be applied for performing the following tasks:
 
+- Toponym matching
 - Candidate selection for entity linking systems
 - Record linkage
 
