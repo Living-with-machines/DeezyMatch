@@ -558,7 +558,9 @@ def log_plotter(path2log, dataset="DEFAULT"):
     train_arr = []
     valid_arr = []
     time_arr = []
-    for one_line in log[3:]:
+    for one_line in log[2:]:
+        if one_line.lower().strip().startswith("python"):
+            continue
         line_split = one_line.split()
         datetime_str = line_split[0]
         epoch = int(line_split[3].split("/")[0])
