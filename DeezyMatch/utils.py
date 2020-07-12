@@ -657,6 +657,10 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.subplot(3, 2, 5)
     plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
     plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
+
+    if min_valid_arg == 0:
+        min_valid_arg += 1
+
     if plot_valid:
         plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
         plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 

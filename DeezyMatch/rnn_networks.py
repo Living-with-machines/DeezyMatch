@@ -400,7 +400,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
     if eval_mode == 'valid':
         eval_desc = valid_desc
     elif eval_mode == 'test':
-        eval_desc = "test"
+        eval_desc = 'Epoch: 0/0; Test'
     
     t_test.set_description(eval_mode)
     
@@ -494,7 +494,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
         if not map_flag:
             test_map = False
-            epoch_log = '{} -- Epoch: 0/0; {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
+            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1, test_weightedf1)
         else:
             # computing MAP
@@ -509,7 +509,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
             test_map = eval_map(list_of_list_of_trues, list_of_list_of_preds)
 
-            epoch_log = '{} -- Epoch: 0/0; {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
+            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
                datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1, test_map)
 
         cprint('[INFO]', bc.lred, epoch_log)
