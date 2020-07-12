@@ -48,6 +48,9 @@ These three files can be downloaded directly from `inputs` and `dataset` directo
 
 **Note on vocabulary:** `characters_v001.vocab` combines all characters from the different datasets we have used in our experiments (Santos et al, 2018 and other datasets which will be described in a forthcoming publication). It consists of 7,540 characters from multiple alphabets, containing special characters.
 
+`dataset-string-similarity_test.txt` contains 9995 example rows. The original dataset can be found here: https://github.com/ruipds/Toponym-Matching.
+
+
 ## Run DeezyMatch as a Python module or via command line
 
 Refer to [installation section](#installation) to set-up DeezyMatch on your local machine. 
