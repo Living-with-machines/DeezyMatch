@@ -35,7 +35,7 @@ In the tutorials, we assume the following directory structure:
     └── input_dfm.yaml
 ```
 
-For this, we first create a test directory (<ins>**note that we strongly recommend creating this directory outside of the DeezyMarch directory cloned and installed in the installation section. After installation, DeezyMatch command lines and modules are accessible from anywhere on your local machine.**</ins>):
+For this, we first create a test directory (<ins>**note that we strongly recommend creating this directory outside of the DeezyMarch directory cloned and installed following the installation section. After installation, DeezyMatch command lines and modules are accessible from anywhere on your local machine.**</ins>):
 
 ```bash
 mkdir ./test_deezy
