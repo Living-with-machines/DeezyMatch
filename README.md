@@ -312,7 +312,7 @@ Before using the `candidate_ranker` module of DeezyMatch, we need to:
 
 Step 1 is already discussed in detail in the previous [section: Generate query and candidate vectors](#generate-query-and-candidate-vectors).
 
-:warning: `queries` and `candidates` directories need to be in the same top directory, for example:
+:warning: `queries` and `candidates` directories need to be in the same directory, for example:
 
 ```bash
 ├── candidates
@@ -392,7 +392,7 @@ from DeezyMatch import candidate_ranker
 candidates_pd = \
     candidate_ranker(scenario="./combined/test/", 
                      ranking_metric="faiss", 
-                     selection_threshold=0.51, 
+                     selection_threshold=5., 
                      num_candidates=1, 
                      search_size=4, 
                      output_filename="test_candidates_deezymatch", 
