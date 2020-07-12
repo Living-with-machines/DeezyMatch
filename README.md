@@ -438,7 +438,7 @@ As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim`
 Similarly, the above results can be generated via command line:
 
 ```bash
-DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm faiss -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm faiss -t 5 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
 In this command, compared to `candidate_ranker` module explained above:
