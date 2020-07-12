@@ -494,7 +494,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
         if not map_flag:
             test_map = False
-            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
+            epoch_log = '{} -- Epoch: 0/0; {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}'.format(
                    datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1, test_weightedf1)
         else:
             # computing MAP
@@ -509,7 +509,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
 
             test_map = eval_map(list_of_list_of_trues, list_of_list_of_preds)
 
-            epoch_log = '{} -- {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
+            epoch_log = '{} -- Epoch: 0/0; {}; loss: {:.3f}; acc: {:.3f}; precision: {:.3f}, recall: {:.3f}, macrof1: {:.3f}, weightedf1: {:.3f}, map: {:.3f}'.format(
                datetime.now().strftime("%m/%d/%Y_%H:%M:%S"), eval_desc, test_loss, test_acc, test_pre, test_rec, test_macrof1,test_weightedf1, test_map)
 
         cprint('[INFO]', bc.lred, epoch_log)
@@ -847,7 +847,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
                                    output_preds=dl_inputs['inference']['output_preds'],
                                    output_preds_file=output_preds_file,
                                    csv_sep=dl_inputs['preprocessing']['csv_sep'],
-                                   map_flag=dl_inputs['inference']['eval_map_metric']
+                                   map_flag=dl_inputs['inference']['eval_map_metric'],
+                                   model_path=os.path.dirname(os.path.abspath(model_path))
                                    )
     
     print("--- %s seconds ---" % (time.time() - start_time))
