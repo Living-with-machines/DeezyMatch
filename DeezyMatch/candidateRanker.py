@@ -191,7 +191,7 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
                 sys.exit(f"[ERROR] ranking_metric: {ranking_metric} is not implemented. See the documentation.")
     
             num_found_candidates += len(query_candidate_filtered_pd)
-            print("ID: %s/%s -- Number of found candidates so far: %s, search span: 0, %s" % (iq, len(vecs_query), num_found_candidates, id_1_neigh))
+            print("ID: %s/%s -- Number of found candidates so far: %s, searched: %s" % (iq+1, len(vecs_query), num_found_candidates, id_1_neigh))
     
             if num_found_candidates > 0:
                 collect_neigh_pd = collect_neigh_pd.append(query_candidate_filtered_pd)

@@ -8,7 +8,7 @@ setuptools.setup(
     version="1.0.0",
     description="A Flexible Deep Learning Approach to Fuzzy String Matching",
     author=u"The LwM Development Team",
-    author_email="{khosseini,fnanni,mcollardanuy}@turing.ac.uk",
+    #author_email="",
     license="MIT License",
     keywords=["Fuzzy String Matching", "Deep Learning", "NLP", "Natural Language Processing", "living with machines"],
     long_description = open('README.md').read(),
