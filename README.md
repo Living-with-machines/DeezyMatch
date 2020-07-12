@@ -309,7 +309,7 @@ candidates
 
 Before using the `candidate_ranker` module of DeezyMatch, we need to:
 
-1. Generate vector representations for both query and candidate mentions (see [Generate query and candidate vectors](#generate-query-and-candidate-vectors))
+1. Generate vector representations for both query and candidate mentions
 2. Combine vector representations
 
 ----
