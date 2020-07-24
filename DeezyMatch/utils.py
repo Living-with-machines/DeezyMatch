@@ -573,7 +573,7 @@ def log_plotter(path2log, dataset="DEFAULT"):
     
         if line_split[4].lower() in ["train;", "train"]:
             train_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1])
-            time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
+            time_arr.append(datetime.strptime(datetime_str, '%m/%d/%Y_%H:%M:%S'))
         elif line_split[4].lower() in ["valid;", "valid"]:
             #to be added
             #map_score = float(line_split[18])
@@ -596,17 +596,18 @@ def log_plotter(path2log, dataset="DEFAULT"):
         plot_valid = False
     
     plt.figure(figsize=(15, 12))
+
     plt.subplot(3, 2, 1)
     plt.plot(train_arr[:, 0], train_arr[:, 1], label="train loss", c="k", lw=2)
     if plot_valid:
         plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2)
         plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
         plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
-                 f"Epoch: {min_valid_arg}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
+                 f"Epoch: {min_valid_arg+1}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Loss", size=18)
-    plt.legend(fontsize=14, loc=7)
-    plt.xticks(size=14)
+    plt.legend(fontsize=14)
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
@@ -616,11 +617,11 @@ def log_plotter(path2log, dataset="DEFAULT"):
         plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid macro F1", c='r', lw=2)
         plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
         plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
-             f"Epoch: {min_valid_arg}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+             f"Epoch: {min_valid_arg+1}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("macro F1", size=18)
     plt.legend(fontsize=14, loc=4)
-    plt.xticks(size=14)
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
@@ -630,11 +631,11 @@ def log_plotter(path2log, dataset="DEFAULT"):
         plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2)
         plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
         plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
-                 f"Epoch: {min_valid_arg}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
+                 f"Epoch: {min_valid_arg+1}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Accuracy", size=18)
     plt.legend(fontsize=14, loc=4)
-    plt.xticks(size=14)
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
@@ -646,34 +647,38 @@ def log_plotter(path2log, dataset="DEFAULT"):
         plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2)
         plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
         plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
-                 f"Epoch: {min_valid_arg}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
+                 f"Epoch: {min_valid_arg+1}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Precision/Recall", size=18)
     plt.legend(fontsize=14, loc=4)
-    plt.xticks(size=14)
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
-    plt.subplot(3, 2, 5)
-    plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
-    plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
+    plt.figtext(0.5, 0.25, f"Dataset: {dataset}\nTotal time: {total_time}s\nAve. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", 
+                ha="center", fontsize=14, bbox={"facecolor": "beige", "alpha":0.5, "pad":5})
+
+    # >>>>>> Plot time per epoch, commented out for now, we provide a text summary
+    # plt.subplot(3, 2, 5)
+    # plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
+    # plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
 
     # If min_valid_arg is 0 (the first model has the lowest valid loss)
     # Increment min_valid_arg for Time as we use cumsum (lose one point in the plot)
-    if min_valid_arg == 0:
-        min_valid_arg += 1
+    # if min_valid_arg == 0:
+    #     min_valid_arg += 1
 
-    if plot_valid:
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 
-                 f"Epoch: {min_valid_arg}, Time to solution: {np.cumsum(diff_time[:min_valid_arg])[-1]}s", fontsize=12, color="r")
-    plt.xlabel("Epoch", size=18)
-    plt.ylabel("Time (each epoch) / sec", size=18)
-    plt.xticks(size=14)
-    plt.yticks(size=14)
-    plt.ylim(min(diff_time)*0.97)
-    plt.grid()
-    
+    # if plot_valid:
+    #     plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+    #     plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 
+    #              f"Epoch: {min_valid_arg+1}, Time to solution: {np.cumsum(diff_time[:min_valid_arg])[-1]}s", fontsize=12, color="r")
+    # plt.xlabel("Epoch", size=18)
+    # plt.ylabel("Time (each epoch) / sec", size=18)
+    # plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
+    # plt.yticks(size=14)
+    # plt.ylim(min(diff_time)*0.97)
+    # plt.grid()
+
     plt.tight_layout()
     path2fig = os.path.join(path2fig_dir, f"log_{dataset}.png")
-    plt.savefig(path2fig, dpi=300)
+    plt.savefig(path2fig, dpi=300, bbox_inches='tight', pad_inches=0)
