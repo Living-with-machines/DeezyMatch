@@ -90,6 +90,7 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             print()
             # Save combined vectors
             torch.save(vecs, path_vec_combined)
+            del vecs
             
             print("\n-- Combine IDs")
             list_files = glob.glob(os.path.join(path2ids))
@@ -104,6 +105,7 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             print()
             # Save combined IDs
             torch.save(vecs_ids, path_id_combined)
+            del vecs_ids
             
             # Save strings for the first column in queries/candidates files
             mydf = pd.read_pickle(pathdf)
