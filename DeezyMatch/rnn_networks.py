@@ -19,7 +19,9 @@ Others:
 import time, os
 import pickle
 import shutil
-from tqdm import tqdm, tnrange
+#from tqdm import tqdm, tnrange
+from tqdm.autonotebook import tqdm
+from tqdm import tnrange
 
 from datetime import datetime
 import torch
@@ -559,6 +561,7 @@ class two_parallel_rnns(nn.Module):
         self.fc2_dropout = fc_dropout[1]
         self.att1_dropout = att_dropout[0]
         self.att2_dropout = att_dropout[1]
+        self.file_id = None
 
         self.maxpool_kernel_size = maxpool_kernel_size
 
@@ -630,11 +633,15 @@ class two_parallel_rnns(nn.Module):
             h1_reshape = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
 
             output_h_layer = self.rnn_n_layers - 1
-            file_id = len(glob.glob(output_state_vectors + "_fwd_*"))
 
-            torch.save(h1_reshape[output_h_layer, 0], f'{output_state_vectors}_fwd_{file_id}')
+            if not self.file_id:
+                self.file_id = len(glob.glob(output_state_vectors + "_fwd_*"))
+            else:
+                self.file_id += 1
+
+            torch.save(h1_reshape[output_h_layer, 0], f'{output_state_vectors}_fwd_{self.file_id}')
             if self.bidirectional:
-                torch.save(h1_reshape[output_h_layer, 1], f'{output_state_vectors}_bwd_{file_id}')
+                torch.save(h1_reshape[output_h_layer, 1], f'{output_state_vectors}_bwd_{self.file_id}')
                 return (h1_reshape[output_h_layer, 0], h1_reshape[output_h_layer, 1])
             else:
                 return (h1_reshape[output_h_layer, 0], False)
