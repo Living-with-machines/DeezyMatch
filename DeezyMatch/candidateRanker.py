@@ -14,6 +14,7 @@ import os
 import pandas as pd
 import pickle
 from sklearn.metrics.pairwise import cosine_similarity
+import shutil
 import time
 
 import torch
@@ -23,6 +24,7 @@ from .data_processing import test_tokenize
 from .rnn_networks import test_model
 from .utils import read_input_file
 from .utils import read_command_candidate_ranker
+from .utils_candidate_ranker import query_vector_gen
 # --- set seed for reproducibility
 from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -33,7 +35,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # ------------------- candidate_ranker --------------------
 def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="faiss", selection_threshold=0.8, 
-                     num_candidates=10, search_size=4, output_filename=None,
+                     query=None, num_candidates=10, search_size=4, output_filename=None,
                      pretrained_model_path=None, pretrained_vocab_path=None, number_test_rows=-1):
 
     start_time = time.time()
@@ -47,8 +49,13 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     
     # read input file
     dl_inputs = read_input_file(input_file_path)
+
+
+    if (ranking_metric.lower() in ["faiss"]) and (selection_threshold < 0):
+        sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be >= 0.")
+    if (ranking_metric.lower() in ["cosine", "conf"]) and not (0 <= selection_threshold <= 1):
+        sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be between 0 and 1.")
     
-    # ----- COMBINE VECTORS
     # ----- CANDIDATES
     path1_combined = os.path.join(scenario, "candidates_fwd.pt")
     path2_combined = os.path.join(scenario, "candidates_bwd.pt")
@@ -59,39 +66,53 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     vecs_items_candidates = np.load(path_items_combined, allow_pickle=True)
     vecs1_candidates = torch.load(path1_combined, map_location=dl_inputs['general']['device'])
     vecs2_candidates = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
-    vecs_candidates = torch.cat([vecs1_candidates, vecs2_candidates], dim=1)
-    
-    # ----- QUERIES
-    path1_combined = os.path.join(scenario, "queries_fwd.pt")
-    path2_combined = os.path.join(scenario, "queries_bwd.pt")
-    path_id_combined = os.path.join(scenario, "queries_fwd_id.pt")
-    path_items_combined = os.path.join(scenario, "queries_fwd_items.npy")
-    
-    vecs_ids_query = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
-    vecs_items_query = np.load(path_items_combined, allow_pickle=True)
-    vecs1_query = torch.load(path1_combined, map_location=dl_inputs['general']['device'])
-    vecs2_query = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
-    vecs_query = torch.cat([vecs1_query, vecs2_query], dim=1)
-    # ----- END COMBINED VECTORS
-    
-    # --- start FAISS
-    faiss_id_candis = faiss.IndexFlatL2(vecs_candidates.size()[1])   # build the index
-    print("Is faiss_id_candis already trained? %s" % faiss_id_candis.is_trained)
-    faiss_id_candis.add(vecs_candidates.detach().cpu().numpy())
-    
-    if (number_test_rows > 0) and (number_test_rows < len(vecs_query)):
-        len_vecs_query = number_test_rows
-    else:
-        len_vecs_query = len(vecs_query)
-    
-    if not pretrained_model_path in [False, None]:
+    vecs_candidates = torch.cat([vecs1_candidates, vecs2_candidates], dim=1)    
+            
+    if (not pretrained_model_path in [False, None]) or query:
         # --- load torch model, send it to the device (CPU/GPU)
         model = torch.load(pretrained_model_path, map_location=dl_inputs['general']['device'])
         # --- create test data class
         # read vocabulary
         with open(pretrained_vocab_path, 'rb') as handle:
             train_vocab = pickle.load(handle)
+
+    # ----- QUERIES
+    if query:
+        tmp_dirname = query_vector_gen(query, model, train_vocab, dl_inputs)
+        query_scenario = os.path.join(tmp_dirname)
+        path1_combined = os.path.join(query_scenario, "query_fwd_0")
+        path2_combined = os.path.join(query_scenario, "query_bwd_0")
+        path_id_combined = os.path.join(query_scenario, "query_indxs_0")
+        mydf = pd.read_pickle(os.path.join(tmp_dirname, "query.df"))
+        vecs_items = mydf['s1_unicode'].to_numpy()
+        np.save(os.path.join(tmp_dirname, "queries_fwd_items.npy"), vecs_items)
+        path_items_combined = os.path.join(query_scenario, "queries_fwd_items.npy")
+    else:
+        query_scenario = scenario
+        path1_combined = os.path.join(query_scenario, "queries_fwd.pt")
+        path2_combined = os.path.join(query_scenario, "queries_bwd.pt")
+        path_id_combined = os.path.join(query_scenario, "queries_fwd_id.pt")
+        path_items_combined = os.path.join(query_scenario, "queries_fwd_items.npy")
     
+    vecs_ids_query = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
+    vecs_items_query = np.load(path_items_combined, allow_pickle=True)
+    vecs1_query = torch.load(path1_combined, map_location=dl_inputs['general']['device'])
+    vecs2_query = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
+    vecs_query = torch.cat([vecs1_query, vecs2_query], dim=1)
+
+    if query:
+        shutil.rmtree(tmp_dirname)
+
+    if (number_test_rows > 0) and (number_test_rows < len(vecs_query)):
+        len_vecs_query = number_test_rows
+    else:
+        len_vecs_query = len(vecs_query)
+
+    # --- start FAISS
+    faiss_id_candis = faiss.IndexFlatL2(vecs_candidates.size()[1])   # build the index
+    print("Is faiss_id_candis already trained? %s" % faiss_id_candis.is_trained)
+    faiss_id_candis.add(vecs_candidates.detach().cpu().numpy())
+
     # Empty dataframe to collect data
     output_pd = pd.DataFrame()
     for iq in range(len_vecs_query):
@@ -215,6 +236,8 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
         mydict_faiss_dist = OrderedDict({})
         mydict_candid_id = OrderedDict({})
         mydict_cosine_sim = OrderedDict({})
+        if len(collect_neigh_pd) == 0:
+            continue
         if ranking_metric.lower() in ["faiss"]:
             collect_neigh_pd = collect_neigh_pd.sort_values(by="faiss_dist")[:num_candidates]
         elif ranking_metric.lower() in ["cosine"]:
@@ -242,11 +265,14 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
             }
         output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
            
-    output_pd = output_pd.set_index("id")
-    output_pd.to_pickle(os.path.join(scenario, f"{output_filename}.pkl"))
-    elapsed = time.time() - start_time
-    print("TOTAL TIME: %s" % elapsed)
-    return output_pd
+    if len(output_pd) == 0:
+        return None
+    else:
+        output_pd = output_pd.set_index("id")
+        output_pd.to_pickle(os.path.join(scenario, f"{output_filename}.pkl"))
+        elapsed = time.time() - start_time
+        print("TOTAL TIME: %s" % elapsed)
+        return output_pd
 
 def main():
     # --- read args from the command line
