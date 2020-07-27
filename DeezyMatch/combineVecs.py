@@ -31,7 +31,8 @@ set_seed_everywhere(1364)
 
 # ------------------- combine_vecs --------------------
 def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fwd", "bwd"],
-                 input_scenario="test", output_scenario="test", print_every=500):
+                 query_candidate_dirname="default", input_scenario="test", output_par_dir="combined", 
+                 output_scenario="test", print_every=500, sel_device="default", no_query_candidate_df=False):
     
     if type(rnn_passes) in [str]:
         rnn_passes = rnn_passes.split(",")
@@ -44,14 +45,16 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
     for qc_mode in qc_modes:
         for rnn_pass in rnn_passes:
             # paths to create tensors/arrays
-            outputpath = os.path.join("combined", output_scenario)
+            outputpath = os.path.join(output_par_dir, output_scenario)
             if not os.path.isdir(outputpath):
                 os.makedirs(outputpath)
     
-            if qc_mode == "q":
+            if qc_mode == "q" and (query_candidate_dirname in ["default"]):
                 query_candidate_mode = "queries"
-            elif qc_mode == "c":
+            elif qc_mode == "c" and (query_candidate_dirname in ["default"]):
                 query_candidate_mode = "candidates"
+            else:
+                query_candidate_mode = query_candidate_dirname
         
             # Set path according to query/candidate mode
             path2vecs = os.path.join(query_candidate_mode, input_scenario, 
@@ -65,16 +68,18 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             path_items_combined = os.path.join(outputpath, f"{query_candidate_mode}_{rnn_pass}_items.npy")
             inp_par_dir = os.path.join(query_candidate_mode, input_scenario)
             
-            if input_file_path in ["default"]:
-                detect_input_files = glob.iglob(os.path.join(inp_par_dir, "*.yaml"))
-                for detected_inp in detect_input_files:
-                    if os.path.isfile(detected_inp):
-                        shutil.copy2(detected_inp, outputpath)
-                        input_file_path = detected_inp
-            else:
-                shutil.copy2(input_file_path, outputpath)
+            if sel_device in ["default"]:
+                if input_file_path in ["default"]:
+                    detect_input_files = glob.iglob(os.path.join(inp_par_dir, "*.yaml"))
+                    for detected_inp in detect_input_files:
+                        if os.path.isfile(detected_inp):
+                            shutil.copy2(detected_inp, outputpath)
+                            input_file_path = detected_inp
+                else:
+                    shutil.copy2(input_file_path, outputpath)
+                dl_inputs = read_input_file(input_file_path)
+                sel_device = dl_inputs['general']['device'] 
             
-            dl_inputs = read_input_file(input_file_path)
             
             print("\n\n-- Combine vectors")
             print(f"Reading vectors from {path2vecs}")
@@ -84,9 +89,9 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             for i, lfile in enumerate(list_files):
                 if i % print_every == 0: print("%07i" % i, lfile)
                 if len(vecs) == 0:
-                    vecs = torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])
+                    vecs = torch.load(f"{lfile}", map_location=sel_device)
                 else:
-                    vecs = torch.cat((vecs, torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])))
+                    vecs = torch.cat((vecs, torch.load(f"{lfile}", map_location=sel_device)))
             print()
             # Save combined vectors
             torch.save(vecs, path_vec_combined)
@@ -99,30 +104,32 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             for i, lfile in enumerate(list_files): 
                 if i % print_every == 0: print("%07i" % i, lfile)
                 if len(vecs_ids) == 0:
-                    vecs_ids = torch.load(f"{lfile}", map_location=dl_inputs['general']['device'])
+                    vecs_ids = torch.load(f"{lfile}", map_location=sel_device)
                 else:
-                    vecs_ids = torch.cat((vecs_ids, torch.load(f"{lfile}", dl_inputs['general']['device'])))
+                    vecs_ids = torch.cat((vecs_ids, torch.load(f"{lfile}", sel_device)))
             print()
             # Save combined IDs
             torch.save(vecs_ids, path_id_combined)
             del vecs_ids
             
-            # Save strings for the first column in queries/candidates files
-            mydf = pd.read_pickle(pathdf)
-            vecs_items = mydf['s1_unicode'].to_numpy()
-            np.save(path_items_combined, vecs_items)
+            if not no_query_candidate_df:
+                # Save strings for the first column in queries/candidates files
+                mydf = pd.read_pickle(pathdf)
+                vecs_items = mydf['s1_unicode'].to_numpy()
+                np.save(path_items_combined, vecs_items)
     
     print("--- %s seconds ---" % (time.time() - start_time))
 
 def main():
     # --- read args from the command line
-    qc_modes, input_scenario, rnn_passes, output_scenario, input_file_path = \
+    qc_modes, input_scenario, rnn_passes, output_scenario, input_file_path, query_candidate_dirname = \
         read_command_combinevecs()
 
     # --- 
     combine_vecs(input_file_path=input_file_path, 
                  qc_modes=qc_modes, 
                  rnn_passes=rnn_passes,
+                 query_candidate_dirname=query_candidate_dirname,
                  input_scenario=input_scenario, 
                  output_scenario=output_scenario)
 

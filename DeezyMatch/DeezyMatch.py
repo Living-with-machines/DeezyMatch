@@ -190,7 +190,8 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
 # ------------------- inference --------------------
 def inference(input_file_path=None, dataset_path=None, 
               pretrained_model_path=None, pretrained_vocab_path=None,  
-              cutoff=None, inference_mode="test", query_candidate_mode=["q", "c"], scenario=None):
+              cutoff=None, inference_mode="test", query_candidate_mode=["q", "c"], scenario=None,
+              query_candidate_dirname="default"):
     """
     Use an already trained model for inference/prediction
 
@@ -212,6 +213,8 @@ def inference(input_file_path=None, dataset_path=None,
         Two modes: q (generate query vectors), c (generate candidate vectors)
     scenario
         Name of the experiment/top-directory
+    query_candidate_dirname
+        dir name for query/candidate vectors, default: generates queries/candidates dirs for q and c modes, respectively.
     """
 
     # --- read input file
@@ -234,7 +237,8 @@ def inference(input_file_path=None, dataset_path=None,
                       inference_mode=inference_mode, 
                       query_candidate_mode=qc_mode, 
                       scenario=scenario, 
-                      dl_inputs=dl_inputs)
+                      dl_inputs=dl_inputs,
+                      query_candidate_dirname=query_candidate_dirname)
 
 # ------------------- main --------------------
 def main():

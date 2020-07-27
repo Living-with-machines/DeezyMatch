@@ -288,13 +288,18 @@ def read_command_combinevecs():
                         help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
                         default="default")
 
+    parser.add_argument("-qc_dir", "--query_candidate_dirname",
+                        help="dir name for query/candidate vectors, default: generates queries/candidates dirs for q and c modes, respectively.", 
+                        default="default")
+
     args = parser.parse_args()
     qc_mode = args.candidate_or_query
     cq_sc = args.candidate_query_scenario
     rnn_pass = args.rnn_pass
     combined_sc = args.combined_scenario
     input_file_path = args.input_file_path
-    return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
+    query_candidate_dirname = args.query_candidate_dirname
+    return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path, query_candidate_dirname
 
 # ------------------- read_command_candidate_ranker --------------------
 def read_command_candidate_ranker():

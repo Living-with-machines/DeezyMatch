@@ -410,7 +410,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         if output_state_vectors:
             output_par_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
             if not os.path.isdir(output_par_dir):
-                os.mkdir(output_par_dir)
+                os.makedirs(output_par_dir)
             torch.save(indxs, f'{output_state_vectors}_indxs_{wtest_counter}')
         wtest_counter += 1
 
@@ -769,7 +769,8 @@ class two_parallel_rnns(nn.Module):
 
 # ------------------- inference  --------------------
 def inference(model_path, dataset_path, train_vocab_path, input_file_path,
-              test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs):
+              test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs,
+              query_candidate_dirname="default"):
 
     start_time = time.time()
 
@@ -787,10 +788,13 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         output_state_vectors = False
         path_save_test_class = False
     else:
-        if query_candidate_mode in ["q"]:
+        if query_candidate_mode in ["q"] and (query_candidate_dirname in ["default"]):
             query_candidate_mode = "queries"
-        elif query_candidate_mode in ["c"]:
+        elif query_candidate_mode in ["c"] and (query_candidate_dirname in ["default"]):
             query_candidate_mode = "candidates"
+        else:
+            query_candidate_mode = query_candidate_dirname
+
         
         # Set path according to query_candidate_mode
         scenario_path = os.path.abspath(os.path.join(query_candidate_mode, scenario))
