@@ -120,7 +120,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     fit(model=model_gru,
         train_dl=train_dl, 
         valid_dl=valid_dl,
-        loss_fn=F.nll_loss,  # The negative log likelihood loss
+        loss_fn=nn.NLLLoss(weight=torch.tensor([1, 1], dtype=torch.float32), reduction="mean"),  # The negative log likelihood loss
         opt=opt,
         epochs=epochs,
         pooling_mode=pooling_mode,
@@ -210,7 +210,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     fit(model=pretrained_model,
         train_dl=train_dl, 
         valid_dl=valid_dl,
-        loss_fn=F.nll_loss,  # The negative log likelihood loss
+        loss_fn=nn.NLLLoss(weight=torch.tensor([1, 1], dtype=torch.float32), reduction="mean"),  # The negative log likelihood loss
         opt=opt,
         epochs=epochs,
         pooling_mode=pooling_mode,
@@ -393,7 +393,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
     total_loss_test = 0
 
     # XXX HARD CODED! Also in rnn_networks
-    loss_fn=F.nll_loss
+    loss_fn=nn.NLLLoss(weight=torch.tensor([1, 1], dtype=torch.float32), reduction="mean")
     # In first dump of the results, we add a header to the output file
     first_dump = True
 
@@ -750,9 +750,9 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((hstates_1, hstates_2), dim=1)
 
         elif pooling_mode in ['hstates_cosine']:
-            sys.exit("[ERROR] hstates_cosine method is not implemented")
-            # hstates_cosine_sim = (nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2) + 1) / 2.
-            # return torch.log(torch.stack([1- hstates_cosine_sim, hstates_cosine_sim])).T
+            hstates_cosine_sim = (nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2) + 1) / 2.
+            # in this case, return the cosine similarity as predictions
+            return torch.log(torch.stack([1- hstates_cosine_sim, hstates_cosine_sim])).T
 
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))
