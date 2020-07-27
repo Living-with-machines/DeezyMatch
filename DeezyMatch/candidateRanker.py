@@ -25,6 +25,7 @@ from .rnn_networks import test_model
 from .utils import read_input_file
 from .utils import read_command_candidate_ranker
 from .utils_candidate_ranker import query_vector_gen
+from .utils_candidate_ranker import candidate_conf_calc
 # --- set seed for reproducibility
 from .utils import set_seed_everywhere
 set_seed_everywhere(1364)
@@ -57,10 +58,12 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
         sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be between 0 and 1.")
     
     # ----- CANDIDATES
-    path1_combined = os.path.join(scenario, "candidates_fwd.pt")
-    path2_combined = os.path.join(scenario, "candidates_bwd.pt")
-    path_id_combined = os.path.join(scenario, "candidates_fwd_id.pt")
-    path_items_combined = os.path.join(scenario, "candidates_fwd_items.npy")
+    detect_prefix = glob.glob(os.path.join(scenario, "*_fwd_items.npy"))[0] 
+    detect_prefix = os.path.basename(os.path.abspath(detect_prefix)).split("_fwd_items")[0]
+    path1_combined = os.path.join(scenario, f"{detect_prefix}_fwd.pt")
+    path2_combined = os.path.join(scenario, f"{detect_prefix}_bwd.pt")
+    path_id_combined = os.path.join(scenario, f"{detect_prefix}_fwd_id.pt")
+    path_items_combined = os.path.join(scenario, f"{detect_prefix}_fwd_items.npy")
     
     vecs_ids_candidates = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
     vecs_items_candidates = np.load(path_items_combined, allow_pickle=True)
@@ -79,14 +82,14 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     # ----- QUERIES
     if query:
         tmp_dirname = query_vector_gen(query, model, train_vocab, dl_inputs)
-        query_scenario = os.path.join(tmp_dirname)
-        path1_combined = os.path.join(query_scenario, "query_fwd_0")
-        path2_combined = os.path.join(query_scenario, "query_bwd_0")
-        path_id_combined = os.path.join(query_scenario, "query_indxs_0")
+        query_scenario = os.path.join(tmp_dirname, scenario)
+        path1_combined = os.path.join(query_scenario, f"{tmp_dirname}_fwd.pt")
+        path2_combined = os.path.join(query_scenario, f"{tmp_dirname}_bwd.pt")
+        path_id_combined = os.path.join(query_scenario, f"{tmp_dirname}_fwd_id.pt")
         mydf = pd.read_pickle(os.path.join(tmp_dirname, "query.df"))
         vecs_items = mydf['s1_unicode'].to_numpy()
         np.save(os.path.join(tmp_dirname, "queries_fwd_items.npy"), vecs_items)
-        path_items_combined = os.path.join(query_scenario, "queries_fwd_items.npy")
+        path_items_combined = os.path.join(tmp_dirname, "queries_fwd_items.npy")
     else:
         query_scenario = scenario
         path1_combined = os.path.join(query_scenario, "queries_fwd.pt")
@@ -149,44 +152,7 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
                                            vecs_candidates.detach().cpu().numpy()[orig_id_candis])
     
             if not pretrained_model_path in [False, None]:
-                # create test class 
-                test_dc = test_tokenize(
-                    query_candidate_pd, 
-                    train_vocab,
-                    preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
-                                   dl_inputs["preprocessing"]["lowercase"],
-                                   dl_inputs["preprocessing"]["strip"],
-                                   dl_inputs["preprocessing"]["only_latin_letters"]),
-                    max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
-                    mode=dl_inputs['gru_lstm']['mode'],
-                    cutoff=(id_1_neigh - id_0_neigh),
-                    save_test_class=False,
-                    dataframe_input=True,
-                    verbose=False
-                    )
-                
-                test_dl = DataLoader(dataset=test_dc, 
-                                    batch_size=dl_inputs['gru_lstm']['batch_size'], 
-                                    shuffle=False)
-                num_batch_test = len(test_dl)
-    
-                # inference
-                all_preds = test_model(model, 
-                                       test_dl,
-                                       eval_mode='test',
-                                       pooling_mode=dl_inputs['gru_lstm']['pooling_mode'],
-                                       device=dl_inputs['general']['device'],
-                                       evaluation=True,
-                                       output_state_vectors=False, 
-                                       output_preds=True,
-                                       output_preds_file=False,
-                                       csv_sep=dl_inputs['preprocessing']['csv_sep'],
-                                       print_epoch=False
-                                       )
-                if len(all_queries) != len(query_candidate_pd):
-                    print(f"[ERROR] lengths of all queries ({len(all_queries)}) and processed data ({len(query_candidate_pd)}) are not the same!")
-                    sys.exit("[ERROR] This should not happen! Contact developers.")
-    
+                all_preds = candidate_conf_calc(query_candidate_pd, model, train_vocab, dl_inputs, cutoffs=(id_1_neigh - id_0_neigh))
                 all_preds = torch.exp(all_preds)
                 query_candidate_pd['dl_match'] = all_preds.detach().cpu().numpy()
     
