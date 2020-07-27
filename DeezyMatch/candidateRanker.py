@@ -153,7 +153,6 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     
             if not pretrained_model_path in [False, None]:
                 all_preds = candidate_conf_calc(query_candidate_pd, model, train_vocab, dl_inputs, cutoffs=(id_1_neigh - id_0_neigh))
-                all_preds = torch.exp(all_preds)
                 query_candidate_pd['dl_match'] = all_preds.detach().cpu().numpy()
     
             else:

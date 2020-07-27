@@ -304,8 +304,9 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
                 # step 5. use optimizer to take gradient step
                 opt.step()
 
+                pred_softmax = F.softmax(pred, dim=-1)
                 t_train.set_postfix(loss=loss.data)
-                pred_idx = torch.max(pred, dim=1)[1]
+                pred_idx = torch.max(pred_softmax, dim=1)[1]
 
                 y_true_train += list(y.cpu().data.numpy())
                 y_pred_train += list(pred_idx.cpu().data.numpy())
@@ -437,13 +438,14 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             if eval_mode == 'valid':
                 t_test.set_postfix(loss=loss.data)
                 
-            pred_idx = torch.max(pred, dim=1)[1]
+            pred_softmax = F.softmax(pred, dim=-1)
+            pred_idx = torch.max(pred_softmax, dim=1)[1]
 
             if wtest_counter == 1:
                 # Confidence for label 1
-                all_preds = pred[:, 1]
+                all_preds = pred_softmax[:, 1]
             else:
-                all_preds = torch.cat([all_preds, pred[:, 1]])
+                all_preds = torch.cat([all_preds, pred_softmax[:, 1]])
 
             y_true_test += list(y.cpu().data.numpy())
             y_pred_test += list(pred_idx.cpu().data.numpy())
@@ -451,7 +453,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             if map_flag:
 
                 # pulling out the scores for the prediction of 1
-                y_score_test += torch.exp(pred).cpu().data.numpy()[:, 1].tolist()
+                y_score_test += pred_softmax.cpu().data.numpy()[:, 1].tolist()
 
                 for q in test_dl.dataset.df.loc[indxs]["s1"].to_numpy():
 
@@ -467,7 +469,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                 pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
                                         test_dl.dataset.df.loc[indxs]["s2_unicode"].to_numpy(), 
                                         pred_idx.cpu().data.numpy().T, 
-                                        torch.exp(pred).T.cpu().data.numpy(), 
+                                        pred_softmax.T.cpu().data.numpy(), 
                                         y.cpu().data.numpy().T])
                 if output_preds_file:
                     with open(output_preds_file, "a+") as pred_f:
