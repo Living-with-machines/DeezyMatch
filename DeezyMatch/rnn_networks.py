@@ -754,7 +754,7 @@ class two_parallel_rnns(nn.Module):
             output_combined = torch.cat((hstates_1, hstates_2), dim=1)
 
         elif pooling_mode in ['hstates_subtract']:
-            output_combined = 1 - (hstates_1 - hstates_2)
+            output_combined = 1 - torch.abs(hstates_1 - hstates_2)
 
         elif pooling_mode in ['hstates_cosine']:
             hstates_cosine_sim = nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2)
