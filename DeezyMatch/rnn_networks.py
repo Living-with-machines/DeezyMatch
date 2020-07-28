@@ -573,7 +573,7 @@ class two_parallel_rnns(nn.Module):
             fc1_multiplier = 4 * self.rnn_n_layers
         elif self.pooling_mode in ["hstates_layers_simple"]:
             fc1_multiplier = 2 * self.rnn_n_layers
-        elif self.pooling_mode in ["hstates_subtract"]:
+        elif self.pooling_mode in ["hstates_subtract", "hstates_l2_distance"]:
             fc1_multiplier = 1 * self.rnn_n_layers
         else:
             fc1_multiplier = 1
@@ -672,7 +672,7 @@ class two_parallel_rnns(nn.Module):
             hstates_1 = hstates_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 'hstates_cosine']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 'hstates_l2_distance', 'hstates_cosine']:
             hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
             hstates_1 = hstates_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -717,7 +717,7 @@ class two_parallel_rnns(nn.Module):
             hstates_2 = hstates_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 'hstates_cosine']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 'hstates_l2_distance', 'hstates_cosine']:
             hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
             hstates_2 = hstates_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -755,6 +755,9 @@ class two_parallel_rnns(nn.Module):
 
         elif pooling_mode in ['hstates_subtract']:
             output_combined = 1 - torch.abs(hstates_1 - hstates_2)
+
+        elif pooling_mode in ['hstates_l2_distance']:
+            output_combined = 1 - torch.abs(hstates_1 - hstates_2)**2
 
         elif pooling_mode in ['hstates_cosine']:
             hstates_cosine_sim = nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2)
