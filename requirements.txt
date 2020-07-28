@@ -8,3 +8,5 @@ faiss-cpu==1.6.3
 tqdm==4.46.0
 tensorboard==2.2.2
 matplotlib==3.2.1
+jupyter-client==6.1.5
+jupyter-core==4.6.3
