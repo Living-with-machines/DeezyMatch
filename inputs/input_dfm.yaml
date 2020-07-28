@@ -34,7 +34,7 @@ gru_lstm:
   fc1_out_dim: 120    
   # pooling_mode:
   # hstates_layers_simple, hstates_layers, hstates
-  # hstates_subtract
+  # hstates_subtract, hstates_l2_distance, hstates_cosine
   # average, max
   # attention
   pooling_mode: 'hstates_layers_simple'    

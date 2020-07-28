@@ -229,7 +229,6 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
                               model_name + '.model')
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
-
     torch.save(pretrained_model, model_path)
 
     """
@@ -369,7 +368,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
         if model_path:
             # --- save the model
             cprint('[INFO]', bc.lgreen, 'saving the model')
-            checkpoint_path = os.path.join(model_path, f'checkpoint{epoch:05d}.model')
+            checkpoint_path = os.path.join(model_path, f'checkpoint{epoch+1:05d}.model')
             if not os.path.isdir(os.path.dirname(checkpoint_path)):
                 os.makedirs(os.path.dirname(checkpoint_path))
             torch.save(model, checkpoint_path)
@@ -672,7 +671,8 @@ class two_parallel_rnns(nn.Module):
             hstates_1 = hstates_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 'hstates_l2_distance', 'hstates_cosine']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 
+                              'hstates_l2_distance', 'hstates_cosine']:
             hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
             hstates_1 = hstates_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -717,7 +717,8 @@ class two_parallel_rnns(nn.Module):
             hstates_2 = hstates_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 'hstates_l2_distance', 'hstates_cosine']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 
+                              'hstates_l2_distance', 'hstates_cosine']:
             hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
             hstates_2 = hstates_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):

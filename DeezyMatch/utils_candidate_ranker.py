@@ -74,7 +74,7 @@ def query_vector_gen(query, model, train_vocab, dl_inputs):
     combine_vecs(qc_modes='q',  
                  rnn_passes=['fwd', 'bwd'],  
                  input_scenario='query',  
-                 output_scenario='test',  
+                 output_scenario='query_on_fly',  
                  output_par_dir=os.path.join(tmp_dirname, "combined"),
                  query_candidate_dirname=tmp_dirname, 
                  print_every=10,

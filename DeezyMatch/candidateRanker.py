@@ -82,7 +82,7 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     # ----- QUERIES
     if query:
         tmp_dirname = query_vector_gen(query, model, train_vocab, dl_inputs)
-        query_scenario = os.path.join(tmp_dirname, "combined", "test")
+        query_scenario = os.path.join(tmp_dirname, "combined", "query_on_fly")
         path1_combined = os.path.join(query_scenario, f"{tmp_dirname}_fwd.pt")
         path2_combined = os.path.join(query_scenario, f"{tmp_dirname}_bwd.pt")
         path_id_combined = os.path.join(query_scenario, f"{tmp_dirname}_fwd_id.pt")
