@@ -36,7 +36,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # ------------------- candidate_ranker --------------------
 def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="faiss", selection_threshold=0.8, 
-                     query=None, num_candidates=10, search_size=4, output_filename=None,
+                     query=None, num_candidates=10, search_size=4, output_filename="ranker_output",
                      pretrained_model_path=None, pretrained_vocab_path=None, number_test_rows=-1):
 
     start_time = time.time()
