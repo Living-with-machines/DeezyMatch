@@ -1,6 +1,18 @@
-# DeezyMatch (Deep Fuzzy String Matching)
-
-## A Flexible Deep Neural Network Approach to Fuzzy String Matching
+<div align="center">
+    <br>
+    <h1>DeezyMatch (Deep Fuzzy String Matching)</h1>
+    <h2>A Flexible Deep Neural Network Approach to Fuzzy String Matching</h2>
+</div>
+ 
+<p align="center">
+    <a href="https://pypi.org/project/DeezyMatch/">
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/DeezyMatch">
+    </a>
+    <a href="https://github.com/Living-with-machines/DeezyMatch/blob/master/LICENSE">
+        <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
+    </a>
+    <br/>
+</p>
 
 DeezyMatch can be applied for performing the following tasks:
 
