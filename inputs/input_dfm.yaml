@@ -33,8 +33,10 @@ gru_lstm:
   # number of dimensions of the first fully connected network
   fc1_out_dim: 120    
   # pooling_mode:
-  # hstates_layers_simple, hstates, maximum, average, attention
-  # hstates_cosine
+  # hstates_layers_simple, hstates_layers, hstates
+  # hstates_subtract
+  # average, max
+  # attention
   pooling_mode: 'hstates_layers_simple'    
   # rnn_dropout:
   # if non-zero, introduces a Dropout layer on the outputs of each RNN/LSTM/GRU layer except the last layer,
