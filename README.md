@@ -317,6 +317,36 @@ candidates
     └── log.txt
 ```
 
+In the above examples, DeezyMatch creates `queries` and `candidates` directories, by default, and store the `scenario` (in this example, it is set to `test`) inside these directories. This behaviour can be changed by (see `query_candidate_dirname="my_query_dir"`):
+
+```python
+from DeezyMatch import inference as dm_inference
+
+# generate vectors for queries and candidates
+# NOTE the new argument: query_candidate_dirname 
+dm_inference(input_file_path="./inputs/input_dfm.yaml",
+             dataset_path="dataset/dataset-string-similarity_test.txt", 
+             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
+             inference_mode="vect",
+             query_candidate_mode="q",
+             query_candidate_dirname="my_query_dir",
+             scenario="test")
+```
+
+In this case, the directory structure is:
+
+```
+my_query_dir/
+└── test
+    ├── embed_my_query_dir
+    ├── input_dfm.yaml
+    ├── log.txt
+    └── my_query_dir.df
+```
+
+(this can also be done for candidates.)
+
 ### Candidate ranker and assembling vector representations
 
 Before using the `candidate_ranker` module of DeezyMatch, we need to:
