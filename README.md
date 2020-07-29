@@ -317,6 +317,8 @@ candidates
     └── log.txt
 ```
 
+### Changing query/candidate directory names
+
 In the above examples, DeezyMatch creates `queries` and `candidates` directories, by default, and store the `scenario` (in this example, it is set to `test`) inside these directories. This behaviour can be changed by (see `query_candidate_dirname="my_query_dir"`):
 
 ```python
@@ -423,6 +425,56 @@ combined
     ├── queries_fwd_id.pt
     ├── queries_fwd_items.npy
     └── test_candidates_deezymatch.pkl
+```
+
+In case `query_candidate_dirname` was set in [Changing query/candidate directory names](#changing-query/candidate directory-names), the vector representations can be combined by:
+
+```python
+from DeezyMatch import combine_vecs
+
+# combine vectors
+combine_vecs(qc_modes='q', 
+             rnn_passes=['fwd', 'bwd'], 
+             input_scenario='test', 
+             query_candidate_dirname='my_query_dir',
+             output_scenario='test', 
+             print_every=10)
+```
+
+(and similarly for candidate vectors).
+
+Moreover, it is possible to change the default dirname where combined vector representations are stored (by default, it is `combined`, see the above directory structure):
+
+```python
+from DeezyMatch import combine_vecs
+
+# combine vectors
+combine_vecs(qc_modes=['q', 'c'], 
+             rnn_passes=['fwd', 'bwd'], 
+             input_scenario='test', 
+             output_scenario='test', 
+             output_par_dir="my_combined_dir",
+             print_every=10)
+```
+
+which would result in the following directory structure:
+
+```
+my_combined_dir
+└── test
+    ├── candidates_bwd_id.pt
+    ├── candidates_bwd_items.npy
+    ├── candidates_bwd.pt
+    ├── candidates_fwd_id.pt
+    ├── candidates_fwd_items.npy
+    ├── candidates_fwd.pt
+    ├── input_dfm.yaml
+    ├── queries_bwd_id.pt
+    ├── queries_bwd_items.npy
+    ├── queries_bwd.pt
+    ├── queries_fwd_id.pt
+    ├── queries_fwd_items.npy
+    └── queries_fwd.pt
 ```
 
 #### CandidateRanker
