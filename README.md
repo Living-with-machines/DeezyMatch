@@ -588,32 +588,6 @@ In this command, compared to `candidate_ranker` module explained above:
 
 **Other methods**
 
-* Select candidates based on DeezyMatch predictions and their confidence:
-
-```python
-from DeezyMatch import candidate_ranker
-
-# Find candidates
-candidates_pd = \
-    candidate_ranker(scenario="./combined/test/", 
-                     ranking_metric="conf", 
-                     selection_threshold=0.51, 
-                     num_candidates=1, 
-                     search_size=4, 
-                     output_filename="test_candidates_deezymatch", 
-                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
-                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
-                     number_test_rows=20)
-```
-
-Note that the only difference compared to the previous command is `ranking_metric="conf"`.
-
-Similarly via command line:
-
-```bash
-DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm conf -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
-```
-
 * Select candidates based on cosine similarity:
 
 ```python
@@ -632,7 +606,8 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
-Or via command line:
+
+Note that the only difference compared to the previous command is `ranking_metric="cosine"`, or via command line:
 
 ```bash
 DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
