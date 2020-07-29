@@ -622,6 +622,8 @@ DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.5
 
 * As already mentioned, based on our experiments, `conf` is not a good metric for ranking candidates. Consider using `faiss` or `cosine`.
 
+* Adding prefix/suffix to input strings (see `prefix_suffix` option in the input file) can greatly enhance the ranking results.
+
 * In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** are also reported.
 
 * In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. 
