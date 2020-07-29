@@ -79,6 +79,12 @@ def train(input_file_path=None, dataset_path=None, model_name=None,
         csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
     
+    # Clean-up the model_name, avoid having / or \ at the end of string
+    if not isinstance(model_name, str):
+        sys.exit("model_name should be a string")
+    model_name = model_name.strip("/")
+    model_name = model_name.strip("\\")
+
     # --- store vocab
     vocab_path = os.path.join(dl_inputs["general"]["models_dir"], 
                               model_name, model_name + '.vocab')
@@ -166,6 +172,12 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
         read_list_chars=dl_inputs['preprocessing']['read_list_chars'],
         csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
+
+    # Clean-up the model_name, avoid having / or \ at the end of string
+    if not isinstance(model_name, str):
+        sys.exit("model_name should be a string")
+    model_name = model_name.strip("/")
+    model_name = model_name.strip("\\")
     
     # --- store vocab
     vocab_path = os.path.join(dl_inputs["general"]["models_dir"], 
