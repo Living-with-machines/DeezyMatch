@@ -13,6 +13,8 @@ preprocessing:
   # removing both the leading and the trailing empty characters
   strip: True
   only_latin_letters: False
+  # Strings in the inputs will be prefix + string + suffix
+  prefix_suffix: ["|", "|"]
   # Accepted proportion of characters in a string that are not present in our vocabulary, i.e.,
   # String is accepted if:
   # (number of its characters found in the vocabulary)/(total number its characters) >= missing_char_threshold

@@ -19,7 +19,7 @@ from torch.nn.modules.module import _addindent
 
 
 # ------------------- normalizeString --------------------
-def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin_letters=False):
+def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin_letters=False, prefix_suffix=["|", "|"]):
     if uni2ascii:
         s = unicodedata.normalize('NFKD', str(s))
     if lowercase:
@@ -29,9 +29,8 @@ def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin
     if only_latin_letters:
         s = re.sub(r"([.!?])", r" \1", s)
         s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
-    #return "|" + s + "|"
-    return s
-
+    
+    return prefix_suffix[0] + s + prefix_suffix[1]
 
 # ------------------- sort_key --------------------
 def sort_key(item):
