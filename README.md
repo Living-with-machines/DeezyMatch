@@ -490,7 +490,7 @@ my_combined_dir/
     ├── queries_bwd.pt
     ├── queries_fwd_id.pt
     ├── queries_fwd_items.npy
-    ├── queries_fwd.pt
+    └── queries_fwd.pt
 ```
 
 #### CandidateRanker
@@ -536,6 +536,8 @@ candidates_pd = \
 `scenario` is the directory that contains all the assembled vectors [(see)](#combine-vector-representations). 
 
 `ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs). 
+
+:warning: In our experiments, `conf` was not a good metric to rank candidates. Consider using `faiss` or `cosine`.
 
 `selection_threshold`: changes according to the `ranking_metric`:
 
