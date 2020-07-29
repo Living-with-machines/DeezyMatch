@@ -42,11 +42,15 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     start_time = time.time()
     
     if input_file_path in ["default"]:
+        found_input = False
         detect_input_files = glob.iglob(os.path.join(scenario, "*.yaml"))
         for detected_inp in detect_input_files:
             if os.path.isfile(detected_inp):
                 input_file_path = detected_inp
+                found_input = True
                 break
+        if not found_input:
+            sys.exit(f"[ERROR] no input file (*.yaml file) could be found in the dir: {scenario}")
     
     # read input file
     dl_inputs = read_input_file(input_file_path)
@@ -56,6 +60,10 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
         sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be >= 0.")
     if (ranking_metric.lower() in ["cosine", "conf"]) and not (0 <= selection_threshold <= 1):
         sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be between 0 and 1.")
+    
+    if not ranking_metric.lower() in ["faiss", "cosine", "conf"]:
+        sys.exit(f"[ERROR] ranking_metric of {ranking_metric.lower()} is not supported. "\
+                  "Current ranking methods are: 'faiss', 'cosine', 'conf'")
     
     # ----- CANDIDATES
     path1_combined = os.path.join(scenario, "candidates_fwd.pt")
