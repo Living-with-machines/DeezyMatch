@@ -49,24 +49,26 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             if not os.path.isdir(outputpath):
                 os.makedirs(outputpath)
     
-            if qc_mode == "q" and (query_candidate_dirname in ["default"]):
-                query_candidate_mode = "queries"
-            elif qc_mode == "c" and (query_candidate_dirname in ["default"]):
-                query_candidate_mode = "candidates"
-            else:
-                query_candidate_mode = query_candidate_dirname
+            if qc_mode == "q":
+                query_candidate_name = "queries"
+                if query_candidate_dirname in ["default"]:
+                    query_candidate_dirname = "queries"
+            elif qc_mode == "c":
+                query_candidate_name = "candidates"
+                if query_candidate_dirname in ["default"]:
+                    query_candidate_dirname = "candidates"
         
             # Set path according to query/candidate mode
-            path2vecs = os.path.join(query_candidate_mode, input_scenario, 
-                                     f"embed_{query_candidate_mode}", 
+            path2vecs = os.path.join(query_candidate_dirname, input_scenario, 
+                                     f"embed_{query_candidate_dirname}", 
                                      "rnn_" + rnn_pass + "*")
-            path2ids = os.path.join(query_candidate_mode, input_scenario, 
-                                    f"embed_{query_candidate_mode}", "rnn_indxs*")
-            pathdf = os.path.join(query_candidate_mode, input_scenario, f"{query_candidate_mode}.df")
-            path_vec_combined = os.path.join(outputpath, f"{query_candidate_mode}_{rnn_pass}.pt")
-            path_id_combined = os.path.join(outputpath, f"{query_candidate_mode}_{rnn_pass}_id.pt")
-            path_items_combined = os.path.join(outputpath, f"{query_candidate_mode}_{rnn_pass}_items.npy")
-            inp_par_dir = os.path.join(query_candidate_mode, input_scenario)
+            path2ids = os.path.join(query_candidate_dirname, input_scenario, 
+                                    f"embed_{query_candidate_dirname}", "rnn_indxs*")
+            pathdf = os.path.join(query_candidate_dirname, input_scenario, f"{query_candidate_dirname}.df")
+            path_vec_combined = os.path.join(outputpath, f"{query_candidate_name}_{rnn_pass}.pt")
+            path_id_combined = os.path.join(outputpath, f"{query_candidate_name}_{rnn_pass}_id.pt")
+            path_items_combined = os.path.join(outputpath, f"{query_candidate_name}_{rnn_pass}_items.npy")
+            inp_par_dir = os.path.join(query_candidate_dirname, input_scenario)
             
             if sel_device in ["default"]:
                 if input_file_path in ["default"]:
@@ -115,7 +117,7 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             if not no_query_candidate_df:
                 # Save strings for the first column in queries/candidates files
                 mydf = pd.read_pickle(pathdf)
-                vecs_items = mydf['s1_unicode'].to_numpy()
+                vecs_items = mydf[['s1_unicode', "s1"]].to_numpy()
                 np.save(path_items_combined, vecs_items)
     
     print("--- %s seconds ---" % (time.time() - start_time))

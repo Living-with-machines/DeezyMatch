@@ -58,12 +58,10 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
         sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be between 0 and 1.")
     
     # ----- CANDIDATES
-    detect_prefix = glob.glob(os.path.join(scenario, "*_fwd_items.npy"))[0] 
-    detect_prefix = os.path.basename(os.path.abspath(detect_prefix)).split("_fwd_items")[0]
-    path1_combined = os.path.join(scenario, f"{detect_prefix}_fwd.pt")
-    path2_combined = os.path.join(scenario, f"{detect_prefix}_bwd.pt")
-    path_id_combined = os.path.join(scenario, f"{detect_prefix}_fwd_id.pt")
-    path_items_combined = os.path.join(scenario, f"{detect_prefix}_fwd_items.npy")
+    path1_combined = os.path.join(scenario, "candidates_fwd.pt")
+    path2_combined = os.path.join(scenario, "candidates_bwd.pt")
+    path_id_combined = os.path.join(scenario, "candidates_fwd_id.pt")
+    path_items_combined = os.path.join(scenario, "candidates_fwd_items.npy")
     
     vecs_ids_candidates = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
     vecs_items_candidates = np.load(path_items_combined, allow_pickle=True)
@@ -83,11 +81,11 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     if query:
         tmp_dirname = query_vector_gen(query, model, train_vocab, dl_inputs)
         query_scenario = os.path.join(tmp_dirname, "combined", "query_on_fly")
-        path1_combined = os.path.join(query_scenario, f"{tmp_dirname}_fwd.pt")
-        path2_combined = os.path.join(query_scenario, f"{tmp_dirname}_bwd.pt")
-        path_id_combined = os.path.join(query_scenario, f"{tmp_dirname}_fwd_id.pt")
+        path1_combined = os.path.join(query_scenario, f"queries_fwd.pt")
+        path2_combined = os.path.join(query_scenario, f"queries_bwd.pt")
+        path_id_combined = os.path.join(query_scenario, f"queries_fwd_id.pt")
         mydf = pd.read_pickle(os.path.join(tmp_dirname, "query.df"))
-        vecs_items = mydf['s1_unicode'].to_numpy()
+        vecs_items = mydf[['s1_unicode', "s1"]].to_numpy()
         np.save(os.path.join(tmp_dirname, "queries_fwd_items.npy"), vecs_items)
         path_items_combined = os.path.join(tmp_dirname, "queries_fwd_items.npy")
     else:
@@ -119,7 +117,7 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     # Empty dataframe to collect data
     output_pd = pd.DataFrame()
     for iq in range(len_vecs_query):
-        print("=========== Start the search for %s" % iq, vecs_items_query[iq])
+        print("=========== Start the search for %s" % iq, vecs_items_query[iq][1])
         collect_neigh_pd = pd.DataFrame()
         num_found_candidates = 0
         # start with 0:seach_size
@@ -137,14 +135,17 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
         
             # Candidates
             orig_id_candis = found_neighbours[1][0, id_0_neigh:id_1_neigh]
-            all_candidates = vecs_items_candidates[orig_id_candis]
+            all_candidates = vecs_items_candidates[orig_id_candis][:, 0]
+            all_candidates_orig = vecs_items_candidates[orig_id_candis][:, 1]
         
             # Queries
             orig_id_queries = vecs_ids_query[iq].item()
-            all_queries = [vecs_items_query[orig_id_queries]]*(id_1_neigh - id_0_neigh)
+            all_queries = [vecs_items_query[orig_id_queries][0]]*(id_1_neigh - id_0_neigh)
+            all_queries_no_preproc = [vecs_items_query[orig_id_queries][1]]*(id_1_neigh - id_0_neigh)
     
             query_candidate_pd = pd.DataFrame(all_queries, columns=['s1'])
             query_candidate_pd['s2'] = all_candidates
+            query_candidate_pd['s2_orig'] = all_candidates_orig
             query_candidate_pd['label'] = "False"
     
             # Compute cosine similarity
@@ -202,6 +203,17 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
         mydict_candid_id = OrderedDict({})
         mydict_cosine_sim = OrderedDict({})
         if len(collect_neigh_pd) == 0:
+            one_row = {
+                "id": orig_id_queries, 
+                "query": all_queries_no_preproc[0], 
+                "pred_score": [mydict_dl_match], 
+                "faiss_distance": [mydict_faiss_dist], 
+                "cosine_sim": [mydict_cosine_sim],
+                "candidate_original_ids": [mydict_candid_id], 
+                "query_original_id": orig_id_queries,
+                "num_all_searches": id_1_neigh 
+                }
+            output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
             continue
         if ranking_metric.lower() in ["faiss"]:
             collect_neigh_pd = collect_neigh_pd.sort_values(by="faiss_dist")[:num_candidates]
@@ -212,15 +224,15 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     
         for i_row, row in collect_neigh_pd.iterrows():
             if not pretrained_model_path in [False, None]:
-                mydict_dl_match[row["s2"]] = round(row["dl_match"], 4)
+                mydict_dl_match[row["s2_orig"]] = round(row["dl_match"], 4)
             else:
-                mydict_dl_match[row["s2"]] = row["dl_match"]
-            mydict_faiss_dist[row["s2"]] = round(row["faiss_dist"], 4)
-            mydict_cosine_sim[row["s2"]] = round(row["cosine_sim"], 4)
-            mydict_candid_id[row["s2"]] = row["s2_orig_ids"]
+                mydict_dl_match[row["s2_orig"]] = row["dl_match"]
+            mydict_faiss_dist[row["s2_orig"]] = round(row["faiss_dist"], 4)
+            mydict_cosine_sim[row["s2_orig"]] = round(row["cosine_sim"], 4)
+            mydict_candid_id[row["s2_orig"]] = row["s2_orig_ids"]
         one_row = {
             "id": orig_id_queries, 
-            "query": all_queries[0], 
+            "query": all_queries_no_preproc[0], 
             "pred_score": [mydict_dl_match], 
             "faiss_distance": [mydict_faiss_dist], 
             "cosine_sim": [mydict_cosine_sim],
@@ -232,12 +244,11 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
            
     if len(output_pd) == 0:
         return None
-    else:
-        output_pd = output_pd.set_index("id")
-        output_pd.to_pickle(os.path.join(scenario, f"{output_filename}.pkl"))
-        elapsed = time.time() - start_time
-        print("TOTAL TIME: %s" % elapsed)
-        return output_pd
+    output_pd = output_pd.set_index("id")
+    output_pd.to_pickle(os.path.join(scenario, f"{output_filename}.pkl"))
+    elapsed = time.time() - start_time
+    print("TOTAL TIME: %s" % elapsed)
+    return output_pd
 
 def main():
     # --- read args from the command line

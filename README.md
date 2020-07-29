@@ -325,7 +325,7 @@ In the above examples, DeezyMatch creates `queries` and `candidates` directories
 from DeezyMatch import inference as dm_inference
 
 # generate vectors for queries and candidates
-# NOTE the new argument: query_candidate_dirname 
+# note the new argument: query_candidate_dirname 
 dm_inference(input_file_path="./inputs/input_dfm.yaml",
              dataset_path="dataset/dataset-string-similarity_test.txt", 
              pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
@@ -427,7 +427,7 @@ combined
     └── test_candidates_deezymatch.pkl
 ```
 
-In case `query_candidate_dirname` was set in [Changing query/candidate directory names](#changing-query/candidate directory-names), the vector representations can be combined by:
+In case `query_candidate_dirname` was set in [changing query/candidate directory names](#changing-querycandidate-directory-names), the vector representations can be combined by:
 
 ```python
 from DeezyMatch import combine_vecs
@@ -449,18 +449,34 @@ Moreover, it is possible to change the default dirname where combined vector rep
 from DeezyMatch import combine_vecs
 
 # combine vectors
-combine_vecs(qc_modes=['q', 'c'], 
+combine_vecs(qc_modes='q', 
              rnn_passes=['fwd', 'bwd'], 
              input_scenario='test', 
              output_scenario='test', 
+             query_candidate_dirname='my_query_dir',
              output_par_dir="my_combined_dir",
              print_every=10)
 ```
 
-which would result in the following directory structure:
+:warning: in this case, `output_par_dir="my_combined_dir"` should be set for `qc_modes='c'` as well, that is:
+
+```python
+from DeezyMatch import combine_vecs
+
+# combine vectors
+combine_vecs(qc_modes='c', 
+             rnn_passes=['fwd', 'bwd'], 
+             input_scenario='test', 
+             output_scenario='test', 
+             query_candidate_dirname='my_candidate_dir',
+             output_par_dir="my_combined_dir",
+             print_every=10)
+```
+
+which results in the following directory structure:
 
 ```
-my_combined_dir
+my_combined_dir/
 └── test
     ├── candidates_bwd_id.pt
     ├── candidates_bwd_items.npy
@@ -474,7 +490,7 @@ my_combined_dir
     ├── queries_bwd.pt
     ├── queries_fwd_id.pt
     ├── queries_fwd_items.npy
-    └── queries_fwd.pt
+    ├── queries_fwd.pt
 ```
 
 #### CandidateRanker
@@ -489,6 +505,24 @@ from DeezyMatch import candidate_ranker
 # Find candidates
 candidates_pd = \
     candidate_ranker(scenario="./combined/test/", 
+                     ranking_metric="faiss", 
+                     selection_threshold=5., 
+                     num_candidates=1, 
+                     search_size=4, 
+                     output_filename="test_candidates_deezymatch", 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
+```
+
+Similarly, if `output_par_dir="my_combined_dir"` was set in [combine vector representations](#combine-vector-representations), we need to set `scenario="./my_combined_dir/test"`: 
+
+```python
+from DeezyMatch import candidate_ranker
+
+# Find candidates
+candidates_pd = \
+    candidate_ranker(scenario="./my_combined_dir/test", 
                      ranking_metric="faiss", 
                      selection_threshold=5., 
                      num_candidates=1, 
