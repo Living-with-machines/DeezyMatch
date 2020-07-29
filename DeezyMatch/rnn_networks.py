@@ -769,7 +769,6 @@ class two_parallel_rnns(nn.Module):
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))
         return y_out
-        #return F.log_softmax(output_combined, dim=-1)
 
     def init_hidden(self, batch_size, device):
         first_dim = self.rnn_n_layers
