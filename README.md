@@ -30,6 +30,8 @@ Table of contents
     * [Model inference](#model-inference)
     * [Generate query and candidate vectors](#generate-query-and-candidate-vectors)
     * [Candidate ranker and assembling vector representations](#candidate-ranker-and-assembling-vector-representations)
+    * [Candidate ranking on-the-fly](#candidate-ranking-on-the-fly)
+    * [Tips / Suggestions on DeezyMatch functionalities](#)
 - [Examples on how to run DeezyMatch](./examples)
 - [Installation and setup](#installation)
 - [Credits](#credits)
@@ -612,6 +614,18 @@ Note that the only difference compared to the previous command is `ranking_metri
 ```bash
 DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
+
+
+## Tips / Suggestions on DeezyMatch functionalities
+
+### Candidate ranker
+
+* As already mentioned, based on our experiments, `conf` is not a good metric for ranking candidates. Consider using `faiss` or `cosine`.
+
+* In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** are also reported.
+
+* In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. 
+
 
 ## Installation
 
