@@ -31,7 +31,7 @@ Table of contents
     * [Generate query and candidate vectors](#generate-query-and-candidate-vectors)
     * [Candidate ranker and assembling vector representations](#candidate-ranker-and-assembling-vector-representations)
     * [Candidate ranking on-the-fly](#candidate-ranking-on-the-fly)
-    * [Tips / Suggestions on DeezyMatch functionalities](#)
+    * [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities)
 - [Examples on how to run DeezyMatch](./examples)
 - [Installation and setup](#installation)
 - [Credits](#credits)
