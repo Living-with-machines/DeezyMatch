@@ -58,6 +58,10 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
                 if query_candidate_dirname in ["default"]:
                     query_candidate_dirname = "candidates"
         
+            if not os.path.isdir(query_candidate_dirname):
+                sys.exit(f"Directory does not exist: {query_candidate_dirname}")
+            if not os.path.isdir(os.path.join(query_candidate_dirname, input_scenario)):
+                sys.exit(f"Directory does not exist: {os.path.join(query_candidate_dirname, input_scenario)}")
             # Set path according to query/candidate mode
             path2vecs = os.path.join(query_candidate_dirname, input_scenario, 
                                      f"embed_{query_candidate_dirname}", 
@@ -65,6 +69,8 @@ def combine_vecs(input_file_path="default", qc_modes=["q", "c"], rnn_passes=["fw
             path2ids = os.path.join(query_candidate_dirname, input_scenario, 
                                     f"embed_{query_candidate_dirname}", "rnn_indxs*")
             pathdf = os.path.join(query_candidate_dirname, input_scenario, f"{query_candidate_dirname}.df")
+            if not os.path.isfile(pathdf):
+                sys.exit(f"File does not exit: {pathdf}")
             path_vec_combined = os.path.join(outputpath, f"{query_candidate_name}_{rnn_pass}.pt")
             path_id_combined = os.path.join(outputpath, f"{query_candidate_name}_{rnn_pass}_id.pt")
             path_items_combined = os.path.join(outputpath, f"{query_candidate_name}_{rnn_pass}_items.npy")
