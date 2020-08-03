@@ -615,6 +615,10 @@ Note that the only difference compared to the previous command is `ranking_metri
 DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
+## Candidate ranking on-the-fly
+
+XXX TO BE ADDED
+
 
 ## Tips / Suggestions on DeezyMatch functionalities
 
