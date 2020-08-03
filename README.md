@@ -619,6 +619,23 @@ DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.5
 
 XXX TO BE ADDED
 
+```python
+from DeezyMatch import candidate_ranker
+
+# Find candidates
+candidates_pd = \
+    candidate_ranker(scenario="./combined/test",
+                     query=["sinbotin", "Il'menskiy"],
+                     ranking_metric="conf", 
+                     selection_threshold=0.8, 
+                     num_candidates=10, 
+                     search_size=1000, 
+                     output_filename="test_candidates_deezymatch", 
+                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                     number_test_rows=20)
+```
+
 
 ## Tips / Suggestions on DeezyMatch functionalities
 
