@@ -788,7 +788,7 @@ candidates_pd = \
 
 * Adding prefix/suffix to input strings (see `prefix_suffix` option in the input file) can greatly enhance the ranking results. However, we recommend one-character-long prefix/suffix; otherwise, this may affect the computation time.
 
-* In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** are also reported.
+* In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** (ranked according to the selected metric, in this case faiss) are also reported.
 
 * In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. 
 
