@@ -678,25 +678,7 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
-Similarly, if `output_par_dir="my_combined_dir"` was set in [combine vector representations](#combine-vector-representations), we need to set `scenario="./my_combined_dir/test"`: 
-
-```python
-from DeezyMatch import candidate_ranker
-
-# Find candidates
-candidates_pd = \
-    candidate_ranker(scenario="./my_combined_dir/test", 
-                     ranking_metric="faiss", 
-                     selection_threshold=5., 
-                     num_candidates=1, 
-                     search_size=4, 
-                     output_filename="test_candidates_deezymatch", 
-                     pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
-                     pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
-                     number_test_rows=20)
-```
-
-`scenario` is the directory that contains all the assembled vectors [(see)](#combine-vector-representations). 
+`query_scenario` is the directory that contains all the assembled query vectors [(see)](#combine-vector-representations) while `candidate_scenario` contains the assembled candidate vectors.
 
 `ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs). 
 
@@ -804,7 +786,7 @@ candidates_pd = \
 
 * As already mentioned, based on our experiments, `conf` is not a good metric for ranking candidates. Consider using `faiss` or `cosine`.
 
-* Adding prefix/suffix to input strings (see `prefix_suffix` option in the input file) can greatly enhance the ranking results.
+* Adding prefix/suffix to input strings (see `prefix_suffix` option in the input file) can greatly enhance the ranking results. However, we recommend one-character-long prefix/suffix; otherwise, this may affect the computation time.
 
 * In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** are also reported.
 
