@@ -35,15 +35,16 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # ------------------- candidate_ranker --------------------
-def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="faiss", selection_threshold=0.8, 
-                     query=None, num_candidates=10, search_size=4, output_filename="ranker_output",
+def candidate_ranker(input_file_path="default", query_scenario=None, candidate_scenario=None,
+                     ranking_metric="faiss", selection_threshold=0.8, 
+                     query=None, num_candidates=10, search_size=4, output_path="ranker_output",
                      pretrained_model_path=None, pretrained_vocab_path=None, number_test_rows=-1):
 
     start_time = time.time()
     
     if input_file_path in ["default"]:
         found_input = False
-        detect_input_files = glob.iglob(os.path.join(scenario, "*.yaml"))
+        detect_input_files = glob.iglob(os.path.join(candidate_scenario, "*.yaml"))
         for detected_inp in detect_input_files:
             if os.path.isfile(detected_inp):
                 input_file_path = detected_inp
@@ -55,7 +56,6 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     # read input file
     dl_inputs = read_input_file(input_file_path)
 
-
     if (ranking_metric.lower() in ["faiss"]) and (selection_threshold < 0):
         sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be >= 0.")
     if (ranking_metric.lower() in ["cosine", "conf"]) and not (0 <= selection_threshold <= 1):
@@ -66,10 +66,10 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
                   "Current ranking methods are: 'faiss', 'cosine', 'conf'")
     
     # ----- CANDIDATES
-    path1_combined = os.path.join(scenario, "candidates_fwd.pt")
-    path2_combined = os.path.join(scenario, "candidates_bwd.pt")
-    path_id_combined = os.path.join(scenario, "candidates_fwd_id.pt")
-    path_items_combined = os.path.join(scenario, "candidates_fwd_items.npy")
+    path1_combined = os.path.join(candidate_scenario, "fwd.pt")
+    path2_combined = os.path.join(candidate_scenario, "bwd.pt")
+    path_id_combined = os.path.join(candidate_scenario, "fwd_id.pt")
+    path_items_combined = os.path.join(candidate_scenario, "fwd_items.npy")
     
     vecs_ids_candidates = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
     vecs_items_candidates = np.load(path_items_combined, allow_pickle=True)
@@ -89,19 +89,16 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     if query:
         tmp_dirname = query_vector_gen(query, model, train_vocab, dl_inputs)
         query_scenario = os.path.join(tmp_dirname, "combined", "query_on_fly")
-        path1_combined = os.path.join(query_scenario, f"queries_fwd.pt")
-        path2_combined = os.path.join(query_scenario, f"queries_bwd.pt")
-        path_id_combined = os.path.join(query_scenario, f"queries_fwd_id.pt")
-        mydf = pd.read_pickle(os.path.join(tmp_dirname, "query.df"))
+        mydf = pd.read_pickle(os.path.join(tmp_dirname, "query", "dataframe.df"))
         vecs_items = mydf[['s1_unicode', "s1"]].to_numpy()
-        np.save(os.path.join(tmp_dirname, "queries_fwd_items.npy"), vecs_items)
-        path_items_combined = os.path.join(tmp_dirname, "queries_fwd_items.npy")
+        np.save(os.path.join(tmp_dirname, "fwd_items.npy"), vecs_items)
+        path_items_combined = os.path.join(tmp_dirname, "fwd_items.npy")
     else:
-        query_scenario = scenario
-        path1_combined = os.path.join(query_scenario, "queries_fwd.pt")
-        path2_combined = os.path.join(query_scenario, "queries_bwd.pt")
-        path_id_combined = os.path.join(query_scenario, "queries_fwd_id.pt")
-        path_items_combined = os.path.join(query_scenario, "queries_fwd_items.npy")
+        path_items_combined = os.path.join(query_scenario, "fwd_items.npy")
+
+    path1_combined = os.path.join(query_scenario, f"fwd.pt")
+    path2_combined = os.path.join(query_scenario, f"bwd.pt")
+    path_id_combined = os.path.join(query_scenario, f"fwd_id.pt")
     
     vecs_ids_query = torch.load(path_id_combined, map_location=dl_inputs['general']['device'])
     vecs_items_query = np.load(path_items_combined, allow_pickle=True)
@@ -161,7 +158,11 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
                                            vecs_candidates.detach().cpu().numpy()[orig_id_candis])
     
             if not pretrained_model_path in [False, None]:
-                all_preds = candidate_conf_calc(query_candidate_pd, model, train_vocab, dl_inputs, cutoffs=(id_1_neigh - id_0_neigh))
+                all_preds = candidate_conf_calc(query_candidate_pd, 
+                                                model, 
+                                                train_vocab, 
+                                                dl_inputs, 
+                                                cutoffs=(id_1_neigh - id_0_neigh))
                 query_candidate_pd['dl_match'] = all_preds.detach().cpu().numpy()
     
             else:
@@ -253,25 +254,30 @@ def candidate_ranker(input_file_path="default", scenario=None, ranking_metric="f
     if len(output_pd) == 0:
         return None
     output_pd = output_pd.set_index("id")
-    output_pd.to_pickle(os.path.join(scenario, f"{output_filename}.pkl"))
+    output_path = os.path.abspath(output_path)
+    if not os.path.isdir(os.path.dirname(output_path)):
+        os.makedirs(os.path.dirname(output_path))
+    output_pd.to_pickle(os.path.join(f"{output_path}.pkl"))
     elapsed = time.time() - start_time
     print("TOTAL TIME: %s" % elapsed)
     return output_pd
 
 def main():
     # --- read args from the command line
-    output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
-        par_dir, input_file_path, number_test_rows, pretrained_model_path, pretrained_vocab_path = \
+    input_file_path, query_scenario, candidate_scenario, ranking_metric, selection_threshold,\
+        query, num_candidates, search_size, output_path, pretrained_model_path, pretrained_vocab_path, number_test_rows = \
         read_command_candidate_ranker()
     
     # --- 
     candidate_ranker(input_file_path=input_file_path, 
-                     scenario=par_dir, 
+                     query_scenario=query_scenario, 
+                     candidate_scenario=candidate_scenario,
                      ranking_metric=ranking_metric, 
                      selection_threshold=selection_threshold, 
+                     query=query,
                      num_candidates=num_candidates, 
                      search_size=search_size, 
-                     output_filename=output_filename,
+                     output_path=output_path,
                      pretrained_model_path=pretrained_model_path, 
                      pretrained_vocab_path=pretrained_vocab_path, 
                      number_test_rows=number_test_rows)

@@ -2,7 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 """
-DeezyMatch main code: select the relevant module (train, finetune, inference, combine_vecs, candidate_ranker) 
+--------------------
+DeezyMatch main code
+--------------------
+select the relevant module (train, finetune, inference, combine_vecs, candidate_ranker, plot_log) 
 based on the inputs.
 """
 
@@ -21,6 +24,7 @@ from .rnn_networks import gru_lstm_network, fine_tuning
 from .rnn_networks import inference as rnn_inference
 from .utils import deezy_mode_detector
 from .utils import read_inputs_command, read_inference_command, read_input_file
+from .utils import log_plotter
 from .utils import cprint, bc, log_message
 # --- set seed for reproducibility
 from .utils import set_seed_everywhere
@@ -206,8 +210,7 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
 # ------------------- inference --------------------
 def inference(input_file_path=None, dataset_path=None, 
               pretrained_model_path=None, pretrained_vocab_path=None,  
-              cutoff=None, inference_mode="test", query_candidate_mode=["q", "c"], scenario=None,
-              query_candidate_dirname="default"):
+              cutoff=None, inference_mode="test", scenario=None):
     """
     Use an already trained model for inference/prediction
 
@@ -225,36 +228,37 @@ def inference(input_file_path=None, dataset_path=None,
         number of examples to be used (optional)
     inference_mode
         Three options: test (inference), vect (generate vector representations)
-    query_candidate_mode
-        Two modes: q (generate query vectors), c (generate candidate vectors)
     scenario
         Name of the experiment/top-directory
-    query_candidate_dirname
-        dir name for query/candidate vectors, default: generates queries/candidates dirs for q and c modes, respectively.
     """
 
     # --- read input file
     dl_inputs = read_input_file(input_file_path)
 
-    if not type(query_candidate_mode) in [list, tuple]:
-        query_candidate_mode = [query_candidate_mode]
+    # --- Inference / generate vector representations
+    rnn_inference(model_path=pretrained_model_path, 
+                  dataset_path=dataset_path, 
+                  train_vocab_path=pretrained_vocab_path, 
+                  input_file_path=input_file_path, 
+                  test_cutoff=cutoff, 
+                  inference_mode=inference_mode, 
+                  scenario=scenario, 
+                  dl_inputs=dl_inputs)
 
-    if inference_mode in ["test"]:
-        # query_candidate_mode is not used:
-        query_candidate_mode = ["q"]
+# ------------------- log_plotter --------------------
+def plot_log(path2log, dataset="DEFAULT"):
+    """
+    Plot a log file
 
-    for qc_mode in query_candidate_mode:
-        # --- Inference / generate vector representations
-        rnn_inference(model_path=pretrained_model_path, 
-                      dataset_path=dataset_path, 
-                      train_vocab_path=pretrained_vocab_path, 
-                      input_file_path=input_file_path, 
-                      test_cutoff=cutoff, 
-                      inference_mode=inference_mode, 
-                      query_candidate_mode=qc_mode, 
-                      scenario=scenario, 
-                      dl_inputs=dl_inputs,
-                      query_candidate_dirname=query_candidate_dirname)
+    Parameters
+    ----------
+    path2log
+        path of the log file
+    dataset
+        Name of the dataset for which the log will be plotted. This name is used in the figures.
+    """
+    log_plotter(path2log=path2log,
+                dataset=dataset)
 
 # ------------------- main --------------------
 def main():
@@ -287,7 +291,7 @@ def main():
     elif dm_mode in ["inference"]:
         # --- read command args for inference
         model_path, dataset_path, train_vocab_path, input_file_path, test_cutoff, \
-        inference_mode, query_candidate_mode, scenario = \
+        inference_mode, scenario = \
             read_inference_command()
 
         inference(input_file_path=input_file_path, 
@@ -296,7 +300,6 @@ def main():
                   pretrained_vocab_path=train_vocab_path, 
                   cutoff=test_cutoff, 
                   inference_mode=inference_mode, 
-                  query_candidate_mode=query_candidate_mode, 
                   scenario=scenario)
     
     elif dm_mode in ["combine_vecs"]:

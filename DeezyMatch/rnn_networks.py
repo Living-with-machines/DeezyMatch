@@ -16,14 +16,20 @@ Others:
 - https://medium.com/intel-student-ambassadors/implementing-attention-models-in-pytorch-f947034b3e66
 """
 
-import time, os
+from datetime import datetime
+import glob
+import numpy as np
+import os
 import pickle
 import shutil
+import sys
+import time
 #from tqdm import tqdm, tnrange
 from tqdm.autonotebook import tqdm
 from tqdm import tnrange
 
-from datetime import datetime
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,12 +37,6 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.autograd import Variable
-
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-
-import glob
-import numpy as np
-import sys
 
 from .data_processing import test_tokenize
 from .utils import cprint, bc, log_message
@@ -113,14 +113,19 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
 
     if dl_inputs['gru_lstm']['create_tensor_board']:
-        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                                   model_name, 
+                                   dl_inputs['gru_lstm']['create_tensor_board'])
     else:
         tboard_path = None
 
     fit(model=model_gru,
         train_dl=train_dl, 
         valid_dl=valid_dl,
-        loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], dtype=torch.float32, device=dl_inputs['general']['device']), reduction="mean"),  # The negative log likelihood loss
+        loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], 
+                                                        dtype=torch.float32, 
+                                                        device=dl_inputs['general']['device']), 
+                                    reduction="mean"),  # The negative log likelihood loss
         opt=opt,
         epochs=epochs,
         pooling_mode=pooling_mode,
@@ -203,14 +208,19 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
 
     if dl_inputs['gru_lstm']['create_tensor_board']:
-        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                                   model_name, 
+                                   dl_inputs['gru_lstm']['create_tensor_board'])
     else:
         tboard_path = None
 
     fit(model=pretrained_model,
         train_dl=train_dl, 
         valid_dl=valid_dl,
-        loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], dtype=torch.float32, device=dl_inputs['general']['device']), reduction="mean"),  # The negative log likelihood loss
+        loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], 
+                                                        dtype=torch.float32, 
+                                                        device=dl_inputs['general']['device']), 
+                                    reduction="mean"),  # The negative log likelihood loss
         opt=opt,
         epochs=epochs,
         pooling_mode=pooling_mode,
@@ -393,7 +403,10 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
     total_loss_test = 0
 
     # XXX HARD CODED! Also in rnn_networks
-    loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], dtype=torch.float32, device=device), reduction="mean")
+    loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], 
+                                                     dtype=torch.float32, 
+                                                     device=device), 
+                                reduction="mean")
     # In first dump of the results, we add a header to the output file
     first_dump = True
 
@@ -780,8 +793,7 @@ class two_parallel_rnns(nn.Module):
 
 # ------------------- inference  --------------------
 def inference(model_path, dataset_path, train_vocab_path, input_file_path,
-              test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs,
-              query_candidate_dirname="default"):
+              test_cutoff, inference_mode, scenario, dl_inputs):
 
     start_time = time.time()
 
@@ -799,21 +811,13 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         output_state_vectors = False
         path_save_test_class = False
     else:
-        if query_candidate_mode in ["q"] and (query_candidate_dirname in ["default"]):
-            query_candidate_mode = "queries"
-        elif query_candidate_mode in ["c"] and (query_candidate_dirname in ["default"]):
-            query_candidate_mode = "candidates"
-        else:
-            query_candidate_mode = query_candidate_dirname
-
-        
-        # Set path according to query_candidate_mode
-        scenario_path = os.path.abspath(os.path.join(query_candidate_mode, scenario))
+        # Set path
+        scenario_path = os.path.abspath(scenario)
         if not os.path.isdir(scenario_path):
             os.makedirs(scenario_path)
-        output_state_vectors = os.path.join(scenario_path, f"embed_{query_candidate_mode}", "rnn")
-        path_save_test_class = os.path.join(scenario_path, f"{query_candidate_mode}.df")
-        parent_dir = os.path.dirname(os.path.abspath(output_state_vectors))
+        output_state_vectors = os.path.join(scenario_path, f"embeddings", "rnn")
+        path_save_test_class = os.path.join(scenario_path, f"dataframe.df")
+        parent_dir = os.path.dirname(output_state_vectors)    # == /path/to/embeddings
         # Clean-up dirs/files
         if os.path.isdir(parent_dir):
             shutil.rmtree(parent_dir)

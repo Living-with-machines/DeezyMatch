@@ -235,15 +235,13 @@ def read_inference_command():
         parser = ArgumentParser()
         parser.add_argument("--deezy_mode",
                         help="DeezyMatch mode",
-                        default=None
-                        )
+                        default=None)
         parser.add_argument("-m", "--model_path")
         parser.add_argument("-d", "--dataset_path")
         parser.add_argument("-v", "--vocabulary_path")
         parser.add_argument("-i", "--input_file_path")
         parser.add_argument("-n", "--number_examples")
         parser.add_argument("-mode", "--inference_mode", default="test")
-        parser.add_argument("-qc", "--query_candidate_mode", default="q")
         parser.add_argument("-sc", "--scenario")
         args = parser.parse_args()
         
@@ -253,14 +251,13 @@ def read_inference_command():
         input_file = args.input_file_path
         test_cutoff = args.number_examples
         inference_mode = args.inference_mode
-        query_candidate_mode = args.query_candidate_mode
         scenario = args.scenario
 
     except IndexError as error:
         cprint('[syntax error]', bc.red, 'syntax: python <modelInference.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff')
         sys.exit("[ERROR] {}".format(error))
     
-    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode, scenario
+    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, scenario
 
 # ------------------- read_command_combinevecs --------------------
 def read_command_combinevecs():
@@ -270,9 +267,6 @@ def read_command_combinevecs():
                     help="DeezyMatch mode",
                     default="combine_vecs"
                     )
-
-    parser.add_argument("-qc", "--candidate_or_query",
-                        help="select mode: candidate (c) or query (q)")
 
     parser.add_argument("-sc", "--candidate_query_scenario", 
                         help="name of the candidate or query scenario")
@@ -287,18 +281,12 @@ def read_command_combinevecs():
                         help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
                         default="default")
 
-    parser.add_argument("-qc_dir", "--query_candidate_dirname",
-                        help="dir name for query/candidate vectors, default: generates queries/candidates dirs for q and c modes, respectively.", 
-                        default="default")
-
     args = parser.parse_args()
-    qc_mode = args.candidate_or_query
     cq_sc = args.candidate_query_scenario
     rnn_pass = args.rnn_pass
     combined_sc = args.combined_scenario
     input_file_path = args.input_file_path
-    query_candidate_dirname = args.query_candidate_dirname
-    return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path, query_candidate_dirname
+    return cq_sc, rnn_pass, combined_sc, input_file_path
 
 # ------------------- read_command_candidate_ranker --------------------
 def read_command_candidate_ranker():
@@ -309,6 +297,20 @@ def read_command_candidate_ranker():
                     default="candidate_ranker"
                     )
 
+    parser.add_argument("-i", "--input_file_path",
+                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
+                        default="default")
+
+    parser.add_argument("-qs", "--query_scenario",
+                        help="path of the combined folder for queries")
+
+    parser.add_argument("-cs", "--candidate_scenario",
+                        help="path of the combined folder for candidates")
+
+    parser.add_argument("-rm", "--ranking_metric",
+                        help="Choices between faiss, cosine, conf", 
+                        default="faiss")
+
     parser.add_argument("-t", "--threshold",
                         help="Selection criterion. NOTE: changes according to the ranking metric specified by -rm. " \
                              "A candidate will be selected if:" \
@@ -317,30 +319,19 @@ def read_command_candidate_ranker():
                              "prediction-confidence >= threshold", 
                         default=0.8)
 
-    parser.add_argument("-rm", "--ranking_metric",
-                        help="Choices between faiss, cosine, conf", 
-                        default="faiss")
+    parser.add_argument("-q", "--query",
+                    help="on-the-fly query, this can be a single string or a list of strings.", 
+                    default=None)
 
     parser.add_argument("-n", "--num_candidates",
                         help="Number of candidates", default=10)
 
-    parser.add_argument("-o", "--output_filename",
-                        help="output filename")
-
     parser.add_argument("-sz", "--search_size",
                         help="search size", default=4)
 
-    parser.add_argument("-comb", "--combined_path",
-                        help="path of the combined folder")
-    
-    parser.add_argument("-i", "--input_file_path",
-                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
-                        default="default")
-    
-    parser.add_argument("-tn", "--number_test_rows",
-                        help="Only for testing", 
-                        default=-1)
-    
+    parser.add_argument("-o", "--output_path",
+                        help="path to output file")
+
     parser.add_argument("-mp", "--model_path",
                         help="Path to a DeezyMatch model, normally /path/to/file.model", 
                         default=False)
@@ -348,20 +339,29 @@ def read_command_candidate_ranker():
     parser.add_argument("-v", "--vocab_path",
                         help="Path to a vocabulary file, normally /path/to/file.vocab", 
                         default=False)
+    
+    parser.add_argument("-tn", "--number_test_rows",
+                        help="Only for testing", 
+                        default=-1)
+    
 
     args = parser.parse_args()
-    num_candidates = int(args.num_candidates)
-    output_filename = args.output_filename
-    selection_threshold = float(args.threshold)
-    ranking_metric = args.ranking_metric
-    search_size = int(args.search_size)
-    comb_path = args.combined_path
     input_file_path = args.input_file_path
-    number_test_rows = int(args.number_test_rows)
+    query_scenario = args.query_scenario
+    candidate_scenario = args.candidate_scenario
+    ranking_metric = args.ranking_metric
+    selection_threshold = float(args.threshold)
+    query = args.query
+    num_candidates = int(args.num_candidates)
+    search_size = int(args.search_size)
+    output_path = args.output_path
     model_path = args.model_path
     vocab_path = args.vocab_path
-    return output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
-           comb_path, input_file_path, number_test_rows, model_path, vocab_path
+    number_test_rows = int(args.number_test_rows)
+
+    return input_file_path, query_scenario, candidate_scenario, ranking_metric, selection_threshold,\
+           query, num_candidates, search_size, output_path, model_path, vocab_path,\
+           number_test_rows
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):

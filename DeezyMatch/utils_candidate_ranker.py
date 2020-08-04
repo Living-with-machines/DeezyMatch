@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-# Add parent path so we can import modules
-import sys
-sys.path.insert(0,'..')
-
 import os
 import pandas as pd
+import sys
 from torch.utils.data import DataLoader
 import uuid
 
@@ -48,7 +45,7 @@ def query_vector_gen(query, model, train_vocab, dl_inputs):
                        ),
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],
-        save_test_class=os.path.join(tmp_dirname, "query.df"),
+        save_test_class=os.path.join(tmp_dirname, "query", "dataframe.df"),
         dataframe_input=True,
         verbose=False
         )
@@ -65,7 +62,7 @@ def query_vector_gen(query, model, train_vocab, dl_inputs):
                pooling_mode=dl_inputs['gru_lstm']['pooling_mode'],
                device=dl_inputs['general']['device'],
                evaluation=True,
-               output_state_vectors=os.path.join(tmp_dirname, "query", f"embed_{tmp_dirname}", "rnn"), 
+               output_state_vectors=os.path.join(tmp_dirname, "query", f"embeddings", "rnn"), 
                output_preds=False,
                output_preds_file=False,
                csv_sep=dl_inputs['preprocessing']['csv_sep'],
@@ -73,17 +70,12 @@ def query_vector_gen(query, model, train_vocab, dl_inputs):
                )
      
     # combine vectors 
-    combine_vecs(qc_modes='q',  
-                 rnn_passes=['fwd', 'bwd'],  
-                 input_scenario='query',  
-                 output_scenario='query_on_fly',  
-                 output_par_dir=os.path.join(tmp_dirname, "combined"),
-                 query_candidate_dirname=tmp_dirname, 
+    combine_vecs(rnn_passes=['fwd', 'bwd'],  
+                 input_scenario=os.path.join(tmp_dirname, 'query'),  
+                 output_scenario=os.path.join(tmp_dirname, "combined", "query_on_fly"),  
                  print_every=10,
                  sel_device=dl_inputs["general"]["device"],
-                 no_query_candidate_df=True
-                 ) 
-
+                 save_df=False) 
     
     return tmp_dirname
 
