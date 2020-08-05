@@ -282,6 +282,9 @@ models/test001
 
 ### Finetune a pretrained model
 
+
+XXXXX we don't say anywhere in the readme how to fine-tune on n number of rows on the Python interface (i.e. with n_train_examples=xxx). We should add it in the main Finetune a pretrained model section, I'm not sure we want to have it in the quick tour as well.
+
 `finetune` module can be used to fine-tune a pretrained model:
 
 ```python
@@ -791,6 +794,7 @@ candidates_pd = \
 * In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** (ranked according to the selected metric, in this case faiss) are also reported.
 
 * In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. 
+XXXX explain rationale
 
 
 ## Installation
