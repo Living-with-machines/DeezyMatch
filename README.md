@@ -186,7 +186,7 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
 ```python
 from DeezyMatch import candidate_ranker
 
-# Find candidates from candidate_scenario 
+# find candidates from candidate_scenario 
 # for queries specified in query_scenario
 candidates_pd = \
     candidate_ranker(query_scenario="./combined/queries_test",
@@ -206,7 +206,7 @@ candidates_pd = \
 ```python
 from DeezyMatch import candidate_ranker
 
-# Find candidates from candidate_scenario 
+# find candidates from candidate_scenario 
 # for queries specified by the `query` argument
 candidates_pd = \
     candidate_ranker(candidate_scenario="./combined/candidates_test",
@@ -240,59 +240,61 @@ The same model can be trained via command line:
 DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
-A new model directory called `test001` will be created in `models` directory (as specified in the `models_dir` in the input file).
+A new model directory called `test001` will be created in `models` directory (as specified in the input file, see `models_dir` in `./inputs/input_dfm.yaml`).
 
 :warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
 * Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
 * Delimiter is fixed to `\t` for now.
 
-
-XXXX
+DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
 ```python
 from DeezyMatch import plot_log
-plot_log(path2log="./models/test001/log.txt", dataset="t001")
+
+# plot log file
+plot_log(path2log="./models/test001/log.txt", 
+         dataset="t001")
 ```
 
-DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
+or:
 
 ```bash
-DeezyMatch -lp ./models/test001/log.txt -ld test001
+DeezyMatch -lp ./models/test001/log.txt -ld t001
 ```
 
 In this command, 
-* `-lp`: runs the log plotter
+* `-lp`: runs the log plotter on `./models/test001/log.txt` file. 
 * `-ld` is a name assigned to the log which will be used in the figure. 
 
 This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
+![Example output of plot_log module](./figs/log_t001.png)
+
 DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure:
 
 ```bash
-models/test001
-├── checkpoint00000.model
-├── checkpoint00001.model
-├── checkpoint00002.model
-├── checkpoint00003.model
-├── checkpoint00004.model
-├── input_dfm.yaml
-├── log.txt
-├── log_test001.png
-├── test001.model
-└── test001.vocab
+models/
+└── test001
+    ├── checkpoint00001.model
+    ├── checkpoint00002.model
+    ├── checkpoint00003.model
+    ├── checkpoint00004.model
+    ├── checkpoint00005.model
+    ├── input_dfm.yaml
+    ├── log_t001.png
+    ├── log.txt
+    ├── test001.model
+    └── test001.vocab
 ```
 
 ### Finetune a pretrained model
-
-
-XXXXX we don't say anywhere in the readme how to fine-tune on n number of rows on the Python interface (i.e. with n_train_examples=xxx). We should add it in the main Finetune a pretrained model section, I'm not sure we want to have it in the quick tour as well.
 
 `finetune` module can be used to fine-tune a pretrained model:
 
 ```python
 from DeezyMatch import finetune as dm_finetune
 
-# fine-tune a pretrained model
+# fine-tune a pretrained model stored at pretrained_model_path and pretrained_vocab_path 
 dm_finetune(input_file_path="./inputs/input_dfm.yaml", 
             dataset_path="dataset/dataset-string-similarity_test.txt", 
             model_name="finetuned_test001",
@@ -300,12 +302,26 @@ dm_finetune(input_file_path="./inputs/input_dfm.yaml",
             pretrained_vocab_path="./models/test001/test001.vocab")
 ```
 
-`dataset_path` specifies the dataset to be used for finetuning. For this example, we use the same dataset as in training however, other datasets are normally used to finetune an already trained model. The paths to model and vocabulary of the pretrained model are specified in `pretrained_model_path` and `pretrained_vocab_path`, respectively.
+`dataset_path` specifies the dataset to be used for finetuning. For this example, we use the same dataset as in training; normally, other datasets are used to finetune a model. The paths to model and vocabulary of the pretrained model are specified in `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
+
+It is also possible to fine-tune a model on a specified number of rows by (note `n_train_example`):
+
+```python
+from DeezyMatch import finetune as dm_finetune
+
+# fine-tune a pretrained model stored at pretrained_model_path and pretrained_vocab_path 
+dm_finetune(input_file_path="./inputs/input_dfm.yaml", 
+            dataset_path="dataset/dataset-string-similarity_test.txt", 
+            model_name="finetuned_test001",
+            pretrained_model_path="./models/test001/test001.model", 
+            pretrained_vocab_path="./models/test001/test001.vocab",
+            n_train_example=100)
+```
 
 The same can be done via command line:
 
 ```bash
-DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m finetuned_test001 -f ./models/test001/test001.model -v ./models/test001/test001.vocab 
+DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m finetuned_test001 -f ./models/test001/test001.model -v ./models/test001/test001.vocab -n 100 
 ```
 
 :warning: Note that it is also possible to add the argument `-n 100` to the above command to only use 100 rows for fine-tuning. In this example, we use all the rows. If `-n` flag is not specified, the train/valid/test proportions are read from the input file.
