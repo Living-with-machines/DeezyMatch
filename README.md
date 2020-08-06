@@ -92,7 +92,7 @@ dm_train(input_file_path="./inputs/input_dfm.yaml",
          model_name="test001")
 ```
 
-* Plot the `log.txt` file (contains loss/accuracy/recall/F1-scores as a function of epoch):
+* Plot the log file (stored at `./models/test001/log.txt` and contains loss/accuracy/recall/F1-scores as a function of epoch):
 
 ```python
 from DeezyMatch import plot_log
@@ -132,7 +132,8 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
  ```python
  from DeezyMatch import inference as dm_inference
 
-# generate vectors for queries (specified in dataset_path) using a model stored at pretrained_model_path and pretrained_vocab_path 
+# generate vectors for queries (specified in dataset_path) 
+# using a model stored at pretrained_model_path and pretrained_vocab_path 
 dm_inference(input_file_path="./inputs/input_dfm.yaml",
              dataset_path="dataset/dataset-string-similarity_test.txt", 
              pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
@@ -146,7 +147,8 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
 ```python
 from DeezyMatch import inference as dm_inference
 
-# generate vectors for candidates (specified in dataset_path) using a model stored at pretrained_model_path and pretrained_vocab_path 
+# generate vectors for candidates (specified in dataset_path) 
+# using a model stored at pretrained_model_path and pretrained_vocab_path 
 dm_inference(input_file_path="./inputs/input_dfm.yaml",
              dataset_path="dataset/dataset-string-similarity_test.txt", 
              pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
@@ -184,13 +186,14 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
 ```python
 from DeezyMatch import candidate_ranker
 
-# Find candidates for queries specified in query_scenario
+# Find candidates from candidate_scenario 
+# for queries specified in query_scenario
 candidates_pd = \
     candidate_ranker(query_scenario="./combined/queries_test",
                      candidate_scenario="./combined/candidates_test", 
                      ranking_metric="faiss", 
                      selection_threshold=5., 
-                     num_candidates=1, 
+                     num_candidates=4, 
                      search_size=4, 
                      output_path="ranker_results/test_candidates_deezymatch", 
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
@@ -203,12 +206,13 @@ candidates_pd = \
 ```python
 from DeezyMatch import candidate_ranker
 
-# Find candidates for queries specified by the `query` argument
+# Find candidates from candidate_scenario 
+# for queries specified by the `query` argument
 candidates_pd = \
     candidate_ranker(candidate_scenario="./combined/candidates_test",
                      query=["sinbotin", "Il'menskiy"],
                      ranking_metric="faiss", 
-                     selection_threshold=0.8, 
+                     selection_threshold=2., 
                      num_candidates=10, 
                      search_size=1000, 
                      output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
