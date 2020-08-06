@@ -42,7 +42,7 @@ Table of contents
 In the tutorials, we assume the following directory structure:
 
 ```bash
-.
+test_deezy/
 ├── dataset
 │   ├── characters_v001.vocab
 │   └── dataset-string-similarity_test.txt
@@ -50,7 +50,7 @@ In the tutorials, we assume the following directory structure:
     └── input_dfm.yaml
 ```
 
-For this, we first create a test directory (<ins>**note that we strongly recommend creating this directory outside of the DeezyMarch directory cloned and installed following the installation section. After installation, DeezyMatch command lines and modules are accessible from anywhere on your local machine.**</ins>):
+For this, we first create a test directory (<ins>**note that this directory can be created outside of the DeezyMarch source code. After installation, DeezyMatch command lines and modules are accessible from anywhere on your local machine.**</ins>):
 
 ```bash
 mkdir ./test_deezy
@@ -823,7 +823,7 @@ DeezyMatch can be installed in different ways:
     pip install DeezyMatch
     ```
 
-    We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
 
     ```bash
     python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
