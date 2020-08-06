@@ -590,7 +590,8 @@ def log_plotter(path2log, dataset="DEFAULT"):
     
     print(f"Dataset: {dataset}\nTime: {total_time}s")
     print(f"Dataset: {dataset}\nTime / epoch: {total_time/(len(time_arr)-1):.3f}s")
-    
+    print("=============")
+
     train_arr = np.array(train_arr)
     valid_arr = np.array(valid_arr)
     if len(valid_arr > 0):
@@ -602,59 +603,71 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.figure(figsize=(15, 12))
 
     plt.subplot(3, 2, 1)
-    plt.plot(train_arr[:, 0], train_arr[:, 1], label="train loss", c="k", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 1], label="train loss", c="k", lw=2, marker="o")
     if plot_valid:
-        plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
-                 f"Epoch: {min_valid_arg+1}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
+        #         f"Epoch: {min_valid_arg+1}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, Loss: {valid_arr[min_valid_arg, 1]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Loss", size=18)
-    plt.legend(fontsize=14)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
     plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
     plt.subplot(3, 2, 2)
-    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train macro F1", c="k", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train macro F1", c="k", lw=2, marker="o")
     if plot_valid:  
-        plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid macro F1", c='r', lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
-             f"Epoch: {min_valid_arg+1}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid macro F1", c='r', lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
+        #     f"Epoch: {min_valid_arg+1}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, macro F1: {valid_arr[min_valid_arg, 5]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("macro F1", size=18)
-    plt.legend(fontsize=14, loc=4)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
     plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
     plt.subplot(3, 2, 3)
-    plt.plot(train_arr[:, 0], train_arr[:, 2], label="train acc", c="k", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 2], label="train acc", c="k", lw=2, marker="o")
     if plot_valid:
-        plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
-                 f"Epoch: {min_valid_arg+1}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
+        #         f"Epoch: {min_valid_arg+1}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, Acc: {valid_arr[min_valid_arg, 2]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Accuracy", size=18)
-    plt.legend(fontsize=14, loc=4)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
     plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
     plt.subplot(3, 2, 4)
-    plt.plot(train_arr[:, 0], train_arr[:, 3], label="train prec", c="k", ls="-", lw=2)
-    plt.plot(train_arr[:, 0], train_arr[:, 4], label="train recall", c="k", ls="--", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 3], label="train prec", c="k", ls="-", lw=2, marker="o")
+    plt.plot(train_arr[:, 0], train_arr[:, 4], label="train recall", c="k", ls="--", lw=2, marker="o")
     if plot_valid:
-        plt.plot(valid_arr[:, 0], valid_arr[:, 3], label="valid prec", c='r', ls="-", lw=2)
-        plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
-                 f"Epoch: {min_valid_arg+1}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 3], label="valid prec", c='r', ls="-", lw=2, marker="o")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
+        #         f"Epoch: {min_valid_arg+1}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Precision/Recall", size=18)
-    plt.legend(fontsize=14, loc=4)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
     plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
