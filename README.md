@@ -77,11 +77,9 @@ Refer to [installation section](#installation) to set-up DeezyMatch on your loca
 
 ### Quick tour 
 
-Refer to [installation section](#installation) to set-up DeezyMatch on your local machine. 
+In this "quick tour", we go through all the DeezyMatch main functionalities with minimal explanations. If you want to know more about each module, refer to the relevant part of README (also referenced in this section):
 
 :warning: In the following tutorials, we assume a directory structure specified in [this section](#data-and-directory-structure-in-tutorials).
-
-In this "quick tour", we go through all the DeezyMatch main functionalities with minimal explanations. If you want to know more about each module, refer to the relevant part of the README (also referenced in this section):
 
 * [Train a new model](#train-a-new-model):
 
