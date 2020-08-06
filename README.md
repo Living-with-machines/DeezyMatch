@@ -326,7 +326,7 @@ DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.
 
 :warning: If `-n` flag (or `n_train_examples` argument) is not specified, the train/valid/test proportions are read from the input file.
 
-A new fine-tuned model called `finetuned_test001` will be stored in `models` directory. To fine-tune the pretrained model, two components in the neural network architecture were frozen, that is, not changed during fine-tuning (see `layers_to_freeze` in the input file). When running the above command, DeezyMatch lists the parameters in the model and whether or not they will be used in finetuning:
+A new fine-tuned model called `finetuned_test001` will be stored in `models` directory. In this example, two components in the neural network architecture were frozen, that is, not changed during fine-tuning (see `layers_to_freeze` in the input file). When running the above command, DeezyMatch lists the parameters in the model and whether or not they will be used in finetuning:
 
 ```
 ============================================================

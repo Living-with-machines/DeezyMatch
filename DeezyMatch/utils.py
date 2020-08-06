@@ -411,7 +411,7 @@ def model_explorer(model_path):
         print(name, param.requires_grad)
     print(20*"===")
     print("Any of the above parameters can be freezed for fine-tuning.")
-    print("You can also input, e.g., 'gru_1' and in this case, all weights/biases related to that layer will be freezed.")
+    print("You can also input, e.g., 'rnn_1' and in this case, all weights/biases related to that layer will be freezed.")
     print("See input file.")
     print(20*"===")
 
