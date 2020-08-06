@@ -16,9 +16,9 @@
 
 DeezyMatch can be applied for performing the following tasks:
 
-- Toponym matching
-- Candidate selection for entity linking systems
 - Record linkage
+- Candidate selection for entity linking systems
+- Toponym matching
 
 Table of contents
 -----------------
@@ -801,50 +801,66 @@ XXXX explain rationale
 
 We strongly recommend installation via Anaconda:
 
-1. Refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/).
+* Refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/).
 
-2. Create a new environment for DeezyMatch
+* Create a new environment for DeezyMatch
 
 ```bash
 conda create -n py37deezy python=3.7
 ```
 
-3. Activate the environment:
+* Activate the environment:
 
 ```bash
 conda activate py37deezy
 ```
 
-4. Clone DeezyMatch repositories on your local machine.
+DeezyMatch can be installed in different ways:
 
-5. Install DeezyMatch dependencies:
+1. **install DeezyMatch via [PyPi](https://pypi.org/project/DeezyMatch/)**: which tends to be the most user-friendly option:
 
-```
-cd /path/to/my/DeezyMatch
-pip install -r requirements.txt
-```
+    ```bash
+    pip install DeezyMatch
+    ```
 
-We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+    We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
 
-```bash
-python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
-```
+    ```bash
+    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+    ```
 
-6. Install DeezyMatch:
+    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
 
-```
-cd /path/to/my/DeezyMatch
-python setup.py install
-```
+2. **install DeezyMatch from the source code**:
 
-Alternatively:
+    * Clone DeezyMatch source code:
 
-```
-cd /path/to/my/DeezyMatch
-pip install -v -e .
-```
+    ```bash
+    git clone https://github.com/Living-with-machines/DeezyMatch.git
+    ```
 
-7. Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
+    * Install DeezyMatch dependencies:
+
+    ```
+    cd /path/to/my/DeezyMatch
+    pip install -r requirements.txt
+    ```
+
+    * Install DeezyMatch:
+
+    ```
+    cd /path/to/my/DeezyMatch
+    python setup.py install
+    ```
+
+    Alternatively:
+
+    ```
+    cd /path/to/my/DeezyMatch
+    pip install -v -e .
+    ```
+
+    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
 
 ---
 
