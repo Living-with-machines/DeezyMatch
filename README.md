@@ -304,7 +304,7 @@ dm_finetune(input_file_path="./inputs/input_dfm.yaml",
 
 `dataset_path` specifies the dataset to be used for finetuning. For this example, we use the same dataset as in training; normally, other datasets are used to finetune a model. The paths to model and vocabulary of the pretrained model are specified in `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
 
-It is also possible to fine-tune a model on a specified number of rows by (note `n_train_example`):
+It is also possible to fine-tune a model on a specified number of examples/rows from `dataset_path` (see the `n_train_examples` argument):
 
 ```python
 from DeezyMatch import finetune as dm_finetune
@@ -315,7 +315,7 @@ dm_finetune(input_file_path="./inputs/input_dfm.yaml",
             model_name="finetuned_test001",
             pretrained_model_path="./models/test001/test001.model", 
             pretrained_vocab_path="./models/test001/test001.vocab",
-            n_train_example=100)
+            n_train_examples=100)
 ```
 
 The same can be done via command line:
