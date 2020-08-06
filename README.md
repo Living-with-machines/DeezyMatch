@@ -92,7 +92,7 @@ dm_train(input_file_path="./inputs/input_dfm.yaml",
          model_name="test001")
 ```
 
-* Plot the `log.txt` file (loss/accuracy/recall/F1-scores as a function of epoch):
+* Plot the `log.txt` file (contains loss/accuracy/recall/F1-scores as a function of epoch):
 
 ```python
 from DeezyMatch import plot_log
