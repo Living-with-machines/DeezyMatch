@@ -516,26 +516,9 @@ Before using the `candidate_ranker` module of DeezyMatch, we need to:
 
 Step 1 is already discussed in detail in the previous [section: Generate query and candidate vectors](#generate-query-and-candidate-vectors).
 
-:warning: `queries` and `candidates` directories need to be in the same directory, for example:
-
-```bash
-├── candidates
-│   └── test
-├── dataset
-│   ├── characters_v001.vocab
-│   └── dataset-string-similarity_test.txt
-├── inputs
-│   └── input_dfm.yaml
-├── models
-│   ├── finetuned_test001
-│   └── test001
-└── queries
-    └── test
-```
-
 #### Combine vector representations 
 
-This step is required if query or candidate vectors are stored on several files (normally the case!). `combine_vecs` module can assemble those vector representations and store the results in `combined/output_scenario` directory (`output_scenario` is an argument in `combine_vecs` function): 
+This step is required if query or candidate vectors are stored on several files (normally the case!). `combine_vecs` module assembles those vectors and store the results in `output_scenario` (see function below): 
 
 ```python
 from DeezyMatch import combine_vecs
