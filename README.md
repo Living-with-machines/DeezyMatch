@@ -393,15 +393,20 @@ DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-
 The inference component creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
 
 ```bash
-# s1_unicode    s2_unicode      prediction      p0      p1      label
-la dom nxy      ลําโดมน้อย        1       0.1635  0.8365  1
-krutoy  крутой  1       0.0632  0.9368  1
-sharunyata      shartjugskij    0       0.8696  0.1304  0
-sutangcun       羊山村  1       0.4821  0.5179  0
-rongreiyn ban hwy h wk cxmthxng rongreiyn ban hnxng xu  0       0.9156  0.0844  0
-同心村  tong xin cun    1       0.1178  0.8822  1
-engeskjæran     abrahamskjeret  0       0.8976  0.1024  0
-izumo-zaki      tsumo-zaki      1       0.3394  0.6606  1
+# s1	s2	prediction	p0	p1	label
+Krutoy	Крутой	1	0.1432	0.8568	1
+Sharunyata	Shartjugskij	0	0.9553	0.0447	0
+Sutangcun	羊山村	1	0.3031	0.6969	0
+同心村	tong xin cun	1	0.1666	0.8334	1
+Engeskjæran	Abrahamskjeret	0	0.7942	0.2058	0
+Izumo-zaki	Tsumo-zaki	1	0.3216	0.6784	1
+Qermez Khalifeh-ye `Olya	Qermez Khalīfeh-ye ‘Olyā	1	0.1267	0.8733	1
+კირენია	Κυρά	0	0.8817	0.1183	0
+Ozero Pogoreloe	Ozero Pogoreloye	1	0.2111	0.7889	1
+Anfijld	ਮਾਕਰੋਨ ਸਟੇਡੀਅਮ	0	0.6214	0.3786	0
+Qanât el-Manzala	El-Manzala Canal	1	0.2361	0.7639	1
+Yŏhangmyŏn-samuso	yeohangmyeonsamuso	1	0.0820	0.9180	1
+Mājra	Lahāri Tibba	0	0.5295	0.4705	0
 ```
 
 `p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8365`. In these examples, DeezyMatch correctly predicts the label in all rows except for `sutangcun       羊山村`. By looking at the confidence scores, it is clear that DeezyMatch is not confident which label to assign (`p0=0.4821` and `p1=0.5179`). It should be noted, in this example and for showcasing DeezyMatch's functionalities, the model was trained and used for model inference on one dataset. In practice, we train a model on a dataset and use it for prediction on another dataset(s). Also, the dataset used to train the above model has around ~10K rows. Again, in practice, we use larger datasets for training and fine-tuning.
