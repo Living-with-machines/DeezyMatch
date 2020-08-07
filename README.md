@@ -585,20 +585,21 @@ In this command, compared to `combine_vecs` module explained above:
 
 #### CandidateRanker
 
-Various options are available to find a set of candidates (from a dataset) for a given query in the same or another dataset.
+Candidate ranker uses the vector representations, generated and assembled in the previous sections, to find a set of candidates (from a dataset) for a given query in the same or another dataset. In the following example, for queries stored in `query_scenario`, we want to find 4 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
 
-* Select candidates based on L2-norm distance (aka faiss distance):
+:warning: It is also possible to do [candidate ranking on-the-fly](#candidate-ranking-on-the-fly) in which query vectors are generated on-the-fly (and not stored in a dataset, e.g., `query_senario` in the following example).
 
 ```python
 from DeezyMatch import candidate_ranker
 
-# Find candidates
+# find candidates from candidate_scenario 
+# for queries specified in query_scenario
 candidates_pd = \
     candidate_ranker(query_scenario="./combined/queries_test",
                      candidate_scenario="./combined/candidates_test", 
                      ranking_metric="faiss", 
                      selection_threshold=5., 
-                     num_candidates=1, 
+                     num_candidates=4, 
                      search_size=4, 
                      output_path="ranker_results/test_candidates_deezymatch", 
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
@@ -610,7 +611,7 @@ candidates_pd = \
 
 `ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs). 
 
-:warning: In our experiments, `conf` was not a good metric to rank candidates. Consider using `faiss` or `cosine`.
+:warning: In our experiments, `conf` was not a good metric to rank candidates. Consider using `faiss` or `cosine` instead.
 
 `selection_threshold`: changes according to the `ranking_metric`:
 
@@ -623,13 +624,13 @@ A candidate will be selected if:
 
 :warning: Note that `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
 
-`search_size`: At each iteration, the selected ranking metric between a query and candidates (with the size of `search_size`) are computed, and if the number of desired candidates (specified by `num_candidates`) is not reached, a new batch of candidates with the size of `search_size` is tested. This continues until candidates with the size of `num_candidates` are found or all the candidates are tested.
+`search_size`: for a given query, DeezyMatch searches for candidates iteratively. At each iteration, the selected ranking metric between a query and candidates (with the size of `search_size`) are computed, and if the number of desired candidates (specified by `num_candidates`) is not reached, a new batch of candidates with the size of `search_size` is tested in the next iteration. This continues until candidates with the size of `num_candidates` are found or all the candidates are tested. 
 
 The DeezyMatch model and its vocabulary are specified by `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
 
 `number_test_rows`: **only for testing**. It specifies the number of queries to be used for testing.
 
-The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `combined/test/test_candidates_deezymatch.pkl` (specified by `output_filename`) which is in a pandas dataframe fromat. The first few rows are:
+The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `output_path` which is in a pandas dataframe fromat. The first few rows are:
 
 ```bash
                 query                     pred_score              faiss_distance                  cosine_sim    candidate_original_ids  query_original_id  num_all_searches
@@ -641,6 +642,14 @@ id
 ```
 
 As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
+
+
+
+
+
+* Select candidates based on L2-norm distance (aka faiss distance):
+
+
 
 Similarly, the above results can be generated via command line:
 
