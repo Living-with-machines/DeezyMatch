@@ -478,17 +478,17 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                     test_line_id +=1
 
             if output_preds:
-                pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
-                                        test_dl.dataset.df.loc[indxs]["s2_unicode"].to_numpy(), 
-                                        pred_idx.cpu().data.numpy().T, 
-                                        pred_softmax.T.cpu().data.numpy(), 
-                                        y.cpu().data.numpy().T])
+                pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1"].to_numpy(), 
+                                          test_dl.dataset.df.loc[indxs]["s2"].to_numpy(), 
+                                          pred_idx.cpu().data.numpy().T, 
+                                          pred_softmax.T.cpu().data.numpy(), 
+                                          y.cpu().data.numpy().T])
                 if output_preds_file:
                     with open(output_preds_file, "a+") as pred_f:
                         if first_dump:
                             np.savetxt(pred_f, pred_results.T, 
                                     fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep, 
-                                    header=f"s1_unicode{csv_sep}s2_unicode{csv_sep}prediction{csv_sep}p0{csv_sep}p1{csv_sep}label")
+                                    header=f"s1{csv_sep}s2{csv_sep}prediction{csv_sep}p0{csv_sep}p1{csv_sep}label")
                             first_dump = False
                         else:
                             np.savetxt(pred_f, pred_results.T, 

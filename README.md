@@ -362,27 +362,13 @@ fc2.bias True
 
 The first column lists the parameters in the model, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "rnn_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
 
-In fact, it is possible to print all parameters in a model by:
+It is possible to print all parameters in a model by:
 
 ```bash
 DeezyMatch -pm models/finetuned_test001/finetuned_test001.model
 ```
 
 which generates similar output as above.
-
-In fine-tuning, it is also possible to specify a directory name for the argument `pretrained_model_path`. For example: 
-
-```python
-from DeezyMatch import finetune as dm_finetune
-
-# fine-tune a pretrained model
-dm_finetune(input_file_path="./inputs/input_dfm.yaml", 
-            dataset_path="dataset/dataset-string-similarity_test.txt", 
-            model_name="finetuned_test001",
-            pretrained_model_path="./models/test001")
-```
-
-In this case, DeezyMatch will create the `pretrained_model_path` and `pretrained_vocab_path` using the input directory name, namely, `./models/test001/test001.model` and `./models/test001/test001.vocab`.
 
 ### Model inference
 
@@ -391,7 +377,7 @@ When a model is trained/fine-tuned, `inference` module can be used for predictio
 ```python
 from DeezyMatch import inference as dm_inference
 
-# model inference
+# model inference using a model stored at pretrained_model_path and pretrained_vocab_path 
 dm_inference(input_file_path="./inputs/input_dfm.yaml",
              dataset_path="dataset/dataset-string-similarity_test.txt", 
              pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
