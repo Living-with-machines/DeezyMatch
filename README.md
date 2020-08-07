@@ -518,129 +518,70 @@ Step 1 is already discussed in detail in the previous [section: Generate query a
 
 #### Combine vector representations 
 
-This step is required if query or candidate vectors are stored on several files (normally the case!). `combine_vecs` module assembles those vectors and store the results in `output_scenario` (see function below): 
+This step is required if query or candidate vector representations are stored on several files (<ins>normally the case!</ins>). `combine_vecs` module assembles those vectors and store the results in `output_scenario` (see function below). For query vectors: 
 
 ```python
 from DeezyMatch import combine_vecs
 
-# combine vectors
+# combine vectors stored in queries/test and save them in combined/queries_test
 combine_vecs(rnn_passes=['fwd', 'bwd'], 
              input_scenario='queries/test', 
              output_scenario='combined/queries_test', 
              print_every=10)
 ```
 
+Similarly, for candidate vectors:
+
 ```python
 from DeezyMatch import combine_vecs
 
-# combine vectors
+# combine vectors stored in candidates/test and save them in combined/candidates_test
 combine_vecs(rnn_passes=['fwd', 'bwd'], 
              input_scenario='candidates/test', 
              output_scenario='combined/candidates_test', 
              print_every=10)
 ```
 
+Here, `rnn_passes` specifies that `combine_vecs` should assemble all vectors generated in the forward and backward RNN/GRU/LSTM passes (and stored in the `input_scenario` directory). NOTE: we have a backward pass only if `bidirectional` is set to `True` in the input file.
 
-Here, `qc_modes` specifies that `combine_vecs` should assemble both query and candidate embeddings stored in `input_scenario` directory (`input_scenario` is a directory inside `queries` or `candidates` directories). `rnn_passes` tells `combine_vecs` to assemble all vectors generated in both forward and backward RNN/GRU/LSTM passes (we have a backward pass only if `bidirectional` is set to True in the input file).
-
-Similarly, this can be done via command line:
+The results (for both query and candidate vectors) are sored in the `output_scenario` as follows:
 
 ```bash
-DeezyMatch --deezy_mode combine_vecs -qc q,c -p fwd,bwd -sc test -combs test
+combined/
+├── candidates_test
+│   ├── bwd_id.pt
+│   ├── bwd_items.npy
+│   ├── bwd.pt
+│   ├── fwd_id.pt
+│   ├── fwd_items.npy
+│   ├── fwd.pt
+│   └── input_dfm.yaml
+└── queries_test
+    ├── bwd_id.pt
+    ├── bwd_items.npy
+    ├── bwd.pt
+    ├── fwd_id.pt
+    ├── fwd_items.npy
+    ├── fwd.pt
+    └── input_dfm.yaml
+```
+
+The above steps can be done via command line, for query vectors:
+
+```bash
+DeezyMatch --deezy_mode combine_vecs -p fwd,bwd -sc queries/test -combs combined/queries_test
+```
+
+For candidate vectors:
+
+```bash
+DeezyMatch --deezy_mode combine_vecs -p fwd,bwd -sc candidates/test -combs combined/candidates_test
 ```
 
 In this command, compared to `combine_vecs` module explained above:
-* `-qc`: `qc_modes`
 * `-p`: `rnn_passes`
 * `-sc`: `input_scenario`
 * `-combs`: `output_scenario`
-
-The results are sored in the `output_scenario` (in python module mode) or `-combs` (in command-line mode) as follows:
-
-```bash
-combined
-└── test
-    ├── candidates_bwd.pt
-    ├── candidates_bwd_id.pt
-    ├── candidates_bwd_items.npy
-    ├── candidates_fwd.pt
-    ├── candidates_fwd_id.pt
-    ├── candidates_fwd_items.npy
-    ├── input_dfm.yaml
-    ├── queries_bwd.pt
-    ├── queries_bwd_id.pt
-    ├── queries_bwd_items.npy
-    ├── queries_fwd.pt
-    ├── queries_fwd_id.pt
-    ├── queries_fwd_items.npy
-    └── test_candidates_deezymatch.pkl
-```
-
-In case `query_candidate_dirname` was set in [changing query/candidate directory names](#changing-querycandidate-directory-names), the vector representations can be combined by:
-
-```python
-from DeezyMatch import combine_vecs
-
-# combine vectors
-combine_vecs(qc_modes='q', 
-             rnn_passes=['fwd', 'bwd'], 
-             input_scenario='test', 
-             query_candidate_dirname='my_query_dir',
-             output_scenario='test', 
-             print_every=10)
-```
-
-(and similarly for candidate vectors).
-
-Moreover, it is possible to change the default dirname where combined vector representations are stored (by default, it is `combined`, see the above directory structure):
-
-```python
-from DeezyMatch import combine_vecs
-
-# combine vectors
-combine_vecs(qc_modes='q', 
-             rnn_passes=['fwd', 'bwd'], 
-             input_scenario='test', 
-             output_scenario='test', 
-             query_candidate_dirname='my_query_dir',
-             output_par_dir="my_combined_dir",
-             print_every=10)
-```
-
-:warning: in this case, `output_par_dir="my_combined_dir"` should be set for `qc_modes='c'` as well, that is:
-
-```python
-from DeezyMatch import combine_vecs
-
-# combine vectors
-combine_vecs(qc_modes='c', 
-             rnn_passes=['fwd', 'bwd'], 
-             input_scenario='test', 
-             output_scenario='test', 
-             query_candidate_dirname='my_candidate_dir',
-             output_par_dir="my_combined_dir",
-             print_every=10)
-```
-
-which results in the following directory structure:
-
-```
-my_combined_dir/
-└── test
-    ├── candidates_bwd_id.pt
-    ├── candidates_bwd_items.npy
-    ├── candidates_bwd.pt
-    ├── candidates_fwd_id.pt
-    ├── candidates_fwd_items.npy
-    ├── candidates_fwd.pt
-    ├── input_dfm.yaml
-    ├── queries_bwd_id.pt
-    ├── queries_bwd_items.npy
-    ├── queries_bwd.pt
-    ├── queries_fwd_id.pt
-    ├── queries_fwd_items.npy
-    └── queries_fwd.pt
-```
 
 #### CandidateRanker
 
