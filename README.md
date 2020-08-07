@@ -413,12 +413,13 @@ Mājra	Lahāri Tibba	0	0.5295	0.4705	0
 
 ### Generate query and candidate vectors
 
-`inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for alias selection** (which we will [talk about later](#candidate-ranker-and-assembling-vector-representations). We first create vector representations for **query** mentions (we assume the query mentions are stored in `dataset/dataset-string-similarity_test.txt`):
+`inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for alias selection and candidate ranking** (which we will [talk about later](#candidate-ranker-and-assembling-vector-representations)). We first create vector representations for **query** mentions (we assume the query mentions are stored in `dataset/dataset-string-similarity_test.txt`):
 
 ```python
 from DeezyMatch import inference as dm_inference
 
-# generate vectors for queries and candidates
+# generate vectors for queries (specified in dataset_path) 
+# using a model stored at pretrained_model_path and pretrained_vocab_path 
 dm_inference(input_file_path="./inputs/input_dfm.yaml",
              dataset_path="dataset/dataset-string-similarity_test.txt", 
              pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
@@ -429,33 +430,45 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
 
 Compared to the previous section, here we have three additional arguments: 
 * `inference_mode="vect"`: generate vector representations for the first column in `dataset_path`.
-* `query_candidate_mode`: can be `"q"` or `"c"` for `queries` and `candidates`, respectively.
-* `scenario`: directory (inside `queries` or `candidates` directories) where all the vector representations are stored.
+* `scenario`: directory to store the vectors.
 
-Alternatively, the same can be done via command line:
+The same can be done via command line:
 
 ```bash
-DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect -qc q --scenario test
+DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect --scenario queries/test
 ```
 
 The resulting directory structure is:
 
 ```
-queries
+queries/
 └── test
-    ├── embed_queries
+    ├── dataframe.df
+    ├── embeddings
+    │   ├── rnn_fwd_0
+    │   ├── rnn_fwd_1
+    │   ├── rnn_fwd_2
+    │   ├── rnn_fwd_3
+    │   ├── rnn_fwd_4
+    │   ├── rnn_fwd_5
+    │   ├── rnn_fwd_6
+    │   ├── rnn_fwd_7
+    │   ├── rnn_fwd_8
+    │   ├── rnn_fwd_9
+    │   └── ...
     ├── input_dfm.yaml
-    ├── log.txt
-    └── queries.df
+    └── log.txt
 ```
-(`embed_queries` contains all the vector representations).
+
+(`embeddings` dir contains all the vector representations).
 
 We repeat this step for `candidates` (again, we use the same dataset):
 
 ```python
 from DeezyMatch import inference as dm_inference
 
-# generate vectors for queries and candidates
+# generate vectors for candidates (specified in dataset_path) 
+# using a model stored at pretrained_model_path and pretrained_vocab_path 
 dm_inference(input_file_path="./inputs/input_dfm.yaml",
              dataset_path="dataset/dataset-string-similarity_test.txt", 
              pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
@@ -467,51 +480,30 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
 or via command line:
 
 ```bash
-DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect -qc c --scenario test
+DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect --scenario candidates/test
 ```
 
 The resulting directory structure is:
 
 ```
-candidates
+candidates/
 └── test
-    ├── candidates.df
-    ├── embed_candidates
+    ├── dataframe.df
+    ├── embeddings
+    │   ├── rnn_fwd_0
+    │   ├── rnn_fwd_1
+    │   ├── rnn_fwd_2
+    │   ├── rnn_fwd_3
+    │   ├── rnn_fwd_4
+    │   ├── rnn_fwd_5
+    │   ├── rnn_fwd_6
+    │   ├── rnn_fwd_7
+    │   ├── rnn_fwd_8
+    │   ├── rnn_fwd_9
+    │   └── ...
     ├── input_dfm.yaml
     └── log.txt
 ```
-
-### Changing query/candidate directory names
-
-In the above examples, DeezyMatch creates `queries` and `candidates` directories, by default, and store the `scenario` (in this example, it is set to `test`) inside these directories. This behaviour can be changed by (see `query_candidate_dirname="my_query_dir"`):
-
-```python
-from DeezyMatch import inference as dm_inference
-
-# generate vectors for queries and candidates
-# note the new argument: query_candidate_dirname 
-dm_inference(input_file_path="./inputs/input_dfm.yaml",
-             dataset_path="dataset/dataset-string-similarity_test.txt", 
-             pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
-             pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
-             inference_mode="vect",
-             query_candidate_mode="q",
-             query_candidate_dirname="my_query_dir",
-             scenario="test")
-```
-
-In this case, the directory structure is:
-
-```
-my_query_dir/
-└── test
-    ├── embed_my_query_dir
-    ├── input_dfm.yaml
-    ├── log.txt
-    └── my_query_dir.df
-```
-
-(this can also be done for candidates.)
 
 ### Candidate ranker and assembling vector representations
 
