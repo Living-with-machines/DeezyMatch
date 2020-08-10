@@ -131,7 +131,7 @@ test_deezy/
     └── input_dfm.yaml
 ```
 
-For this, we first create a test directory (<ins>**note that this directory can be created outside of the DeezyMarch source code. After installation, DeezyMatch command lines and modules are accessible from anywhere on your local machine.**</ins>):
+For this, we first create a test directory (:warning: note that this directory can be created outside of the DeezyMarch source code. After installation, DeezyMatch command lines and modules are accessible from anywhere on your local machine.):
 
 ```bash
 mkdir ./test_deezy
