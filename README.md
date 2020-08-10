@@ -224,6 +224,33 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
+To avoid entering all the inputs every time, candidate ranker can be called via:
+
+```python
+from DeezyMatch import candidate_ranker_init
+
+# initializing candidate_ranker via candidate_ranker_init
+cranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
+                                query=["sinbotin", "DeezyMatch", "kruty"],
+                                ranking_metric="faiss", 
+                                selection_threshold=5., 
+                                num_candidates=1, 
+                                search_size=100, 
+                                output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
+                                pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                                pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                                number_test_rows=20)
+
+# print the content of cranker by:
+print(cranker)
+
+# To rank the queries:
+cranker.rank()
+
+#The results are stored in:
+cranker.output
+```
+
 ### Train a new model
 
 DeezyMatch `train` module can be used to train a new model:
@@ -711,6 +738,92 @@ candidates_pd = \
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
                      pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
                      number_test_rows=20)
+```
+
+To avoid entering all the inputs for each query, candidate ranker can be called via:
+
+```python
+from DeezyMatch import candidate_ranker_init
+
+# initializing candidate_ranker via candidate_ranker_init
+cranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
+                                query=["sinbotin", "DeezyMatch", "kruty"],
+                                ranking_metric="faiss", 
+                                selection_threshold=5., 
+                                num_candidates=1, 
+                                search_size=100, 
+                                output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
+                                pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                                pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                                number_test_rows=20)
+```
+
+The content of `cranker` can be printed by:
+
+```python
+print(cranker)
+```
+
+which results in:
+
+```bash
+-------------------------
+* Candidate ranker params
+-------------------------
+
+Queries are based on the following list:
+['sinbotin', 'DeezyMatch', 'kruty']
+
+candidate_scenario:     ./combined/candidates_test
+---Searching params---
+num_candidates:         1
+ranking_metric:         faiss
+selection_threshold:    5.0
+search_size:            100
+number_test_rows:       20
+---I/O---
+input_file_path:        default
+output_path:            ranker_results/test_candidates_deezymatch_on_the_fly
+pretrained_model_path:  ./models/finetuned_test001/finetuned_test001.model
+pretrained_vocab_path:  ./models/finetuned_test001/finetuned_test001.vocab
+```
+
+To rank the queries:
+
+```python
+cranker.rank()
+```
+
+The results are stored in:
+
+```python
+cranker.output
+```
+
+All the query-related parameters can be changed via `set_query` method, for example:
+
+```python
+cranker.set_query(query=["another_example"])
+```
+
+other parameters include: 
+```bash
+query
+query_scenario
+ranking_metric
+selection_threshold
+num_candidates
+search_size
+number_test_rows
+output_path
+```
+
+Again, we can rank the candidates for the new query by:
+
+```python
+cranker.rank()
+# to access output:
+cranker.output
 ```
 
 ## Tips / Suggestions on DeezyMatch functionalities

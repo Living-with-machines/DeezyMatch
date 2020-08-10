@@ -34,6 +34,83 @@ set_seed_everywhere(1364)
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+# ------------------- candidateRanker --------------------
+class candidate_ranker_init:
+    """
+    Wrapper for candidate_ranker
+    """
+    def __init__(self, input_file_path="default", query_scenario=None, candidate_scenario=None,
+                 ranking_metric="faiss", selection_threshold=0.8, 
+                 query=None, num_candidates=10, search_size=4, output_path="ranker_output",
+                 pretrained_model_path=None, pretrained_vocab_path=None, number_test_rows=-1):
+        
+        self.input_file_path = input_file_path 
+        self.query_scenario = query_scenario 
+        self.candidate_scenario = candidate_scenario 
+        self.ranking_metric = ranking_metric 
+        self.selection_threshold = selection_threshold 
+        self.query = query 
+        self.num_candidates = num_candidates 
+        self.search_size = search_size 
+        self.output_path = output_path 
+        self.pretrained_model_path = pretrained_model_path 
+        self.pretrained_vocab_path = pretrained_vocab_path 
+        self.number_test_rows = number_test_rows
+
+    def rank(self):
+        self.output = \
+            candidate_ranker(input_file_path=self.input_file_path,
+                             query_scenario=self.query_scenario,
+                             candidate_scenario=self.candidate_scenario,
+                             ranking_metric=self.ranking_metric,
+                             selection_threshold=self.selection_threshold,
+                             query=self.query,
+                             num_candidates=self.num_candidates,
+                             search_size=self.search_size,
+                             output_path=self.output_path,
+                             pretrained_model_path=self.pretrained_model_path,
+                             pretrained_vocab_path=self.pretrained_vocab_path,
+                             number_test_rows=self.number_test_rows
+                            )
+    
+    def set_query(self, query=None, query_scenario=None, ranking_metric=None, 
+                  selection_threshold=None, num_candidates=None, 
+                  search_size=None, number_test_rows=None, output_path=None):
+        if query: self.query=query
+        if query_scenario: self.query_scenario=query_scenario
+        if ranking_metric: self.ranking_metric=ranking_metric
+        if selection_threshold: self.selection_threshold=selection_threshold
+        if num_candidates: self.num_candidates=num_candidates
+        if search_size: self.search_size=search_size
+        if number_test_rows: self.number_test_rows=number_test_rows
+        if output_path: self.output_path=output_path
+    
+    def __str__(self):
+        msg = "-------------------------\n"
+        msg += "* Candidate ranker params\n"
+        msg += "-------------------------\n\n"
+        if self.query:
+            msg += "Queries are based on the following list:\n"
+            msg += f"{self.query}\n\n"
+        else:
+            msg += "Queries are based on the following file:\n"
+            msg += f"{self.query_scenario}\n\n"
+
+        msg += f"candidate_scenario:\t{self.candidate_scenario}\n"
+        msg += f"---Searching params---\n"
+        msg += f"num_candidates:\t\t{self.num_candidates}\n"
+        msg += f"ranking_metric:\t\t{self.ranking_metric}\n"
+        msg += f"selection_threshold:\t{self.selection_threshold}\n"
+        msg += f"search_size:\t\t{self.search_size}\n"
+        msg += f"number_test_rows:\t{self.number_test_rows}\n"
+        msg += f"---I/O---\n"
+        msg += f"input_file_path:\t{self.input_file_path}\n"
+        msg += f"output_path:\t\t{self.output_path}\n"
+        msg += f"pretrained_model_path:\t{self.pretrained_model_path}\n"
+        msg += f"pretrained_vocab_path:\t{self.pretrained_vocab_path}\n"
+        return msg
+    
+
 # ------------------- candidate_ranker --------------------
 def candidate_ranker(input_file_path="default", query_scenario=None, candidate_scenario=None,
                      ranking_metric="faiss", selection_threshold=0.8, 
