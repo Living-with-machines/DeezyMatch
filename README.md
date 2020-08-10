@@ -23,8 +23,9 @@ DeezyMatch can be applied for performing the following tasks:
 Table of contents
 -----------------
 
+- [Installation and setup](#installation)
+- [Data and directory structure in tutorials](#data-and-directory-structure-in-tutorials)
 - [Run DeezyMatch as a Python module or via command line](#run-deezymatch-as-a-python-module-or-via-command-line)
-    * [Data and directory structure in tutorials](#data-and-directory-structure-in-tutorials)
     * [Quick tour](#quick-tour)
     * [Train a new model](#train-a-new-model)
     * [Finetune a pretrained model](#finetune-a-pretrained-model)
@@ -34,8 +35,88 @@ Table of contents
     * [Candidate ranking on-the-fly](#candidate-ranking-on-the-fly)
     * [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities)
 - [Examples on how to run DeezyMatch](./examples)
-- [Installation and setup](#installation)
 - [Credits](#credits)
+
+## Installation
+
+We strongly recommend installation via Anaconda:
+
+* Refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/).
+
+* Create a new environment for DeezyMatch
+
+```bash
+conda create -n py37deezy python=3.7
+```
+
+* Activate the environment:
+
+```bash
+conda activate py37deezy
+```
+
+DeezyMatch can be installed in different ways:
+
+1. **install DeezyMatch via [PyPi](https://pypi.org/project/DeezyMatch/)**: which tends to be the most user-friendly option:
+
+    ```bash
+    pip install DeezyMatch
+    ```
+
+    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+
+    ```bash
+    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+    ```
+
+    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
+
+2. **install DeezyMatch from the source code**:
+
+    * Clone DeezyMatch source code:
+
+    ```bash
+    git clone https://github.com/Living-with-machines/DeezyMatch.git
+    ```
+
+    * Install DeezyMatch dependencies:
+
+    ```
+    cd /path/to/my/DeezyMatch
+    pip install -r requirements.txt
+    ```
+
+    * Install DeezyMatch:
+
+    ```
+    cd /path/to/my/DeezyMatch
+    python setup.py install
+    ```
+
+    Alternatively:
+
+    ```
+    cd /path/to/my/DeezyMatch
+    pip install -v -e .
+    ```
+
+    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+
+    ```bash
+    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+    ```
+
+    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
+
+---
+
+:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateRanker.py`, one way to solve this issue is by:
+
+```bash
+pip install faiss-cpu --no-cache
+```
+
+Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
 ## Data and directory structure in tutorials
 
@@ -837,87 +918,6 @@ myranker.output
 * In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** (ranked according to the selected metric, in this case faiss) are also reported.
 
 * In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, it is done. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
-
-## Installation
-
-We strongly recommend installation via Anaconda:
-
-* Refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/).
-
-* Create a new environment for DeezyMatch
-
-```bash
-conda create -n py37deezy python=3.7
-```
-
-* Activate the environment:
-
-```bash
-conda activate py37deezy
-```
-
-DeezyMatch can be installed in different ways:
-
-1. **install DeezyMatch via [PyPi](https://pypi.org/project/DeezyMatch/)**: which tends to be the most user-friendly option:
-
-    ```bash
-    pip install DeezyMatch
-    ```
-
-    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
-
-    ```bash
-    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
-    ```
-
-    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
-
-2. **install DeezyMatch from the source code**:
-
-    * Clone DeezyMatch source code:
-
-    ```bash
-    git clone https://github.com/Living-with-machines/DeezyMatch.git
-    ```
-
-    * Install DeezyMatch dependencies:
-
-    ```
-    cd /path/to/my/DeezyMatch
-    pip install -r requirements.txt
-    ```
-
-    * Install DeezyMatch:
-
-    ```
-    cd /path/to/my/DeezyMatch
-    python setup.py install
-    ```
-
-    Alternatively:
-
-    ```
-    cd /path/to/my/DeezyMatch
-    pip install -v -e .
-    ```
-
-    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
-
-    ```bash
-    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
-    ```
-
-    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
-
----
-
-:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateRanker.py`, one way to solve this issue is by:
-
-```bash
-pip install faiss-cpu --no-cache
-```
-
-Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
 ## Credits
 
