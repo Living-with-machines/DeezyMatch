@@ -160,8 +160,6 @@ Refer to [installation section](#installation) to set-up DeezyMatch on your loca
 
 In this "quick tour", we go through all the DeezyMatch main functionalities with minimal explanations. If you want to know more about each module, refer to the relevant part of README (also referenced in this section):
 
-:warning: In the following tutorials, we assume a directory structure specified in [this section](#data-and-directory-structure-in-tutorials).
-
 * [Train a new model](#train-a-new-model):
 
 ```python
@@ -294,7 +292,7 @@ from DeezyMatch import candidate_ranker
 # for queries specified by the `query` argument
 candidates_pd = \
     candidate_ranker(candidate_scenario="./combined/candidates_test",
-                     query=["sinbotin", "DeezyMatch", "kruty"],
+                     query=["DeezyMatch", "kasra", "fede", "mariona"],
                      ranking_metric="faiss", 
                      selection_threshold=5., 
                      num_candidates=1, 
@@ -305,14 +303,14 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
-To avoid entering all the inputs every time, candidate ranker can be called via:
+The candidate ranker can be initialised, to be used multiple times, by running:
 
 ```python
 from DeezyMatch import candidate_ranker_init
 
 # initializing candidate_ranker via candidate_ranker_init
 myranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
-                                 query=["sinbotin", "DeezyMatch", "kruty"],
+                                 query=["DeezyMatch", "kasra", "fede", "mariona"],
                                  ranking_metric="faiss", 
                                  selection_threshold=5., 
                                  num_candidates=1, 
@@ -810,7 +808,7 @@ from DeezyMatch import candidate_ranker
 # for queries specified by the `query` argument
 candidates_pd = \
     candidate_ranker(candidate_scenario="./combined/candidates_test",
-                     query=["sinbotin", "DeezyMatch", "kruty"],
+                     query=["DeezyMatch", "kasra", "fede", "mariona"],
                      ranking_metric="faiss", 
                      selection_threshold=5., 
                      num_candidates=1, 
@@ -821,14 +819,14 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
-To avoid entering all the inputs for each query, candidate ranker can be called via:
+The candidate ranker can be initialised, to be used multiple times, by running:
 
 ```python
 from DeezyMatch import candidate_ranker_init
 
 # initializing candidate_ranker via candidate_ranker_init
 myranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
-                                 query=["sinbotin", "DeezyMatch", "kruty"],
+                                 query=["DeezyMatch", "kasra", "fede", "mariona"],
                                  ranking_metric="faiss", 
                                  selection_threshold=5., 
                                  num_candidates=1, 
@@ -853,7 +851,7 @@ which results in:
 -------------------------
 
 Queries are based on the following list:
-['sinbotin', 'DeezyMatch', 'kruty']
+["DeezyMatch", "kasra", "fede", "mariona"]
 
 candidate_scenario:     ./combined/candidates_test
 ---Searching params---
