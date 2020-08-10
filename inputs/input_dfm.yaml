@@ -25,7 +25,13 @@ preprocessing:
 # --- RNN/GRU/LSTM architecture/misc info
 gru_lstm:
   main_architecture: "gru"    # rnn, gru, lstm
-  mode: "char"    # char, word, bigram tokenization
+  mode:    # Tokenization mode
+    # choices: "char", "ngram", "word"
+    # for example: tokenize: ["char", "ngram", "word"] or ["char", "word"] 
+    tokenize: ["char"]
+    # ONLY if "ngram" is selected in tokenize, the following args will be used:
+    min_gram: 2
+    max_gram: 3
   bidirectional: True    # if True, becomes a bidirectional RNN/GRU/LSTM
   # num_layers
   # number of recurrent layers. e.g., setting num_layers=2 means stacking two 

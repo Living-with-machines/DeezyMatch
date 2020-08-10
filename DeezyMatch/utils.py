@@ -83,15 +83,24 @@ def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
 
 
 # ------------------- string_split --------------------
-def string_split(x, ngram=1):
-    if ngram == 1:
-        return [sub_x for sub_x in x]
-    else:
-        if len(x) <= 1:
-            return [sub_x for sub_x in x]
-        else:
-            return [x[i:i+ngram] for i in range(len(x)-ngram+1)]
-
+def string_split(x, tokenize=["char"], min_gram=1, max_gram=3):
+    """
+    Split a string using various methods.
+    min_gram and max_gram are used only if "ngram" is in tokenize
+    """
+    tokenized_str = []
+    if "char" in tokenize:
+        tokenized_str += [sub_x for sub_x in x]
+    
+    if "ngram" in tokenize:
+        for ngram in range(min_gram, max_gram+1):
+            tokenized_str += [x[i:i+ngram] for i in range(len(x)-ngram+1)] 
+    
+    if "word" in tokenize:
+        tokenized_str += x.split()
+    
+    return tokenized_str
+   
 # ------------------- deezy_mode_detector --------------------
 def deezy_mode_detector():
 
