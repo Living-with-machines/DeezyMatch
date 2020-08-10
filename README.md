@@ -230,25 +230,25 @@ To avoid entering all the inputs every time, candidate ranker can be called via:
 from DeezyMatch import candidate_ranker_init
 
 # initializing candidate_ranker via candidate_ranker_init
-cranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
-                                query=["sinbotin", "DeezyMatch", "kruty"],
-                                ranking_metric="faiss", 
-                                selection_threshold=5., 
-                                num_candidates=1, 
-                                search_size=100, 
-                                output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
-                                pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
-                                pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
-                                number_test_rows=20)
+myranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
+                                 query=["sinbotin", "DeezyMatch", "kruty"],
+                                 ranking_metric="faiss", 
+                                 selection_threshold=5., 
+                                 num_candidates=1, 
+                                 search_size=100, 
+                                 output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
+                                 pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                                 pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                                 number_test_rows=20)
 
-# print the content of cranker by:
-print(cranker)
+# print the content of myranker by:
+print(myranker)
 
 # To rank the queries:
-cranker.rank()
+myranker.rank()
 
 #The results are stored in:
-cranker.output
+myranker.output
 ```
 
 ### Train a new model
@@ -746,22 +746,22 @@ To avoid entering all the inputs for each query, candidate ranker can be called 
 from DeezyMatch import candidate_ranker_init
 
 # initializing candidate_ranker via candidate_ranker_init
-cranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
-                                query=["sinbotin", "DeezyMatch", "kruty"],
-                                ranking_metric="faiss", 
-                                selection_threshold=5., 
-                                num_candidates=1, 
-                                search_size=100, 
-                                output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
-                                pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
-                                pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
-                                number_test_rows=20)
+myranker = candidate_ranker_init(candidate_scenario="./combined/candidates_test",
+                                 query=["sinbotin", "DeezyMatch", "kruty"],
+                                 ranking_metric="faiss", 
+                                 selection_threshold=5., 
+                                 num_candidates=1, 
+                                 search_size=100, 
+                                 output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
+                                 pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
+                                 pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
+                                 number_test_rows=20)
 ```
 
-The content of `cranker` can be printed by:
+The content of `myranker` can be printed by:
 
 ```python
-print(cranker)
+print(myranker)
 ```
 
 which results in:
@@ -791,19 +791,19 @@ pretrained_vocab_path:  ./models/finetuned_test001/finetuned_test001.vocab
 To rank the queries:
 
 ```python
-cranker.rank()
+myranker.rank()
 ```
 
 The results are stored in:
 
 ```python
-cranker.output
+myranker.output
 ```
 
 All the query-related parameters can be changed via `set_query` method, for example:
 
 ```python
-cranker.set_query(query=["another_example"])
+myranker.set_query(query=["another_example"])
 ```
 
 other parameters include: 
@@ -821,9 +821,9 @@ output_path
 Again, we can rank the candidates for the new query by:
 
 ```python
-cranker.rank()
+myranker.rank()
 # to access output:
-cranker.output
+myranker.output
 ```
 
 ## Tips / Suggestions on DeezyMatch functionalities
