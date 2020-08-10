@@ -184,8 +184,10 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
 * [Candidate ranker](#candidate-ranker-and-assembling-vector-representations):
 
 ```python
+
 from DeezyMatch import candidate_ranker
 
+# Select candidates based on L2-norm distance (aka faiss distance):
 # find candidates from candidate_scenario 
 # for queries specified in query_scenario
 candidates_pd = \
@@ -193,8 +195,8 @@ candidates_pd = \
                      candidate_scenario="./combined/candidates_test", 
                      ranking_metric="faiss", 
                      selection_threshold=5., 
-                     num_candidates=4, 
-                     search_size=4, 
+                     num_candidates=2, 
+                     search_size=2, 
                      output_path="ranker_results/test_candidates_deezymatch", 
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
                      pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
@@ -206,15 +208,16 @@ candidates_pd = \
 ```python
 from DeezyMatch import candidate_ranker
 
+# Ranking on-the-fly
 # find candidates from candidate_scenario 
 # for queries specified by the `query` argument
 candidates_pd = \
     candidate_ranker(candidate_scenario="./combined/candidates_test",
-                     query=["sinbotin", "Il'menskiy"],
+                     query=["sinbotin", "DeezyMatch", "kruty"],
                      ranking_metric="faiss", 
-                     selection_threshold=2., 
-                     num_candidates=10, 
-                     search_size=1000, 
+                     selection_threshold=5., 
+                     num_candidates=1, 
+                     search_size=100, 
                      output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
                      pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
@@ -585,13 +588,14 @@ In this command, compared to `combine_vecs` module explained above:
 
 #### CandidateRanker
 
-Candidate ranker uses the vector representations, generated and assembled in the previous sections, to find a set of candidates (from a dataset) for a given query in the same or another dataset. In the following example, for queries stored in `query_scenario`, we want to find 4 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
+Candidate ranker uses the vector representations, generated and assembled in the previous sections, to find a set of candidates (from a dataset) for given queries in the same or another dataset. In the following example, for queries stored in `query_scenario`, we want to find 2 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
 
-:warning: It is also possible to do [candidate ranking on-the-fly](#candidate-ranking-on-the-fly) in which query vectors are generated on-the-fly (and not stored in a dataset, e.g., `query_senario` in the following example).
+:warning: It is also possible to do [candidate ranking on-the-fly](#candidate-ranking-on-the-fly) in which query vectors are generated on-the-fly (and not stored in a dataset).
 
 ```python
 from DeezyMatch import candidate_ranker
 
+# Select candidates based on L2-norm distance (aka faiss distance):
 # find candidates from candidate_scenario 
 # for queries specified in query_scenario
 candidates_pd = \
@@ -599,8 +603,8 @@ candidates_pd = \
                      candidate_scenario="./combined/candidates_test", 
                      ranking_metric="faiss", 
                      selection_threshold=5., 
-                     num_candidates=4, 
-                     search_size=4, 
+                     num_candidates=2, 
+                     search_size=2, 
                      output_path="ranker_results/test_candidates_deezymatch", 
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
                      pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
@@ -633,37 +637,30 @@ The DeezyMatch model and its vocabulary are specified by `pretrained_model_path`
 The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `output_path` which is in a pandas dataframe fromat. The first few rows are:
 
 ```bash
-                query                     pred_score              faiss_distance                  cosine_sim    candidate_original_ids  query_original_id  num_all_searches
-id                                                                                                                                                                         
-0          la dom nxy         {'la dom nxy': 0.7165}         {'la dom nxy': 0.0}         {'la dom nxy': 1.0}         {'la dom nxy': 0}                  0                 4
-1              krutoy             {'krutoy': 0.7733}             {'krutoy': 0.0}             {'krutoy': 1.0}             {'krutoy': 1}                  1                 4
-2          sharunyata         {'sharunyata': 0.7062}         {'sharunyata': 0.0}         {'sharunyata': 1.0}         {'sharunyata': 2}                  2                 4
-3           sutangcun          {'sutangcun': 0.6194}          {'sutangcun': 0.0}          {'sutangcun': 1.0}          {'sutangcun': 3}                  3                 4
+                              query                                         pred_score                                     faiss_distance                                         cosine_sim                             candidate_original_ids  query_original_id  num_all_searches
+id                                                                                                                                                                                                                                                                                  
+0                        la dom nxy      {'la dom nxy': 0.7976, 'Laohuzhuang': 0.7717}         {'la dom nxy': 0.0, 'Laohuzhuang': 2.6753}         {'la dom nxy': 1.0, 'Laohuzhuang': 0.8917}             {'la dom nxy': 0, 'Laohuzhuang': 3743}                  0                 2
+1                            Krutoy             {'Krutoy': 0.6356, 'Krugloye': 0.6229}                {'Krutoy': 0.0, 'Krugloye': 1.9234}                {'Krutoy': 1.0, 'Krugloye': 0.9526}                    {'Krutoy': 1, 'Krugloye': 4549}                  1                 2
+2                        Sharunyata  {'Sharunyata': 0.7585, 'Shēlah-ye Nasar-e Jari...  {'Sharunyata': 0.0, 'Shēlah-ye Nasar-e Jaritā'...  {'Sharunyata': 1.0, 'Shēlah-ye Nasar-e Jaritā'...  {'Sharunyata': 2, 'Shēlah-ye Nasar-e Jaritā': ...                  2                 2
+3                         Sutangcun       {'Sutangcun': 0.7508, 'Senge Pa`in': 0.7564}          {'Sutangcun': 0.0, 'Senge Pa`in': 2.2971}          {'Sutangcun': 1.0, 'Senge Pa`in': 0.9071}              {'Sutangcun': 3, 'Senge Pa`in': 8304}                  3                 2
 ```
 
 As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
 
-
-
-
-
-* Select candidates based on L2-norm distance (aka faiss distance):
-
-
-
 Similarly, the above results can be generated via command line:
 
 ```bash
-DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm faiss -t 5 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+eezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combined/candidates_test -rm faiss -t 5 -n 2 -sz 2 -o ranker_results/test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
 In this command, compared to `candidate_ranker` module explained above:
-* `-comb`: `scenario`
+* `-qs`: `query_scenario`
+* `-cs`: `candidate_scenario`
 * `-rm`: `ranking_metric`
 * `-t`: `selection_threshold`
 * `-n`: `num_candidates`
 * `-sz`: `search_size`
-* `-o`: `output_filename`
+* `-o`: `output_path`
 * `-mp`: `pretrained_model_path`
 * `-v`: `pretrained_vocab_path`
 * `-tn`: `number_test_rows`
@@ -675,47 +672,46 @@ In this command, compared to `candidate_ranker` module explained above:
 ```python
 from DeezyMatch import candidate_ranker
 
-# Find candidates
+# Select candidates based on cosine similarity:
+# find candidates from candidate_scenario 
+# for queries specified in query_scenario
 candidates_pd = \
-    candidate_ranker(scenario="./combined/test/", 
+    candidate_ranker(query_scenario="./combined/queries_test",
+                     candidate_scenario="./combined/candidates_test", 
                      ranking_metric="cosine", 
                      selection_threshold=0.51, 
-                     num_candidates=1, 
-                     search_size=4, 
-                     output_filename="test_candidates_deezymatch", 
+                     num_candidates=2, 
+                     search_size=2, 
+                     output_path="ranker_results/test_candidates_deezymatch", 
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
                      pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
                      number_test_rows=20)
 ```
 
-
-Note that the only difference compared to the previous command is `ranking_metric="cosine"`, or via command line:
-
-```bash
-DeezyMatch --deezy_mode candidate_ranker -comb ./combined/test -rm cosine -t 0.51 -n 1 -sz 4 -o test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
-```
+Note that the only differences compared to the previous command are `ranking_metric="cosine"` and `selection_threshold=0.51`.
 
 ## Candidate ranking on-the-fly
 
-XXX TO BE ADDED
+For a list of input strings (specified in `query` argument), DeezyMatch can rank candidates (stored in `candidate_scenario`) on-the-fly. Here, DeezyMatch generates and assembles the vector representations of strings in `query` on-the-fly.
 
 ```python
 from DeezyMatch import candidate_ranker
 
-# Find candidates
+# Ranking on-the-fly
+# find candidates from candidate_scenario 
+# for queries specified by the `query` argument
 candidates_pd = \
     candidate_ranker(candidate_scenario="./combined/candidates_test",
-                     query=["sinbotin", "Il'menskiy"],
+                     query=["sinbotin", "DeezyMatch", "kruty"],
                      ranking_metric="faiss", 
-                     selection_threshold=0.8, 
-                     num_candidates=10, 
-                     search_size=1000, 
+                     selection_threshold=5., 
+                     num_candidates=1, 
+                     search_size=100, 
                      output_path="ranker_results/test_candidates_deezymatch_on_the_fly", 
                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model", 
                      pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab", 
                      number_test_rows=20)
 ```
-
 
 ## Tips / Suggestions on DeezyMatch functionalities
 
@@ -727,9 +723,7 @@ candidates_pd = \
 
 * In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** (ranked according to the selected metric, in this case faiss) are also reported.
 
-* In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. 
-XXXX explain rationale
-
+* In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, it is done. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
 
 ## Installation
 
@@ -792,6 +786,12 @@ DeezyMatch can be installed in different ways:
     ```
     cd /path/to/my/DeezyMatch
     pip install -v -e .
+    ```
+
+    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+
+    ```bash
+    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
     ```
 
     * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
