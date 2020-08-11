@@ -834,17 +834,26 @@ Similarly, the above results can be generated via command line:
 DeezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combined/candidates_test -rm faiss -t 5 -n 2 -sz 2 -o ranker_results/test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
-In this command, compared to `candidate_ranker` module explained above:
-* `-qs`: `query_scenario`
-* `-cs`: `candidate_scenario`
-* `-rm`: `ranking_metric`
-* `-t`: `selection_threshold`
-* `-n`: `num_candidates`
-* `-sz`: `search_size`
-* `-o`: `output_path`
-* `-mp`: `pretrained_model_path`
-* `-v`: `pretrained_vocab_path`
-* `-tn`: `number_test_rows`
+---
+
+Summary of the arguments/flags:
+
+| Func. argument        	| Command-line flag 	| Description                                                                                                                                                                 	|
+|-----------------------	|-------------------	|-------------------------------------------------------------------------------------------------	|
+| input_file_path       	| -i                	| path to the input file                                                                                                                                                      	|
+| query_scenario        	| -qs               	| directory that contains all the assembled query vectors                                                                                                                     	|
+| candidate_scenario    	| -cs               	| directory that contains all the assembled candidate vectors                                                                                                                 	|
+| ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine similarity),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
+| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= threshold,<br>cosine-similarity >= threshold,<br>prediction-confidence >= threshold 	|
+| query                 	| -q                	| one string or a list of strings to be used in candidate ranking on-the-fly                                                                                                  	|
+| num_candidates        	| -n                	| number of desired candidates                                                                                                                                                	|
+| search_size           	| -sz               	| number of candidates to be tested at each iteration                                                                                                                         	|
+| output_path           	| -o                	| path to the output file                                                                                                                                                     	|
+| pretrained_model_path 	| -mp               	| path to the pretrained model                                                                                                                                                	|
+| pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                                                                                                                           	|
+| number_test_rows      	| -tn               	| number of examples to be used (optional, normally for testing)                                                                                                              	|
+
+---
 
 **Other methods**
 
