@@ -162,7 +162,7 @@ def read_inputs_command():
                     help="Plot a log file and exit. In this case, you need to specify -ld flag as well.", 
                     default=None)
 
-    parser.add_argument("-ld", "--log_dataset",
+    parser.add_argument("-ld", "--log_output_name",
                     help="Name of the dataset for which the log will be plotted. This name is used in the figures. See -lp flag.", 
                     default=None)
 
@@ -173,9 +173,9 @@ def read_inputs_command():
     args = parser.parse_args()
 
     if args.log_plot:
-        if not args.log_dataset:
+        if not args.log_output_name:
             parser.exit("ERROR: -ld is not defined.")
-        log_plotter(args.log_plot, args.log_dataset)
+        log_plotter(args.log_plot, args.log_output_name)
         sys.exit("Exit normally")
 
     if args.print_model_layers:
@@ -553,7 +553,7 @@ def create_parent_dir(file_path):
         os.mkdir(output_par_dir)
 
 # ------------------- log_plotter --------------------
-def log_plotter(path2log, dataset="DEFAULT"):
+def log_plotter(path2log, output_name="DEFAULT"):
     """Plot the generated log file for each model"""
 
     # set path for the output
@@ -561,8 +561,8 @@ def log_plotter(path2log, dataset="DEFAULT"):
     path2fig_dir = os.path.dirname(path2log)
     path2fig_dirname = os.path.basename(path2fig_dir)
 
-    if dataset in [None, "DEFAULT"]:
-        dataset = path2fig_dirname 
+    if output_name in [None, "DEFAULT"]:
+        output_name = path2fig_dirname 
 
     log_fio = open(path2log, "r")
     log = log_fio.readlines()
@@ -597,8 +597,8 @@ def log_plotter(path2log, dataset="DEFAULT"):
         diff_time.append((time_arr[i+1] - time_arr[i]).seconds)
     total_time = (time_arr[-1] - time_arr[0]).seconds
     
-    print(f"Dataset: {dataset}\nTime: {total_time}s")
-    print(f"Dataset: {dataset}\nTime / epoch: {total_time/(len(time_arr)-1):.3f}s")
+    print(f"output_name: {output_name}\nTime: {total_time}s")
+    print(f"output_name: {output_name}\nTime / epoch: {total_time/(len(time_arr)-1):.3f}s")
     print("=============")
 
     train_arr = np.array(train_arr)
@@ -681,7 +681,7 @@ def log_plotter(path2log, dataset="DEFAULT"):
     plt.yticks(size=14)
     plt.grid()
     
-    plt.figtext(0.5, 0.25, f"Dataset: {dataset}\nTotal time: {total_time}s\nAve. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", 
+    plt.figtext(0.5, 0.25, f"output_name: {output_name}\nTotal time: {total_time}s\nAve. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", 
                 ha="center", fontsize=14, bbox={"facecolor": "beige", "alpha":0.5, "pad":5})
 
     # >>>>>> Plot time per epoch, commented out for now, we provide a text summary
@@ -706,5 +706,5 @@ def log_plotter(path2log, dataset="DEFAULT"):
     # plt.grid()
 
     plt.tight_layout()
-    path2fig = os.path.join(path2fig_dir, f"log_{dataset}.png")
+    path2fig = os.path.join(path2fig_dir, f"log_{output_name}.png")
     plt.savefig(path2fig, dpi=300, bbox_inches='tight', pad_inches=0)

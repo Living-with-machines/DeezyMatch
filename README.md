@@ -158,7 +158,7 @@ Refer to [installation section](#installation) to set-up DeezyMatch on your loca
 
 ### Quick tour 
 
-In this "quick tour", we go through all the DeezyMatch main functionalities with minimal explanations. If you want to know more about each module, refer to the relevant part of README (also referenced in this section):
+In this "quick tour", we go through all the DeezyMatch main functionalities with minimal explanations. Note that, we provide basic examples using the DeezyMatch python modules here. If you want to know more about each module or run DeezyMatch via command line, refer to the relevant part of README (also referenced in this section):
 
 * [Train a new model](#train-a-new-model):
 
@@ -178,7 +178,7 @@ from DeezyMatch import plot_log
 
 # plot log file
 plot_log(path2log="./models/test001/log.txt", 
-         dataset="t001")
+         output_name="t001")
 ```
 
 * [Finetune a pretrained model](#finetune-a-pretrained-model):
@@ -362,7 +362,7 @@ from DeezyMatch import plot_log
 
 # plot log file
 plot_log(path2log="./models/test001/log.txt", 
-         dataset="t001")
+         output_name="t001")
 ```
 
 or:
@@ -372,8 +372,8 @@ DeezyMatch -lp ./models/test001/log.txt -ld t001
 ```
 
 In this command, 
-* `-lp`: runs the log plotter on `./models/test001/log.txt` file. 
-* `-ld` is a name assigned to the log which will be used in the figure. 
+* `-lp`: runs the log plotter on `./models/test001/log.txt` file. This is the same as `path2log` in `plot_log` module. 
+* `-ld` is a name assigned to the log which will be used in the figure. This is the same as `output_name` in `plot_log` module.
 
 This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
@@ -653,7 +653,7 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
 
 Here, `rnn_passes` specifies that `combine_vecs` should assemble all vectors generated in the forward and backward RNN/GRU/LSTM passes (and stored in the `input_scenario` directory). NOTE: we have a backward pass only if `bidirectional` is set to `True` in the input file.
 
-The results (for both query and candidate vectors) are sored in the `output_scenario` as follows:
+The results (for both query and candidate vectors) are stored in the `output_scenario` as follows:
 
 ```bash
 combined/
@@ -696,7 +696,7 @@ In this command, compared to `combine_vecs` module explained above:
 
 Candidate ranker uses the vector representations, generated and assembled in the previous sections, to find a set of candidates (from a dataset) for given queries in the same or another dataset. In the following example, for queries stored in `query_scenario`, we want to find 2 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
 
-:warning: It is also possible to do [candidate ranking on-the-fly](#candidate-ranking-on-the-fly) in which query vectors are generated on-the-fly (and not stored in a dataset).
+:warning: It is also possible to do [candidate ranking on-the-fly](#candidate-ranking-on-the-fly) in which query vectors are not read from a dataset (instead, they are generated on-the-fly).
 
 ```python
 from DeezyMatch import candidate_ranker

@@ -246,7 +246,7 @@ def inference(input_file_path=None, dataset_path=None,
                   dl_inputs=dl_inputs)
 
 # ------------------- log_plotter --------------------
-def plot_log(path2log, dataset="DEFAULT"):
+def plot_log(path2log, output_name="DEFAULT"):
     """
     Plot a log file
 
@@ -254,11 +254,11 @@ def plot_log(path2log, dataset="DEFAULT"):
     ----------
     path2log
         path of the log file
-    dataset
+    output_name
         Name of the dataset for which the log will be plotted. This name is used in the figures.
     """
     log_plotter(path2log=path2log,
-                dataset=dataset)
+                output_name=output_name)
 
 # ------------------- main --------------------
 def main():

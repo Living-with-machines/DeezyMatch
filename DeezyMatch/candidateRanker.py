@@ -56,6 +56,7 @@ class candidate_ranker_init:
         self.pretrained_model_path = pretrained_model_path 
         self.pretrained_vocab_path = pretrained_vocab_path 
         self.number_test_rows = number_test_rows
+        self.detected_input_file_path = None
 
     def rank(self):
         self.output = \
@@ -95,6 +96,13 @@ class candidate_ranker_init:
         else:
             msg += "Queries are based on the following file:\n"
             msg += f"{self.query_scenario}\n\n"
+        
+        if (self.input_file_path in ["default"]) and (not self.detected_input_file_path):
+            detect_input_files = glob.iglob(os.path.join(self.candidate_scenario, "*.yaml"))
+            for detected_inp in detect_input_files:
+                if os.path.isfile(detected_inp):
+                    self.detected_input_file_path = detected_inp
+                    break
 
         msg += f"candidate_scenario:\t{self.candidate_scenario}\n"
         msg += f"---Searching params---\n"
@@ -104,7 +112,10 @@ class candidate_ranker_init:
         msg += f"search_size:\t\t{self.search_size}\n"
         msg += f"number_test_rows:\t{self.number_test_rows}\n"
         msg += f"---I/O---\n"
-        msg += f"input_file_path:\t{self.input_file_path}\n"
+        if self.input_file_path in ["default"]:
+            msg += f"input_file_path:\t{self.input_file_path} (path: {self.detected_input_file_path})\n"
+        else:
+            msg += f"input_file_path:\t{self.input_file_path}\n"
         msg += f"output_path:\t\t{self.output_path}\n"
         msg += f"pretrained_model_path:\t{self.pretrained_model_path}\n"
         msg += f"pretrained_vocab_path:\t{self.pretrained_vocab_path}\n"
