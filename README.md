@@ -398,7 +398,7 @@ Summary of the arguments/flags:
 This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
 <p align="center">
-<img src="./figs/log_t001.png" alt="Example output of plot_log module" width="70%">
+<img src="./figs/log_t001.png" alt="Example output of plot_log module" width="100%">
 </p>
 
 DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure:
@@ -813,6 +813,8 @@ A candidate will be selected if:
 
 `search_size`: for a given query, DeezyMatch searches for candidates iteratively. At each iteration, the selected ranking metric between a query and candidates (with the size of `search_size`) are computed, and if the number of desired candidates (specified by `num_candidates`) is not reached, a new batch of candidates with the size of `search_size` is tested in the next iteration. This continues until candidates with the size of `num_candidates` are found or all the candidates are tested. 
 
+If the role of `search_size` argument is not clear, refer to [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities). 
+
 The DeezyMatch model and its vocabulary are specified by `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
 
 `number_test_rows`: **only for testing**. It specifies the number of queries to be used for testing.
@@ -1002,6 +1004,10 @@ myranker.output
 * In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected and ranked. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** (ranked according to the selected metric, in this case faiss) are also reported.
 
 * What is the role of `search_size`?!
+
+For a given query, DeezyMatch searches for candidates iteratively. At each iteration (i.e., one colored region in the figure below), the query vector is compared with five potential candidate vectors according to the selected ranking metric (`ranking_metric` argument). Here, `search_size` is five. In the first iteration, the closest five candidate vectors, as measured by L2-norm distance, are examined. In the figure, four (out of five) candidate vectors passed the threshold (`selection_threshold` argument). However, in this example. `num_candidates` is 10. So, DeezyMatch examines the second batch of potential candidates, again five vectors (as specified by `search_size`). Three (out of five) candidates pass the threshold. Finally, in the third iteration, three more candidates are found, and DeezyMatch collects the information of these ten candidates and go to the next query.
+
+This adaptive algorithm significantly reduces the computation time required to search a set of candidates in a dataset. Instead of searching the whole dataset, DeezyMatch iteratively tries to find the candidates.
 
 <p align="center">
 <img src="./figs/query_candidate_selection.png" alt="role of search_size in candidate ranker" width="70%">
