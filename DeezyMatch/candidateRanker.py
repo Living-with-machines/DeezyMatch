@@ -127,6 +127,42 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
                      ranking_metric="faiss", selection_threshold=0.8, 
                      query=None, num_candidates=10, search_size=4, output_path="ranker_output",
                      pretrained_model_path=None, pretrained_vocab_path=None, number_test_rows=-1):
+    """
+    find and rank a set of candidates (from a dataset) for given queries in the same or another dataset
+
+    Parameters
+    ----------
+    input_file_path
+        path to the input file. "default": read input file in `candidate_scenario`
+    query_scenario
+        directory that contains all the assembled query vectors
+    candidate_scenario
+        directory that contains all the assembled candidate vectors
+    ranking_metric
+        choices are `faiss` (used here, L2-norm distance), 
+                    `cosine` (cosine similarity), 
+                    `conf` (confidence as measured by DeezyMatch prediction outputs)
+    selection_threshold 
+        changes according to the `ranking_metric`:
+          A candidate will be selected if:
+              faiss-distance <= threshold
+              cosine-similarity >= threshold
+              prediction-confidence >= threshold
+    query
+        one string or a list of strings to be used in candidate ranking on-the-fly
+    num_candidates
+        number of desired candidates
+    search_size
+        number of candidates to be tested at each iteration
+    output_path
+        path to the output file
+    pretrained_model_path
+        path to the pretrained model
+    pretrained_vocab_path
+        path to the pretrained vocabulary
+    number_test_rows 
+        number of examples to be used (optional, normally for testing)
+    """
 
     start_time = time.time()
     

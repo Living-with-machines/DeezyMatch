@@ -29,6 +29,28 @@ def combine_vecs(input_file_path="default", rnn_passes=["fwd", "bwd"],
                  input_scenario="test",  
                  output_scenario="test", print_every=500, 
                  sel_device="default", save_df=True):
+    """
+    Assemble vectors stored in input_scenario and save them in
+    output_scenario.
+
+    Parameters
+    ----------
+    rnn_passes
+        RNN/GRU/LSTM passes to be used in assembling vectors (fwd or bwd)
+    input_scenario
+        name of the input top-directory
+    output_scenario
+        name of the output top-directory
+    input_file_path
+        path to the input file. "default": read input file in `input_scenario`
+    print_every
+        interval to print the progress in assembling vectors
+    sel_device
+        set the device (cpu, cuda, cuda:0, cuda:1, ...). 
+        if "default", the device will be read from the input file.
+    save_df
+        save strings of the first column in queries/candidates files (default: True)
+    """
     
     if type(rnn_passes) in [str]:
         rnn_passes = rnn_passes.split(",")
@@ -107,7 +129,7 @@ def combine_vecs(input_file_path="default", rnn_passes=["fwd", "bwd"],
         del vecs_ids
         
         if save_df:
-            # Save strings for the first column in queries/candidates files
+            # Save strings of the first column in queries/candidates files
             mydf = pd.read_pickle(pathdf)
             vecs_items = mydf[['s1_unicode', "s1"]].to_numpy()
             np.save(path_items_combined, vecs_items)

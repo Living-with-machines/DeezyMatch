@@ -349,6 +349,19 @@ The same model can be trained via command line:
 DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
+---
+
+Summary of the arguments/flags:
+
+| Func. argument   	| Command-line flag 	| Description                                       	|
+|------------------	|-------------------	|---------------------------------------------------	|
+| input_file_path  	| -i                	| path to the input file                            	|
+| dataset_path     	| -d                	| path to the dataset                               	|
+| model_name       	| -m                	| name of the new model                             	|
+| n_train_examples 	| -n                	| number of training examples to be used (optional) 	|
+
+---
+
 A new model directory called `test001` will be created in `models` directory (as specified in the input file, see `models_dir` in `./inputs/input_dfm.yaml`).
 
 :warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
@@ -368,12 +381,19 @@ plot_log(path2log="./models/test001/log.txt",
 or:
 
 ```bash
-DeezyMatch -lp ./models/test001/log.txt -ld t001
+DeezyMatch -lp ./models/test001/log.txt -lo t001
 ```
 
-In this command, 
-* `-lp`: runs the log plotter on `./models/test001/log.txt` file. This is the same as `path2log` in `plot_log` module. 
-* `-ld` is a name assigned to the log which will be used in the figure. This is the same as `output_name` in `plot_log` module.
+---
+
+Summary of the arguments/flags:
+
+| Func. argument 	| Command-line flag 	| Description                                  	|
+|----------------	|-------------------	|----------------------------------------------	|
+| path2log       	| -lp               	| path to the log file                         	|
+| output_name    	| -lo               	| output name (normally, name of the dataset). 	|
+
+---
 
 This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
@@ -432,6 +452,22 @@ The same can be done via command line:
 ```bash
 DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m finetuned_test001 -f ./models/test001/test001.model -v ./models/test001/test001.vocab -n 100 
 ```
+
+---
+
+Summary of the arguments/flags:
+
+| Func. argument        	| Command-line flag 	| Description                                       	|
+|-----------------------	|-------------------	|---------------------------------------------------	|
+| input_file_path       	| -i                	| path to the input file                            	|
+| dataset_path          	| -d                	| path to the dataset                               	|
+| model_name            	| -m                	| name of the new, fine-tuned model                 	|
+| pretrained_model_path 	| -f                	| path to the pretrained model                      	|
+| pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                 	|
+| ---                   	| -pm               	| print all parameters in a model                   	|
+| n_train_examples      	| -n                	| number of training examples to be used (optional) 	|
+
+---
 
 :warning: If `-n` flag (or `n_train_examples` argument) is not specified, the train/valid/test proportions are read from the input file.
 
@@ -499,6 +535,22 @@ Similarly via command line:
 DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model  -v ./models/finetuned_test001/finetuned_test001.vocab  -mode test
 ```
 
+---
+
+Summary of the arguments/flags:
+
+| Func. argument        	| Command-line flag 	| Description                                                                    	|
+|-----------------------	|-------------------	|----------------------------------------------	|
+| input_file_path       	| -i                	| path to the input file                                                         	|
+| dataset_path          	| -d                	| path to the dataset                                                            	|
+| pretrained_model_path 	| -m                	| path to the pretrained model                                                   	|
+| pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                              	|
+| inference_mode        	| -mode             	| two options:<br>test (inference, default),<br>vect (generate vector representations) 	|
+| scenario              	| -sc, --scenario   	| name of the experiment top-directory                                           	|
+| cutoff                	| -n                	| number of examples to be used (optional)                                       	|
+
+---
+
 The inference component creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
 
 ```bash
@@ -547,6 +599,12 @@ The same can be done via command line:
 DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect --scenario queries/test
 ```
 
+---
+
+For summary of the arguments/flags, refer to the table in [model inference](#model-inference). 
+
+---
+
 The resulting directory structure is:
 
 ```
@@ -591,6 +649,12 @@ or via command line:
 ```bash
 DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect --scenario candidates/test
 ```
+
+---
+
+For summary of the arguments/flags, refer to the table in [model inference](#model-inference). 
+
+---
 
 The resulting directory structure is:
 
@@ -687,10 +751,21 @@ For candidate vectors:
 DeezyMatch --deezy_mode combine_vecs -p fwd,bwd -sc candidates/test -combs combined/candidates_test
 ```
 
-In this command, compared to `combine_vecs` module explained above:
-* `-p`: `rnn_passes`
-* `-sc`: `input_scenario`
-* `-combs`: `output_scenario`
+---
+
+Summary of the arguments/flags:
+
+| Func. argument  	| Command-line flag 	| Description                                                                                                 	|
+|-----------------	|-------------------	|-------------------------------------------------------------------------------------------------------------	|
+| rnn_passes      	| -p                	| RNN/GRU/LSTM passes to be used in assembling vectors (fwd or bwd)                                           	|
+| input_scenario  	| -sc               	| name of the input top-directory                                                                             	|
+| output_scenario 	| -combs            	| name of the output top-directory                                                                            	|
+| input_file_path 	| -i                	| path to the input file. "default": read input file in `input_scenario`                   	|
+| print_every     	| ---               	| interval to print the progress in assembling vectors                                                        	|
+| sel_device      	| ---               	| set the device (cpu, cuda, cuda:0, cuda:1, ...).<br>if "default", the device will be read from the input file. 	|
+| save_df         	| ---               	| save strings of the first column in queries/candidates files (default: True)                                	|
+
+---
 
 #### CandidateRanker
 
@@ -756,20 +831,29 @@ As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim`
 Similarly, the above results can be generated via command line:
 
 ```bash
-eezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combined/candidates_test -rm faiss -t 5 -n 2 -sz 2 -o ranker_results/test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combined/candidates_test -rm faiss -t 5 -n 2 -sz 2 -o ranker_results/test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
-In this command, compared to `candidate_ranker` module explained above:
-* `-qs`: `query_scenario`
-* `-cs`: `candidate_scenario`
-* `-rm`: `ranking_metric`
-* `-t`: `selection_threshold`
-* `-n`: `num_candidates`
-* `-sz`: `search_size`
-* `-o`: `output_path`
-* `-mp`: `pretrained_model_path`
-* `-v`: `pretrained_vocab_path`
-* `-tn`: `number_test_rows`
+---
+
+Summary of the arguments/flags:
+
+| Func. argument        	| Command-line flag 	| Description                                                                                                                                                                 	|
+|-----------------------	|-------------------	|-------------------------------------------------------------------------------------------------	|
+| query_scenario        	| -qs               	| directory that contains all the assembled query vectors                                                                                                                     	|
+| candidate_scenario    	| -cs               	| directory that contains all the assembled candidate vectors                                                                                                                 	|
+| ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine similarity),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
+| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= threshold,<br>cosine-similarity >= threshold,<br>prediction-confidence >= threshold 	|
+| query                 	| -q                	| one string or a list of strings to be used in candidate ranking on-the-fly                                                                                                  	|
+| num_candidates        	| -n                	| number of desired candidates                                                                                                                                                	|
+| search_size           	| -sz               	| number of candidates to be tested at each iteration                                                                                                                         	|
+| output_path           	| -o                	| path to the output file                                                                                                                                                     	|
+| pretrained_model_path 	| -mp               	| path to the pretrained model                                                                                                                                                	|
+| pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                                                                                                                           	|
+| input_file_path       	| -i                	| path to the input file. "default": read input file in `candidate_scenario`                                    	|
+| number_test_rows      	| -tn               	| number of examples to be used (optional, normally for testing)                                                                                                              	|
+
+---
 
 **Other methods**
 
@@ -851,7 +935,7 @@ which results in:
 -------------------------
 
 Queries are based on the following list:
-["DeezyMatch", "kasra", "fede", "mariona"]
+['DeezyMatch', 'kasra', 'fede', 'mariona']
 
 candidate_scenario:     ./combined/candidates_test
 ---Searching params---
@@ -861,7 +945,7 @@ selection_threshold:    5.0
 search_size:            100
 number_test_rows:       20
 ---I/O---
-input_file_path:        default
+input_file_path:        default (path: ./combined/candidates_test/input_dfm.yaml)
 output_path:            ranker_results/test_candidates_deezymatch_on_the_fly
 pretrained_model_path:  ./models/finetuned_test001/finetuned_test001.model
 pretrained_vocab_path:  ./models/finetuned_test001/finetuned_test001.vocab
@@ -913,9 +997,11 @@ myranker.output
 
 * Adding prefix/suffix to input strings (see `prefix_suffix` option in the input file) can greatly enhance the ranking results. However, we recommend one-character-long prefix/suffix; otherwise, this may affect the computation time.
 
-* In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** (ranked according to the selected metric, in this case faiss) are also reported.
+* In `candidate_ranker`, the user specifies a `ranking_metric` based on which the candidates are selected and ranked. However, DeezyMatch also reports the values of other metrics for those candidates. For example, if the user selects `ranking_metric="faiss"`, the candidates are selected based on the `faiss`-distance metric. At the same time, the values of `cosine` and `conf` metrics for **those candidates** (ranked according to the selected metric, in this case faiss) are also reported.
 
-* In most use cases, `search_size` should be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, it is done. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
+* What is the role of `search_size`?!
+
+* In most use cases, `search_size` can be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, it is done. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
 
 ## Credits
 
