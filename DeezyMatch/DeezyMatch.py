@@ -39,11 +39,11 @@ def train(input_file_path=None, dataset_path=None, model_name=None,
     Parameters
     ----------
     input_file_path
-        path of the input file
+        path to the input file
     dataset_path
-        path of the dataset
+        path to the dataset
     model_name
-        name of the model to be saved
+        name of the new model
     n_train_examples
         number of training examples to be used (optional)
     run_command_line
@@ -122,9 +122,9 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
     Parameters
     ----------
     input_file_path
-        path of the input file
+        path to the input file
     dataset_path
-        path of the dataset
+        path to the dataset
     model_name
         name of the model to be saved
     pretrained_model_path
@@ -217,9 +217,9 @@ def inference(input_file_path=None, dataset_path=None,
     Parameters
     ----------
     input_file_path
-        path of the input file
+        path to the input file
     dataset_path
-        path of the dataset
+        path to the dataset
     pretrained_model_path
         Path to the pretrained model
     pretrained_vocab_path
@@ -253,7 +253,7 @@ def plot_log(path2log, output_name="DEFAULT"):
     Parameters
     ----------
     path2log
-        path of the log file
+        path to the log file
     output_name
         Name of the dataset for which the log will be plotted. This name is used in the figures.
     """

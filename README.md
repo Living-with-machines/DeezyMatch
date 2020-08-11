@@ -355,6 +355,19 @@ A new model directory called `test001` will be created in `models` directory (as
 * Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
 * Delimiter is fixed to `\t` for now.
 
+---
+
+Summary of the arguments:
+
+| Func. argument   	| Command-line flag 	| Description                                       	|
+|------------------	|-------------------	|---------------------------------------------------	|
+| input_file_path  	| -i                	| path to the input file                            	|
+| dataset_path     	| -d                	| path to the dataset                               	|
+| model_name       	| -m                	| name of the new model                             	|
+| n_train_examples 	| -n                	| number of training examples to be used (optional) 	|
+
+---
+
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
 ```python
