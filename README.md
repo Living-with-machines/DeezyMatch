@@ -453,6 +453,22 @@ The same can be done via command line:
 DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m finetuned_test001 -f ./models/test001/test001.model -v ./models/test001/test001.vocab -n 100 
 ```
 
+---
+
+Summary of the arguments/flags:
+
+| Func. argument        	| Command-line flag 	| Description                                       	|
+|-----------------------	|-------------------	|---------------------------------------------------	|
+| input_file_path       	| -i                	| path to the input file                            	|
+| dataset_path          	| -d                	| path to the dataset                               	|
+| model_name            	| -m                	| name of the new, fine-tuned model                 	|
+| pretrained_model_path 	| -f                	| path to the pretrained model                      	|
+| pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                 	|
+| n_train_examples      	| -n                	| number of training examples to be used (optional) 	|
+| ---                   	| -pm               	| print all parameters in a model                   	|
+
+---
+
 :warning: If `-n` flag (or `n_train_examples` argument) is not specified, the train/valid/test proportions are read from the input file.
 
 A new fine-tuned model called `finetuned_test001` will be stored in `models` directory. In this example, two components in the neural network architecture were frozen, that is, not changed during fine-tuning (see `layers_to_freeze` in the input file). When running the above command, DeezyMatch lists the parameters in the model and whether or not they will be used in finetuning:
@@ -519,6 +535,22 @@ Similarly via command line:
 DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model  -v ./models/finetuned_test001/finetuned_test001.vocab  -mode test
 ```
 
+---
+
+Summary of the arguments/flags:
+
+| Func. argument        	| Command-line flag 	| Description                                                                    	|
+|-----------------------	|-------------------	|----------------------------------------------	|
+| input_file_path       	| -i                	| path to the input file                                                         	|
+| dataset_path          	| -d                	| path to the dataset                                                            	|
+| pretrained_model_path 	| -m                	| path to the pretrained model                                                   	|
+| pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                              	|
+| cutoff                	| -n                	| number of examples to be used (optional)                                       	|
+| inference_mode        	| -mode             	| two options:<br>test (inference, default),<br>vect (generate vector representations) 	|
+| scenario              	| -sc, --scenario   	| name of the experiment top-directory                                           	|
+
+---
+
 The inference component creates a file: `models/finetuned_test001/pred_results_dataset-string-similarity_test.txt` in which:
 
 ```bash
@@ -567,6 +599,12 @@ The same can be done via command line:
 DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect --scenario queries/test
 ```
 
+---
+
+For summary of the arguments/flags, refer to the table in [model inference](#model-inference). 
+
+---
+
 The resulting directory structure is:
 
 ```
@@ -611,6 +649,12 @@ or via command line:
 ```bash
 DeezyMatch --deezy_mode inference -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -mode vect --scenario candidates/test
 ```
+
+---
+
+For summary of the arguments/flags, refer to the table in [model inference](#model-inference). 
+
+---
 
 The resulting directory structure is:
 
@@ -707,10 +751,21 @@ For candidate vectors:
 DeezyMatch --deezy_mode combine_vecs -p fwd,bwd -sc candidates/test -combs combined/candidates_test
 ```
 
-In this command, compared to `combine_vecs` module explained above:
-* `-p`: `rnn_passes`
-* `-sc`: `input_scenario`
-* `-combs`: `output_scenario`
+---
+
+Summary of the arguments/flags:
+
+| Func. argument  	| Command-line flag 	| Description                                                                                                 	|
+|-----------------	|-------------------	|-------------------------------------------------------------------------------------------------------------	|
+| input_file_path 	| -i                	| path to the input file                                                                                      	|
+| rnn_passes      	| -p                	| RNN/GRU/LSTM passes to be used in assembling vectors (fwd or bwd)                                           	|
+| input_scenario  	| -sc               	| name of the input top-directory                                                                             	|
+| output_scenario 	| -combs            	| name of the output top-directory                                                                            	|
+| print_every     	| ---               	| interval to print the progress in assembling vectors                                                        	|
+| sel_device      	| ---               	| set the device (cpu, cuda, cuda:0, cuda:1, ...).<br>if "default", the device will be read from the input file. 	|
+| save_df         	| ---               	| save strings of the first column in queries/candidates files (default: True)                                	|
+
+---
 
 #### CandidateRanker
 

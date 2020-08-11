@@ -126,11 +126,11 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
     dataset_path
         path to the dataset
     model_name
-        name of the model to be saved
+        name of the new, fine-tuned model
     pretrained_model_path
-        Path to the pretrained model
+        path to the pretrained model
     pretrained_vocab_path
-        Path to the pretrained vocabulary
+        path to the pretrained vocabulary
     n_train_examples
         number of training examples to be used (optional)
     run_command_line
@@ -221,15 +221,15 @@ def inference(input_file_path=None, dataset_path=None,
     dataset_path
         path to the dataset
     pretrained_model_path
-        Path to the pretrained model
+        path to the pretrained model
     pretrained_vocab_path
-        Path to the pretrained vocabulary
+        path to the pretrained vocabulary
     cutoff
         number of examples to be used (optional)
     inference_mode
-        Three options: test (inference), vect (generate vector representations)
+        two options: test (inference, default), vect (generate vector representations)
     scenario
-        Name of the experiment/top-directory
+        name of the experiment top-directory
     """
 
     # --- read input file
