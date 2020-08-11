@@ -351,7 +351,7 @@ DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.
 
 ---
 
-Summary of the arguments:
+Summary of the arguments/flags:
 
 | Func. argument   	| Command-line flag 	| Description                                       	|
 |------------------	|-------------------	|---------------------------------------------------	|
@@ -383,6 +383,10 @@ or:
 ```bash
 DeezyMatch -lp ./models/test001/log.txt -lo t001
 ```
+
+---
+
+Summary of the arguments/flags:
 
 | Func. argument 	| Command-line flag 	| Description                                  	|
 |----------------	|-------------------	|----------------------------------------------	|
