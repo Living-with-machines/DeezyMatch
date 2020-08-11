@@ -159,11 +159,11 @@ def read_inputs_command():
                     default=None)
 
     parser.add_argument("-lp", "--log_plot",
-                    help="Plot a log file and exit. In this case, you need to specify -ld flag as well.", 
+                    help="Plot a log file and exit. In this case, you need to specify -lo flag as well.", 
                     default=None)
 
-    parser.add_argument("-ld", "--log_output_name",
-                    help="Name of the dataset for which the log will be plotted. This name is used in the figures. See -lp flag.", 
+    parser.add_argument("-lo", "--log_output_name",
+                    help="output name which will be used in the figure. See -lp flag.", 
                     default=None)
 
     parser.add_argument("-pm", "--print_model_layers",
@@ -174,7 +174,7 @@ def read_inputs_command():
 
     if args.log_plot:
         if not args.log_output_name:
-            parser.exit("ERROR: -ld is not defined.")
+            parser.exit("ERROR: -lo is not defined.")
         log_plotter(args.log_plot, args.log_output_name)
         sys.exit("Exit normally")
 

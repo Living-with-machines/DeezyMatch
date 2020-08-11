@@ -368,12 +368,12 @@ plot_log(path2log="./models/test001/log.txt",
 or:
 
 ```bash
-DeezyMatch -lp ./models/test001/log.txt -ld t001
+DeezyMatch -lp ./models/test001/log.txt -lo t001
 ```
 
 In this command, 
 * `-lp`: runs the log plotter on `./models/test001/log.txt` file. This is the same as `path2log` in `plot_log` module. 
-* `-ld` is a name assigned to the log which will be used in the figure. This is the same as `output_name` in `plot_log` module.
+* `-lo` is the output name which will be used in the figure. This is the same as `output_name` in `plot_log` module.
 
 This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
