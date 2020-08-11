@@ -255,7 +255,7 @@ def plot_log(path2log, output_name="DEFAULT"):
     path2log
         path to the log file
     output_name
-        Name of the dataset for which the log will be plotted. This name is used in the figures.
+        output name (normally, name of the dataset).
     """
     log_plotter(path2log=path2log,
                 output_name=output_name)

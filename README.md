@@ -349,12 +349,6 @@ The same model can be trained via command line:
 DeezyMatch -i ./inputs/input_dfm.yaml -d dataset/dataset-string-similarity_test.txt -m test001
 ```
 
-A new model directory called `test001` will be created in `models` directory (as specified in the input file, see `models_dir` in `./inputs/input_dfm.yaml`).
-
-:warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
-* Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
-* Delimiter is fixed to `\t` for now.
-
 ---
 
 Summary of the arguments:
@@ -367,6 +361,12 @@ Summary of the arguments:
 | n_train_examples 	| -n                	| number of training examples to be used (optional) 	|
 
 ---
+
+A new model directory called `test001` will be created in `models` directory (as specified in the input file, see `models_dir` in `./inputs/input_dfm.yaml`).
+
+:warning: Dataset (e.g., `dataset/dataset-string-similarity_test.txt` in the above command)
+* Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
+* Delimiter is fixed to `\t` for now.
 
 DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
 
@@ -384,9 +384,12 @@ or:
 DeezyMatch -lp ./models/test001/log.txt -lo t001
 ```
 
-In this command, 
-* `-lp`: runs the log plotter on `./models/test001/log.txt` file. This is the same as `path2log` in `plot_log` module. 
-* `-lo` is the output name which will be used in the figure. This is the same as `output_name` in `plot_log` module.
+| Func. argument 	| Command-line flag 	| Description                                  	|
+|----------------	|-------------------	|----------------------------------------------	|
+| path2log       	| -lp               	| path to the log file                         	|
+| output_name    	| -lo               	| output name (normally, name of the dataset). 	|
+
+---
 
 This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
