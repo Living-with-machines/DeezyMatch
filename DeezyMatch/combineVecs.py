@@ -35,14 +35,14 @@ def combine_vecs(input_file_path="default", rnn_passes=["fwd", "bwd"],
 
     Parameters
     ----------
-    input_file_path
-        path to the input file
     rnn_passes
         RNN/GRU/LSTM passes to be used in assembling vectors (fwd or bwd)
     input_scenario
         name of the input top-directory
     output_scenario
         name of the output top-directory
+    input_file_path
+        path to the input file. "default": read input file in `input_scenario`
     print_every
         interval to print the progress in assembling vectors
     sel_device

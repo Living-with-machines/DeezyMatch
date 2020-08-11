@@ -464,8 +464,8 @@ Summary of the arguments/flags:
 | model_name            	| -m                	| name of the new, fine-tuned model                 	|
 | pretrained_model_path 	| -f                	| path to the pretrained model                      	|
 | pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                 	|
-| n_train_examples      	| -n                	| number of training examples to be used (optional) 	|
 | ---                   	| -pm               	| print all parameters in a model                   	|
+| n_train_examples      	| -n                	| number of training examples to be used (optional) 	|
 
 ---
 
@@ -545,9 +545,9 @@ Summary of the arguments/flags:
 | dataset_path          	| -d                	| path to the dataset                                                            	|
 | pretrained_model_path 	| -m                	| path to the pretrained model                                                   	|
 | pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                              	|
-| cutoff                	| -n                	| number of examples to be used (optional)                                       	|
 | inference_mode        	| -mode             	| two options:<br>test (inference, default),<br>vect (generate vector representations) 	|
 | scenario              	| -sc, --scenario   	| name of the experiment top-directory                                           	|
+| cutoff                	| -n                	| number of examples to be used (optional)                                       	|
 
 ---
 
@@ -757,10 +757,10 @@ Summary of the arguments/flags:
 
 | Func. argument  	| Command-line flag 	| Description                                                                                                 	|
 |-----------------	|-------------------	|-------------------------------------------------------------------------------------------------------------	|
-| input_file_path 	| -i                	| path to the input file                                                                                      	|
 | rnn_passes      	| -p                	| RNN/GRU/LSTM passes to be used in assembling vectors (fwd or bwd)                                           	|
 | input_scenario  	| -sc               	| name of the input top-directory                                                                             	|
 | output_scenario 	| -combs            	| name of the output top-directory                                                                            	|
+| input_file_path 	| -i                	| path to the input file. "default": read input file in `input_scenario`                   	|
 | print_every     	| ---               	| interval to print the progress in assembling vectors                                                        	|
 | sel_device      	| ---               	| set the device (cpu, cuda, cuda:0, cuda:1, ...).<br>if "default", the device will be read from the input file. 	|
 | save_df         	| ---               	| save strings of the first column in queries/candidates files (default: True)                                	|
@@ -840,7 +840,6 @@ Summary of the arguments/flags:
 
 | Func. argument        	| Command-line flag 	| Description                                                                                                                                                                 	|
 |-----------------------	|-------------------	|-------------------------------------------------------------------------------------------------	|
-| input_file_path       	| -i                	| path to the input file                                                                                                                                                      	|
 | query_scenario        	| -qs               	| directory that contains all the assembled query vectors                                                                                                                     	|
 | candidate_scenario    	| -cs               	| directory that contains all the assembled candidate vectors                                                                                                                 	|
 | ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine similarity),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
@@ -851,6 +850,7 @@ Summary of the arguments/flags:
 | output_path           	| -o                	| path to the output file                                                                                                                                                     	|
 | pretrained_model_path 	| -mp               	| path to the pretrained model                                                                                                                                                	|
 | pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                                                                                                                           	|
+| input_file_path       	| -i                	| path to the input file. "default": read input file in `candidate_scenario`                                    	|
 | number_test_rows      	| -tn               	| number of examples to be used (optional, normally for testing)                                                                                                              	|
 
 ---

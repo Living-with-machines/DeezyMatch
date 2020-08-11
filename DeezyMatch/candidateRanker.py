@@ -133,7 +133,7 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
     Parameters
     ----------
     input_file_path
-        path to the input file
+        path to the input file. "default": read input file in `candidate_scenario`
     query_scenario
         directory that contains all the assembled query vectors
     candidate_scenario
