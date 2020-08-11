@@ -756,7 +756,7 @@ As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim`
 Similarly, the above results can be generated via command line:
 
 ```bash
-eezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combined/candidates_test -rm faiss -t 5 -n 2 -sz 2 -o ranker_results/test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
+DeezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combined/candidates_test -rm faiss -t 5 -n 2 -sz 2 -o ranker_results/test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
 ```
 
 In this command, compared to `candidate_ranker` module explained above:
@@ -851,7 +851,7 @@ which results in:
 -------------------------
 
 Queries are based on the following list:
-["DeezyMatch", "kasra", "fede", "mariona"]
+['DeezyMatch', 'kasra', 'fede', 'mariona']
 
 candidate_scenario:     ./combined/candidates_test
 ---Searching params---
@@ -861,7 +861,7 @@ selection_threshold:    5.0
 search_size:            100
 number_test_rows:       20
 ---I/O---
-input_file_path:        default
+input_file_path:        default (path: ./combined/candidates_test/input_dfm.yaml)
 output_path:            ranker_results/test_candidates_deezymatch_on_the_fly
 pretrained_model_path:  ./models/finetuned_test001/finetuned_test001.model
 pretrained_vocab_path:  ./models/finetuned_test001/finetuned_test001.vocab
