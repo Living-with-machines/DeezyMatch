@@ -1007,7 +1007,7 @@ myranker.output
 
 For a given query, DeezyMatch searches for candidates iteratively. At each iteration (i.e., one colored region in the figure below), the query vector is compared with five potential candidate vectors according to the selected ranking metric (`ranking_metric` argument). Here, `search_size` is five. In step-1, the five closest candidate vectors, as measured by L2-norm distance, are examined. Four (out of five) candidate vectors passed the threshold (specified by `selection_threshold` argument) in the figure (step-1). However, in this example, we assume `num_candidates` is 10. So, DeezyMatch examines the second batch of potential candidates, again five vectors (as specified by `search_size`). Three (out of five) candidates pass the threshold in step-2. Finally, in the third iteration, three more candidates are found. DeezyMatch collects the information of these ten candidates and go to the next query.
 
-This adaptive search algorithm significantly reduces the computation time to find and rank a set of candidates in a dataset. Instead of searching the whole dataset, DeezyMatch iteratively compares a query vector with "most-promising" candidates.
+This adaptive search algorithm significantly reduces the computation time to find and rank a set of candidates in a dataset. Instead of searching the whole dataset, DeezyMatch iteratively compares a query vector with the "most-promising" candidates.
 
 <p align="center">
 <img src="./figs/query_candidate_selection.png" alt="role of search_size in candidate ranker" width="70%">
