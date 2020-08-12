@@ -255,6 +255,11 @@ def inference(input_file_path=None, dataset_path=None,
     # --- read input file
     dl_inputs = read_input_file(input_file_path)
 
+    if os.path.isdir(pretrained_model_path):
+        pt_model_name = os.path.basename(os.path.abspath(pretrained_model_path))
+        pretrained_vocab_path = os.path.join(pretrained_model_path, f"{pt_model_name}.vocab")
+        pretrained_model_path = os.path.join(pretrained_model_path, f"{pt_model_name}.model")
+
     # --- Inference / generate vector representations
     rnn_inference(model_path=pretrained_model_path, 
                   dataset_path=dataset_path, 
