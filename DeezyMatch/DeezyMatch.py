@@ -99,11 +99,20 @@ def train(input_file_path=None, dataset_path=None, model_name=None,
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     shutil.copy2(input_file_path, os.path.dirname(vocab_path))
     
-    msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
-    msg += "\nCurrent directory: " + cur_dir + "\n"
+    # --- logging  
+    msg = "# " + datetime.now().strftime("%m/%d/%Y_%H:%M:%S") + "\n"
+    msg += "# Current directory: " + cur_dir + "\n"
     log_message(msg, mode="w", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
     if run_command_line:
-        log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+        log_message("# " + input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+    msg = "# ------------------\n"
+    msg += f"# Arguments:\n"
+    msg += f"# input_file_path: {os.path.abspath(input_file_path)}\n"
+    msg += f"# dataset_path: {os.path.abspath(dataset_path)}\n"
+    msg += f"# model_name: {model_name}\n"
+    msg += f"# n_train_examples: {n_train_examples}\n"
+    msg += "# ------------------\n"
+    log_message(msg, mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
     
     # --- train a model from scratch
     gru_lstm_network(dl_inputs=dl_inputs, 
@@ -193,12 +202,23 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     shutil.copy2(input_file_path, os.path.dirname(vocab_path))
     
-    msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
-    msg += "\nCurrent directory: " + cur_dir + "\n"
+    # --- logging  
+    msg = "# " + datetime.now().strftime("%m/%d/%Y_%H:%M:%S") + "\n"
+    msg += "# Current directory: " + cur_dir + "\n"
     log_message(msg, mode="w", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
     if run_command_line:
-        log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
-    
+        log_message("# " + input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+    msg = "# ------------------\n"
+    msg += f"# Arguments:\n"
+    msg += f"# input_file_path: {os.path.abspath(input_file_path)}\n"
+    msg += f"# dataset_path: {os.path.abspath(dataset_path)}\n"
+    msg += f"# model_name: {model_name}\n"
+    msg += f"# pretrained_model_path: {os.path.abspath(pretrained_model_path)}\n"
+    msg += f"# pretrained_vocab_path: {os.path.abspath(pretrained_vocab_path)}\n"
+    msg += f"# n_train_examples: {n_train_examples}\n"
+    msg += "# ------------------\n"
+    log_message(msg, mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+   
     # --- Fine-tune a pretrained model
     fine_tuning(pretrained_model_path=pretrained_model_path,
                 dl_inputs=dl_inputs, 

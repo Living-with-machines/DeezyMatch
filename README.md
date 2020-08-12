@@ -391,7 +391,7 @@ Summary of the arguments/flags:
 | Func. argument 	| Command-line flag 	| Description                                  	|
 |----------------	|-------------------	|----------------------------------------------	|
 | path2log       	| -lp               	| path to the log file                         	|
-| output_name    	| -lo               	| output name (normally, name of the dataset). 	|
+| output_name    	| -lo               	| output name 	|
 
 ---
 

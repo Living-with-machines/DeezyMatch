@@ -571,8 +571,8 @@ def log_plotter(path2log, output_name="DEFAULT"):
     train_arr = []
     valid_arr = []
     time_arr = []
-    for one_line in log[2:]:
-        if one_line.lower().strip().startswith("python"):
+    for one_line in log:
+        if one_line.lower().strip().startswith("#"):
             continue
         line_split = one_line.split()
         datetime_str = line_split[0]
