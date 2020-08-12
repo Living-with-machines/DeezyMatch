@@ -2,7 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 """
-DeezyMatch main code: select the relevant module (train, finetune, inference, combine_vecs, candidate_ranker) 
+--------------------
+DeezyMatch main code
+--------------------
+select the relevant module (train, finetune, inference, combine_vecs, candidate_ranker, plot_log) 
 based on the inputs.
 """
 
@@ -21,6 +24,7 @@ from .rnn_networks import gru_lstm_network, fine_tuning
 from .rnn_networks import inference as rnn_inference
 from .utils import deezy_mode_detector
 from .utils import read_inputs_command, read_inference_command, read_input_file
+from .utils import log_plotter
 from .utils import cprint, bc, log_message
 # --- set seed for reproducibility
 from .utils import set_seed_everywhere
@@ -35,11 +39,11 @@ def train(input_file_path=None, dataset_path=None, model_name=None,
     Parameters
     ----------
     input_file_path
-        path of the input file
+        path to the input file
     dataset_path
-        path of the dataset
+        path to the dataset
     model_name
-        name of the model to be saved
+        name of the new model
     n_train_examples
         number of training examples to be used (optional)
     run_command_line
@@ -70,13 +74,21 @@ def train(input_file_path=None, dataset_path=None, model_name=None,
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
-                       dl_inputs["preprocessing"]["only_latin_letters"]),
+                       dl_inputs["preprocessing"]["only_latin_letters"],
+                       dl_inputs["preprocessing"]["prefix_suffix"],
+                       ),
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],
         read_list_chars=dl_inputs['preprocessing']['read_list_chars'],
         csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
     
+    # Clean-up the model_name, avoid having / or \ at the end of string
+    if not isinstance(model_name, str):
+        sys.exit("model_name should be a string")
+    model_name = model_name.strip("/")
+    model_name = model_name.strip("\\")
+
     # --- store vocab
     vocab_path = os.path.join(dl_inputs["general"]["models_dir"], 
                               model_name, model_name + '.vocab')
@@ -87,11 +99,20 @@ def train(input_file_path=None, dataset_path=None, model_name=None,
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     shutil.copy2(input_file_path, os.path.dirname(vocab_path))
     
-    msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
-    msg += "\nCurrent directory: " + cur_dir + "\n"
+    # --- logging  
+    msg = "# " + datetime.now().strftime("%m/%d/%Y_%H:%M:%S") + "\n"
+    msg += "# Current directory: " + cur_dir + "\n"
     log_message(msg, mode="w", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
     if run_command_line:
-        log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+        log_message("# " + input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+    msg = "# ------------------\n"
+    msg += f"# Arguments:\n"
+    msg += f"# input_file_path: {os.path.abspath(input_file_path)}\n"
+    msg += f"# dataset_path: {os.path.abspath(dataset_path)}\n"
+    msg += f"# model_name: {model_name}\n"
+    msg += f"# n_train_examples: {n_train_examples}\n"
+    msg += "# ------------------\n"
+    log_message(msg, mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
     
     # --- train a model from scratch
     gru_lstm_network(dl_inputs=dl_inputs, 
@@ -110,15 +131,15 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
     Parameters
     ----------
     input_file_path
-        path of the input file
+        path to the input file
     dataset_path
-        path of the dataset
+        path to the dataset
     model_name
-        name of the model to be saved
+        name of the new, fine-tuned model
     pretrained_model_path
-        Path to the pretrained model
+        path to the pretrained model
     pretrained_vocab_path
-        Path to the pretrained vocabulary
+        path to the pretrained vocabulary
     n_train_examples
         number of training examples to be used (optional)
     run_command_line
@@ -156,12 +177,20 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
-                       dl_inputs["preprocessing"]["only_latin_letters"]),
+                       dl_inputs["preprocessing"]["only_latin_letters"],
+                       dl_inputs["preprocessing"]["prefix_suffix"],
+                       ),
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],
         read_list_chars=dl_inputs['preprocessing']['read_list_chars'],
         csv_sep=dl_inputs['preprocessing']["csv_sep"]
         )
+
+    # Clean-up the model_name, avoid having / or \ at the end of string
+    if not isinstance(model_name, str):
+        sys.exit("model_name should be a string")
+    model_name = model_name.strip("/")
+    model_name = model_name.strip("\\")
     
     # --- store vocab
     vocab_path = os.path.join(dl_inputs["general"]["models_dir"], 
@@ -173,12 +202,23 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
         pickle.dump(dataset_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     shutil.copy2(input_file_path, os.path.dirname(vocab_path))
     
-    msg = datetime.now().strftime("%m/%d/%Y_%H:%M:%S")
-    msg += "\nCurrent directory: " + cur_dir + "\n"
+    # --- logging  
+    msg = "# " + datetime.now().strftime("%m/%d/%Y_%H:%M:%S") + "\n"
+    msg += "# Current directory: " + cur_dir + "\n"
     log_message(msg, mode="w", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
     if run_command_line:
-        log_message(input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
-    
+        log_message("# " + input_command_line + "\n", mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+    msg = "# ------------------\n"
+    msg += f"# Arguments:\n"
+    msg += f"# input_file_path: {os.path.abspath(input_file_path)}\n"
+    msg += f"# dataset_path: {os.path.abspath(dataset_path)}\n"
+    msg += f"# model_name: {model_name}\n"
+    msg += f"# pretrained_model_path: {os.path.abspath(pretrained_model_path)}\n"
+    msg += f"# pretrained_vocab_path: {os.path.abspath(pretrained_vocab_path)}\n"
+    msg += f"# n_train_examples: {n_train_examples}\n"
+    msg += "# ------------------\n"
+    log_message(msg, mode="a", filename=os.path.join(os.path.dirname(vocab_path), "log.txt"))
+   
     # --- Fine-tune a pretrained model
     fine_tuning(pretrained_model_path=pretrained_model_path,
                 dl_inputs=dl_inputs, 
@@ -190,51 +230,55 @@ def finetune(input_file_path=None, dataset_path=None, model_name=None,
 # ------------------- inference --------------------
 def inference(input_file_path=None, dataset_path=None, 
               pretrained_model_path=None, pretrained_vocab_path=None,  
-              cutoff=None, inference_mode="test", query_candidate_mode=["q", "c"], scenario=None):
+              cutoff=None, inference_mode="test", scenario=None):
     """
     Use an already trained model for inference/prediction
 
     Parameters
     ----------
     input_file_path
-        path of the input file
+        path to the input file
     dataset_path
-        path of the dataset
+        path to the dataset
     pretrained_model_path
-        Path to the pretrained model
+        path to the pretrained model
     pretrained_vocab_path
-        Path to the pretrained vocabulary
+        path to the pretrained vocabulary
     cutoff
         number of examples to be used (optional)
     inference_mode
-        Three options: test (inference), vect (generate vector representations)
-    query_candidate_mode
-        Two modes: q (generate query vectors), c (generate candidate vectors)
+        two options: test (inference, default), vect (generate vector representations)
     scenario
-        Name of the experiment/top-directory
+        name of the experiment top-directory
     """
 
     # --- read input file
     dl_inputs = read_input_file(input_file_path)
 
-    if not type(query_candidate_mode) in [list, tuple]:
-        query_candidate_mode = [query_candidate_mode]
+    # --- Inference / generate vector representations
+    rnn_inference(model_path=pretrained_model_path, 
+                  dataset_path=dataset_path, 
+                  train_vocab_path=pretrained_vocab_path, 
+                  input_file_path=input_file_path, 
+                  test_cutoff=cutoff, 
+                  inference_mode=inference_mode, 
+                  scenario=scenario, 
+                  dl_inputs=dl_inputs)
 
-    if inference_mode in ["test"]:
-        # query_candidate_mode is not used:
-        query_candidate_mode = ["q"]
+# ------------------- log_plotter --------------------
+def plot_log(path2log, output_name="DEFAULT"):
+    """
+    Plot a log file
 
-    for qc_mode in query_candidate_mode:
-        # --- Inference / generate vector representations
-        rnn_inference(model_path=pretrained_model_path, 
-                      dataset_path=dataset_path, 
-                      train_vocab_path=pretrained_vocab_path, 
-                      input_file_path=input_file_path, 
-                      test_cutoff=cutoff, 
-                      inference_mode=inference_mode, 
-                      query_candidate_mode=qc_mode, 
-                      scenario=scenario, 
-                      dl_inputs=dl_inputs)
+    Parameters
+    ----------
+    path2log
+        path to the log file
+    output_name
+        output name (normally, name of the dataset).
+    """
+    log_plotter(path2log=path2log,
+                output_name=output_name)
 
 # ------------------- main --------------------
 def main():
@@ -267,7 +311,7 @@ def main():
     elif dm_mode in ["inference"]:
         # --- read command args for inference
         model_path, dataset_path, train_vocab_path, input_file_path, test_cutoff, \
-        inference_mode, query_candidate_mode, scenario = \
+        inference_mode, scenario = \
             read_inference_command()
 
         inference(input_file_path=input_file_path, 
@@ -276,7 +320,6 @@ def main():
                   pretrained_vocab_path=train_vocab_path, 
                   cutoff=test_cutoff, 
                   inference_mode=inference_mode, 
-                  query_candidate_mode=query_candidate_mode, 
                   scenario=scenario)
     
     elif dm_mode in ["combine_vecs"]:
