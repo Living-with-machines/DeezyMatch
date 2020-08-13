@@ -8,6 +8,9 @@
     <a href="https://pypi.org/project/DeezyMatch/">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/DeezyMatch">
     </a>
+    <a href="https://doi.org/10.5281/zenodo.3983555">
+        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.3983555.svg" alt="DOI">
+    </a>
     <a href="https://github.com/Living-with-machines/DeezyMatch/blob/master/LICENSE">
         <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
     </a>
