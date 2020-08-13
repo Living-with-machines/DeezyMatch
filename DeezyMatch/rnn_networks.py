@@ -16,12 +16,20 @@ Others:
 - https://medium.com/intel-student-ambassadors/implementing-attention-models-in-pytorch-f947034b3e66
 """
 
-import time, os
+from datetime import datetime
+import glob
+import numpy as np
+import os
 import pickle
 import shutil
-from tqdm import tqdm, tnrange
+import sys
+import time
+#from tqdm import tqdm, tnrange
+from tqdm.autonotebook import tqdm
+from tqdm import tnrange
 
-from datetime import datetime
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -29,12 +37,6 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.autograd import Variable
-
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-
-import glob
-import numpy as np
-import sys
 
 from .data_processing import test_tokenize
 from .utils import cprint, bc, log_message
@@ -111,14 +113,19 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
 
     if dl_inputs['gru_lstm']['create_tensor_board']:
-        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                                   model_name, 
+                                   dl_inputs['gru_lstm']['create_tensor_board'])
     else:
         tboard_path = None
 
     fit(model=model_gru,
         train_dl=train_dl, 
         valid_dl=valid_dl,
-        loss_fn=F.nll_loss,  # The negative log likelihood loss
+        loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], 
+                                                        dtype=torch.float32, 
+                                                        device=dl_inputs['general']['device']), 
+                                    reduction="mean"),  # The negative log likelihood loss
         opt=opt,
         epochs=epochs,
         pooling_mode=pooling_mode,
@@ -138,6 +145,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
     torch.save(model_gru, model_path)
+    torch.save(model_gru.state_dict(), model_path + "_state_dict")
 
     """
     model = TheModelClass(*args, **kwargs)
@@ -201,14 +209,19 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     valid_dl = DataLoader(dataset=valid_dc, batch_size=batch_size, shuffle=dl_shuffle)
 
     if dl_inputs['gru_lstm']['create_tensor_board']:
-        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], model_name, dl_inputs['gru_lstm']['create_tensor_board'])
+        tboard_path = os.path.join(dl_inputs["general"]["models_dir"], 
+                                   model_name, 
+                                   dl_inputs['gru_lstm']['create_tensor_board'])
     else:
         tboard_path = None
 
     fit(model=pretrained_model,
         train_dl=train_dl, 
         valid_dl=valid_dl,
-        loss_fn=F.nll_loss,  # The negative log likelihood loss
+        loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], 
+                                                        dtype=torch.float32, 
+                                                        device=dl_inputs['general']['device']), 
+                                    reduction="mean"),  # The negative log likelihood loss
         opt=opt,
         epochs=epochs,
         pooling_mode=pooling_mode,
@@ -227,8 +240,8 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
                               model_name + '.model')
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
-
     torch.save(pretrained_model, model_path)
+    torch.save(pretrained_model.state_dict(), model_path + "_state_dict")
 
     """
     model = TheModelClass(*args, **kwargs)
@@ -302,8 +315,9 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
                 # step 5. use optimizer to take gradient step
                 opt.step()
 
+                pred_softmax = F.softmax(pred, dim=-1)
                 t_train.set_postfix(loss=loss.data)
-                pred_idx = torch.max(pred, dim=1)[1]
+                pred_idx = torch.max(pred_softmax, dim=1)[1]
 
                 y_true_train += list(y.cpu().data.numpy())
                 y_pred_train += list(pred_idx.cpu().data.numpy())
@@ -366,10 +380,11 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
         if model_path:
             # --- save the model
             cprint('[INFO]', bc.lgreen, 'saving the model')
-            checkpoint_path = os.path.join(model_path, f'checkpoint{epoch:05d}.model')
+            checkpoint_path = os.path.join(model_path, f'checkpoint{epoch+1:05d}.model')
             if not os.path.isdir(os.path.dirname(checkpoint_path)):
                 os.makedirs(os.path.dirname(checkpoint_path))
             torch.save(model, checkpoint_path)
+            torch.save(model.state_dict(), checkpoint_path + "_state_dict")
 
 # ------------------- test_model --------------------
 def test_model(model, test_dl, eval_mode='test', valid_desc=None,
@@ -391,7 +406,10 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
     total_loss_test = 0
 
     # XXX HARD CODED! Also in rnn_networks
-    loss_fn=F.nll_loss
+    loss_fn=nn.CrossEntropyLoss(weight=torch.tensor([1, 1], 
+                                                     dtype=torch.float32, 
+                                                     device=device), 
+                                reduction="mean")
     # In first dump of the results, we add a header to the output file
     first_dump = True
 
@@ -408,7 +426,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
         if output_state_vectors:
             output_par_dir = os.path.abspath(os.path.join(output_state_vectors, os.pardir))
             if not os.path.isdir(output_par_dir):
-                os.mkdir(output_par_dir)
+                os.makedirs(output_par_dir)
             torch.save(indxs, f'{output_state_vectors}_indxs_{wtest_counter}')
         wtest_counter += 1
 
@@ -435,13 +453,14 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             if eval_mode == 'valid':
                 t_test.set_postfix(loss=loss.data)
                 
-            pred_idx = torch.max(pred, dim=1)[1]
+            pred_softmax = F.softmax(pred, dim=-1)
+            pred_idx = torch.max(pred_softmax, dim=1)[1]
 
             if wtest_counter == 1:
                 # Confidence for label 1
-                all_preds = pred[:, 1]
+                all_preds = pred_softmax[:, 1]
             else:
-                all_preds = torch.cat([all_preds, pred[:, 1]])
+                all_preds = torch.cat([all_preds, pred_softmax[:, 1]])
 
             y_true_test += list(y.cpu().data.numpy())
             y_pred_test += list(pred_idx.cpu().data.numpy())
@@ -449,7 +468,7 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
             if map_flag:
 
                 # pulling out the scores for the prediction of 1
-                y_score_test += torch.exp(pred).cpu().data.numpy()[:, 1].tolist()
+                y_score_test += pred_softmax.cpu().data.numpy()[:, 1].tolist()
 
                 for q in test_dl.dataset.df.loc[indxs]["s1"].to_numpy():
 
@@ -462,17 +481,17 @@ def test_model(model, test_dl, eval_mode='test', valid_desc=None,
                     test_line_id +=1
 
             if output_preds:
-                pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1_unicode"].to_numpy(), 
-                                        test_dl.dataset.df.loc[indxs]["s2_unicode"].to_numpy(), 
-                                        pred_idx.cpu().data.numpy().T, 
-                                        torch.exp(pred).T.cpu().data.numpy(), 
-                                        y.cpu().data.numpy().T])
+                pred_results = np.vstack([test_dl.dataset.df.loc[indxs]["s1"].to_numpy(), 
+                                          test_dl.dataset.df.loc[indxs]["s2"].to_numpy(), 
+                                          pred_idx.cpu().data.numpy().T, 
+                                          pred_softmax.T.cpu().data.numpy(), 
+                                          y.cpu().data.numpy().T])
                 if output_preds_file:
                     with open(output_preds_file, "a+") as pred_f:
                         if first_dump:
                             np.savetxt(pred_f, pred_results.T, 
                                     fmt=('%s', '%s', '%d', '%.4f', '%.4f', '%d'), delimiter=csv_sep, 
-                                    header=f"s1_unicode{csv_sep}s2_unicode{csv_sep}prediction{csv_sep}p0{csv_sep}p1{csv_sep}label")
+                                    header=f"s1{csv_sep}s2{csv_sep}prediction{csv_sep}p0{csv_sep}p1{csv_sep}label")
                             first_dump = False
                         else:
                             np.savetxt(pred_f, pred_results.T, 
@@ -559,17 +578,20 @@ class two_parallel_rnns(nn.Module):
         self.fc2_dropout = fc_dropout[1]
         self.att1_dropout = att_dropout[0]
         self.att2_dropout = att_dropout[1]
+        self.file_id = None
 
         self.maxpool_kernel_size = maxpool_kernel_size
 
         if self.pooling_mode in ['attention', 'average', 'max', 'maximum', 'hstates']:
             fc1_multiplier = 4
         elif self.pooling_mode in ["hstates_layers"]:
-            fc1_multiplier = 8
+            fc1_multiplier = 4 * self.rnn_n_layers
         elif self.pooling_mode in ["hstates_layers_simple"]:
-            fc1_multiplier = 4
+            fc1_multiplier = 2 * self.rnn_n_layers
+        elif self.pooling_mode in ["hstates_subtract", "hstates_l2_distance"]:
+            fc1_multiplier = 1 * self.rnn_n_layers
         else:
-            fc1_multiplier = 4
+            fc1_multiplier = 1
 
         if self.bidirectional:
             self.num_directions = 2
@@ -630,11 +652,15 @@ class two_parallel_rnns(nn.Module):
             h1_reshape = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
 
             output_h_layer = self.rnn_n_layers - 1
-            file_id = len(glob.glob(output_state_vectors + "_fwd_*"))
 
-            torch.save(h1_reshape[output_h_layer, 0], f'{output_state_vectors}_fwd_{file_id}')
+            if not self.file_id:
+                self.file_id = len(glob.glob(output_state_vectors + "_fwd_*"))
+            else:
+                self.file_id += 1
+
+            torch.save(h1_reshape[output_h_layer, 0], f'{output_state_vectors}_fwd_{self.file_id}')
             if self.bidirectional:
-                torch.save(h1_reshape[output_h_layer, 1], f'{output_state_vectors}_bwd_{file_id}')
+                torch.save(h1_reshape[output_h_layer, 1], f'{output_state_vectors}_bwd_{self.file_id}')
                 return (h1_reshape[output_h_layer, 0], h1_reshape[output_h_layer, 1])
             else:
                 return (h1_reshape[output_h_layer, 0], False)
@@ -661,7 +687,8 @@ class two_parallel_rnns(nn.Module):
             hstates_1 = hstates_1_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_1 = torch.cat((hstates_1, hstates_1_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1)
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_cosine']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 
+                              'hstates_l2_distance', 'hstates_cosine']:
             hstates_1_fwd_bwd = self.h1.view(self.rnn_n_layers, self.num_directions, rnn_out_1.shape[1], self.rnn_hidden_dim)
             hstates_1 = hstates_1_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -706,7 +733,8 @@ class two_parallel_rnns(nn.Module):
             hstates_2 = hstates_2_fwd_bwd[self.rnn_n_layers - 1, 0]
             if self.bidirectional:
                 hstates_2 = torch.cat((hstates_2, hstates_2_fwd_bwd[self.rnn_n_layers - 1, 1]), dim=1) 
-        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_cosine']:
+        elif pooling_mode in ['hstates_layers', 'hstates_layers_simple', 'hstates_subtract', 
+                              'hstates_l2_distance', 'hstates_cosine']:
             hstates_2_fwd_bwd = self.h2.view(self.rnn_n_layers, self.num_directions, rnn_out_2.shape[1], self.rnn_hidden_dim)
             hstates_2 = hstates_2_fwd_bwd[0, 0]
             for rlayer in range(1, self.rnn_n_layers):
@@ -742,15 +770,21 @@ class two_parallel_rnns(nn.Module):
         elif pooling_mode in ['hstates_layers_simple']:
             output_combined = torch.cat((hstates_1, hstates_2), dim=1)
 
+        elif pooling_mode in ['hstates_subtract']:
+            output_combined = 1 - torch.abs(hstates_1 - hstates_2)
+
+        elif pooling_mode in ['hstates_l2_distance']:
+            output_combined = 1 - torch.abs(hstates_1 - hstates_2)**2
+
         elif pooling_mode in ['hstates_cosine']:
-            sys.exit("[ERROR] hstates_cosine method is not implemented")
-            # hstates_cosine_sim = (nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2) + 1) / 2.
-            # return torch.log(torch.stack([1- hstates_cosine_sim, hstates_cosine_sim])).T
+            hstates_cosine_sim = nn.CosineSimilarity(dim=1, eps=1e-10)(hstates_1, hstates_2)
+            # in this case, return the cosine similarity as predictions
+            #return torch.log(torch.stack([1- hstates_cosine_sim, hstates_cosine_sim])).T
+            return torch.stack([1-hstates_cosine_sim, hstates_cosine_sim]).T
 
         y_out = F.relu(self.fc1(F.dropout(output_combined, self.fc1_dropout)))
         y_out = self.fc2(F.dropout(y_out, self.fc2_dropout))
-        return F.log_softmax(y_out, dim=-1)
-        #return F.log_softmax(output_combined, dim=-1)
+        return y_out
 
     def init_hidden(self, batch_size, device):
         first_dim = self.rnn_n_layers
@@ -762,7 +796,7 @@ class two_parallel_rnns(nn.Module):
 
 # ------------------- inference  --------------------
 def inference(model_path, dataset_path, train_vocab_path, input_file_path,
-              test_cutoff, inference_mode, query_candidate_mode, scenario, dl_inputs):
+              test_cutoff, inference_mode, scenario, dl_inputs):
 
     start_time = time.time()
 
@@ -780,18 +814,13 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         output_state_vectors = False
         path_save_test_class = False
     else:
-        if query_candidate_mode in ["q"]:
-            query_candidate_mode = "queries"
-        elif query_candidate_mode in ["c"]:
-            query_candidate_mode = "candidates"
-        
-        # Set path according to query_candidate_mode
-        scenario_path = os.path.abspath(os.path.join(query_candidate_mode, scenario))
+        # Set path
+        scenario_path = os.path.abspath(scenario)
         if not os.path.isdir(scenario_path):
             os.makedirs(scenario_path)
-        output_state_vectors = os.path.join(scenario_path, f"embed_{query_candidate_mode}", "rnn")
-        path_save_test_class = os.path.join(scenario_path, f"{query_candidate_mode}.df")
-        parent_dir = os.path.dirname(os.path.abspath(output_state_vectors))
+        output_state_vectors = os.path.join(scenario_path, f"embeddings", "rnn")
+        path_save_test_class = os.path.join(scenario_path, f"dataframe.df")
+        parent_dir = os.path.dirname(output_state_vectors)    # == /path/to/embeddings
         # Clean-up dirs/files
         if os.path.isdir(parent_dir):
             shutil.rmtree(parent_dir)
@@ -824,7 +853,9 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
-                       dl_inputs["preprocessing"]["only_latin_letters"]),
+                       dl_inputs["preprocessing"]["only_latin_letters"],
+                       dl_inputs["preprocessing"]["prefix_suffix"],
+                       ),
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],
         cutoff=test_cutoff, 

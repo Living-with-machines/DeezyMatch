@@ -13,6 +13,8 @@ preprocessing:
   # removing both the leading and the trailing empty characters
   strip: True
   only_latin_letters: False
+  # Strings in the inputs will be prefix + string + suffix
+  prefix_suffix: ["|", "|"]
   # Accepted proportion of characters in a string that are not present in our vocabulary, i.e.,
   # String is accepted if:
   # (number of its characters found in the vocabulary)/(total number its characters) >= missing_char_threshold
@@ -23,7 +25,13 @@ preprocessing:
 # --- RNN/GRU/LSTM architecture/misc info
 gru_lstm:
   main_architecture: "gru"    # rnn, gru, lstm
-  mode: "char"    # char, word, bigram tokenization
+  mode:    # Tokenization mode
+    # choices: "char", "ngram", "word"
+    # for example: tokenize: ["char", "ngram", "word"] or ["char", "word"] 
+    tokenize: ["char"]
+    # ONLY if "ngram" is selected in tokenize, the following args will be used:
+    min_gram: 2
+    max_gram: 3
   bidirectional: True    # if True, becomes a bidirectional RNN/GRU/LSTM
   # num_layers
   # number of recurrent layers. e.g., setting num_layers=2 means stacking two 
@@ -33,7 +41,10 @@ gru_lstm:
   # number of dimensions of the first fully connected network
   fc1_out_dim: 120    
   # pooling_mode:
-  # hstates_layers_simple, hstates, maximum, average, attention
+  # hstates_layers_simple, hstates_layers, hstates
+  # hstates_subtract, hstates_l2_distance, hstates_cosine
+  # average, max
+  # attention
   pooling_mode: 'hstates_layers_simple'    
   # rnn_dropout:
   # if non-zero, introduces a Dropout layer on the outputs of each RNN/LSTM/GRU layer except the last layer,

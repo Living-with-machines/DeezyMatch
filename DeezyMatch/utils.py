@@ -19,7 +19,7 @@ from torch.nn.modules.module import _addindent
 
 
 # ------------------- normalizeString --------------------
-def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin_letters=False):
+def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin_letters=False, prefix_suffix=["|", "|"]):
     if uni2ascii:
         s = unicodedata.normalize('NFKD', str(s))
     if lowercase:
@@ -29,9 +29,8 @@ def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin
     if only_latin_letters:
         s = re.sub(r"([.!?])", r" \1", s)
         s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
-    #return "|" + s + "|"
-    return s
-
+    
+    return prefix_suffix[0] + s + prefix_suffix[1]
 
 # ------------------- sort_key --------------------
 def sort_key(item):
@@ -84,15 +83,24 @@ def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
 
 
 # ------------------- string_split --------------------
-def string_split(x, ngram=1):
-    if ngram == 1:
-        return [sub_x for sub_x in x]
-    else:
-        if len(x) <= 1:
-            return [sub_x for sub_x in x]
-        else:
-            return [x[i:i+ngram] for i in range(len(x)-ngram+1)]
-
+def string_split(x, tokenize=["char"], min_gram=1, max_gram=3):
+    """
+    Split a string using various methods.
+    min_gram and max_gram are used only if "ngram" is in tokenize
+    """
+    tokenized_str = []
+    if "char" in tokenize:
+        tokenized_str += [sub_x for sub_x in x]
+    
+    if "ngram" in tokenize:
+        for ngram in range(min_gram, max_gram+1):
+            tokenized_str += [x[i:i+ngram] for i in range(len(x)-ngram+1)] 
+    
+    if "word" in tokenize:
+        tokenized_str += x.split()
+    
+    return tokenized_str
+   
 # ------------------- deezy_mode_detector --------------------
 def deezy_mode_detector():
 
@@ -151,11 +159,11 @@ def read_inputs_command():
                     default=None)
 
     parser.add_argument("-lp", "--log_plot",
-                    help="Plot a log file and exit. In this case, you need to specify -ld flag as well.", 
+                    help="Plot a log file and exit. In this case, you need to specify -lo flag as well.", 
                     default=None)
 
-    parser.add_argument("-ld", "--log_dataset",
-                    help="Name of the dataset for which the log will be plotted. This name is used in the figures. See -lp flag.", 
+    parser.add_argument("-lo", "--log_output_name",
+                    help="output name which will be used in the figure. See -lp flag.", 
                     default=None)
 
     parser.add_argument("-pm", "--print_model_layers",
@@ -165,9 +173,9 @@ def read_inputs_command():
     args = parser.parse_args()
 
     if args.log_plot:
-        if not args.log_dataset:
-            parser.exit("ERROR: -ld is not defined.")
-        log_plotter(args.log_plot, args.log_dataset)
+        if not args.log_output_name:
+            parser.exit("ERROR: -lo is not defined.")
+        log_plotter(args.log_plot, args.log_output_name)
         sys.exit("Exit normally")
 
     if args.print_model_layers:
@@ -236,15 +244,13 @@ def read_inference_command():
         parser = ArgumentParser()
         parser.add_argument("--deezy_mode",
                         help="DeezyMatch mode",
-                        default=None
-                        )
+                        default=None)
         parser.add_argument("-m", "--model_path")
         parser.add_argument("-d", "--dataset_path")
         parser.add_argument("-v", "--vocabulary_path")
         parser.add_argument("-i", "--input_file_path")
         parser.add_argument("-n", "--number_examples")
         parser.add_argument("-mode", "--inference_mode", default="test")
-        parser.add_argument("-qc", "--query_candidate_mode", default="q")
         parser.add_argument("-sc", "--scenario")
         args = parser.parse_args()
         
@@ -254,14 +260,13 @@ def read_inference_command():
         input_file = args.input_file_path
         test_cutoff = args.number_examples
         inference_mode = args.inference_mode
-        query_candidate_mode = args.query_candidate_mode
         scenario = args.scenario
 
     except IndexError as error:
         cprint('[syntax error]', bc.red, 'syntax: python <modelInference.py> /path/to/model /path/to/dataset /path/to/train/vocab /path/to/input/file n_examples_cutoff')
         sys.exit("[ERROR] {}".format(error))
     
-    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, query_candidate_mode, scenario
+    return model_path, dataset_path, train_vocab_path, input_file, test_cutoff, inference_mode, scenario
 
 # ------------------- read_command_combinevecs --------------------
 def read_command_combinevecs():
@@ -271,9 +276,6 @@ def read_command_combinevecs():
                     help="DeezyMatch mode",
                     default="combine_vecs"
                     )
-
-    parser.add_argument("-qc", "--candidate_or_query",
-                        help="select mode: candidate (c) or query (q)")
 
     parser.add_argument("-sc", "--candidate_query_scenario", 
                         help="name of the candidate or query scenario")
@@ -289,12 +291,11 @@ def read_command_combinevecs():
                         default="default")
 
     args = parser.parse_args()
-    qc_mode = args.candidate_or_query
     cq_sc = args.candidate_query_scenario
     rnn_pass = args.rnn_pass
     combined_sc = args.combined_scenario
     input_file_path = args.input_file_path
-    return qc_mode, cq_sc, rnn_pass, combined_sc, input_file_path
+    return cq_sc, rnn_pass, combined_sc, input_file_path
 
 # ------------------- read_command_candidate_ranker --------------------
 def read_command_candidate_ranker():
@@ -305,6 +306,20 @@ def read_command_candidate_ranker():
                     default="candidate_ranker"
                     )
 
+    parser.add_argument("-i", "--input_file_path",
+                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
+                        default="default")
+
+    parser.add_argument("-qs", "--query_scenario",
+                        help="path of the combined folder for queries")
+
+    parser.add_argument("-cs", "--candidate_scenario",
+                        help="path of the combined folder for candidates")
+
+    parser.add_argument("-rm", "--ranking_metric",
+                        help="Choices between faiss, cosine, conf", 
+                        default="faiss")
+
     parser.add_argument("-t", "--threshold",
                         help="Selection criterion. NOTE: changes according to the ranking metric specified by -rm. " \
                              "A candidate will be selected if:" \
@@ -313,30 +328,19 @@ def read_command_candidate_ranker():
                              "prediction-confidence >= threshold", 
                         default=0.8)
 
-    parser.add_argument("-rm", "--ranking_metric",
-                        help="Choices between faiss, cosine, conf", 
-                        default="faiss")
+    parser.add_argument("-q", "--query",
+                    help="on-the-fly query, this can be a single string or a list of strings.", 
+                    default=None)
 
     parser.add_argument("-n", "--num_candidates",
                         help="Number of candidates", default=10)
 
-    parser.add_argument("-o", "--output_filename",
-                        help="output filename")
-
     parser.add_argument("-sz", "--search_size",
                         help="search size", default=4)
 
-    parser.add_argument("-comb", "--combined_path",
-                        help="path of the combined folder")
-    
-    parser.add_argument("-i", "--input_file_path",
-                        help="Path of the input file, if 'default', search for files with .yaml extension in -sc", 
-                        default="default")
-    
-    parser.add_argument("-tn", "--number_test_rows",
-                        help="Only for testing", 
-                        default=-1)
-    
+    parser.add_argument("-o", "--output_path",
+                        help="path to output file")
+
     parser.add_argument("-mp", "--model_path",
                         help="Path to a DeezyMatch model, normally /path/to/file.model", 
                         default=False)
@@ -344,20 +348,29 @@ def read_command_candidate_ranker():
     parser.add_argument("-v", "--vocab_path",
                         help="Path to a vocabulary file, normally /path/to/file.vocab", 
                         default=False)
+    
+    parser.add_argument("-tn", "--number_test_rows",
+                        help="Only for testing", 
+                        default=-1)
+    
 
     args = parser.parse_args()
-    num_candidates = int(args.num_candidates)
-    output_filename = args.output_filename
-    selection_threshold = float(args.threshold)
-    ranking_metric = args.ranking_metric
-    search_size = int(args.search_size)
-    comb_path = args.combined_path
     input_file_path = args.input_file_path
-    number_test_rows = int(args.number_test_rows)
+    query_scenario = args.query_scenario
+    candidate_scenario = args.candidate_scenario
+    ranking_metric = args.ranking_metric
+    selection_threshold = float(args.threshold)
+    query = args.query
+    num_candidates = int(args.num_candidates)
+    search_size = int(args.search_size)
+    output_path = args.output_path
     model_path = args.model_path
     vocab_path = args.vocab_path
-    return output_filename, selection_threshold, ranking_metric, search_size, num_candidates, \
-           comb_path, input_file_path, number_test_rows, model_path, vocab_path
+    number_test_rows = int(args.number_test_rows)
+
+    return input_file_path, query_scenario, candidate_scenario, ranking_metric, selection_threshold,\
+           query, num_candidates, search_size, output_path, model_path, vocab_path,\
+           number_test_rows
 
 # ------------------- read_input_file --------------------
 def read_input_file(input_file_path):
@@ -407,7 +420,7 @@ def model_explorer(model_path):
         print(name, param.requires_grad)
     print(20*"===")
     print("Any of the above parameters can be freezed for fine-tuning.")
-    print("You can also input, e.g., 'gru_1' and in this case, all weights/biases related to that layer will be freezed.")
+    print("You can also input, e.g., 'rnn_1' and in this case, all weights/biases related to that layer will be freezed.")
     print("See input file.")
     print(20*"===")
 
@@ -540,7 +553,7 @@ def create_parent_dir(file_path):
         os.mkdir(output_par_dir)
 
 # ------------------- log_plotter --------------------
-def log_plotter(path2log, dataset="DEFAULT"):
+def log_plotter(path2log, output_name="DEFAULT"):
     """Plot the generated log file for each model"""
 
     # set path for the output
@@ -548,8 +561,8 @@ def log_plotter(path2log, dataset="DEFAULT"):
     path2fig_dir = os.path.dirname(path2log)
     path2fig_dirname = os.path.basename(path2fig_dir)
 
-    if dataset in [None, "DEFAULT"]:
-        dataset = path2fig_dirname 
+    if output_name in [None, "DEFAULT"]:
+        output_name = path2fig_dirname 
 
     log_fio = open(path2log, "r")
     log = log_fio.readlines()
@@ -558,8 +571,8 @@ def log_plotter(path2log, dataset="DEFAULT"):
     train_arr = []
     valid_arr = []
     time_arr = []
-    for one_line in log[2:]:
-        if one_line.lower().strip().startswith("python"):
+    for one_line in log:
+        if one_line.lower().strip().startswith("#"):
             continue
         line_split = one_line.split()
         datetime_str = line_split[0]
@@ -573,7 +586,7 @@ def log_plotter(path2log, dataset="DEFAULT"):
     
         if line_split[4].lower() in ["train;", "train"]:
             train_arr.append([epoch, loss, acc, prec, recall, macrof1,weightedf1])
-            time_arr.append(datetime.strptime(datetime_str, '%d/%m/%Y_%H:%M:%S'))
+            time_arr.append(datetime.strptime(datetime_str, '%m/%d/%Y_%H:%M:%S'))
         elif line_split[4].lower() in ["valid;", "valid"]:
             #to be added
             #map_score = float(line_split[18])
@@ -584,9 +597,10 @@ def log_plotter(path2log, dataset="DEFAULT"):
         diff_time.append((time_arr[i+1] - time_arr[i]).seconds)
     total_time = (time_arr[-1] - time_arr[0]).seconds
     
-    print(f"Dataset: {dataset}\nTime: {total_time}s")
-    print(f"Dataset: {dataset}\nTime / epoch: {total_time/(len(time_arr)-1):.3f}s")
-    
+    print(f"output_name: {output_name}\nTime: {total_time}s")
+    print(f"output_name: {output_name}\nTime / epoch: {total_time/(len(time_arr)-1):.3f}s")
+    print("=============")
+
     train_arr = np.array(train_arr)
     valid_arr = np.array(valid_arr)
     if len(valid_arr > 0):
@@ -596,84 +610,101 @@ def log_plotter(path2log, dataset="DEFAULT"):
         plot_valid = False
     
     plt.figure(figsize=(15, 12))
+
     plt.subplot(3, 2, 1)
-    plt.plot(train_arr[:, 0], train_arr[:, 1], label="train loss", c="k", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 1], label="train loss", c="k", lw=2, marker="o")
     if plot_valid:
-        plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
-                 f"Epoch: {min_valid_arg}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 1], label="valid loss", c='r', lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 1]), min(train_arr[:, 1])), 
+        #         f"Epoch: {min_valid_arg+1}, Loss: {valid_arr[min_valid_arg, 1]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, Loss: {valid_arr[min_valid_arg, 1]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Loss", size=18)
-    plt.legend(fontsize=14, loc=7)
-    plt.xticks(size=14)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
     plt.subplot(3, 2, 2)
-    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train macro F1", c="k", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 5], label="train macro F1", c="k", lw=2, marker="o")
     if plot_valid:  
-        plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid macro F1", c='r', lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
-             f"Epoch: {min_valid_arg}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 5], label="valid macro F1", c='r', lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 5]), min(train_arr[:, 5])), 
+        #     f"Epoch: {min_valid_arg+1}, macro F1: {valid_arr[min_valid_arg, 5]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, macro F1: {valid_arr[min_valid_arg, 5]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("macro F1", size=18)
-    plt.legend(fontsize=14, loc=4)
-    plt.xticks(size=14)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
     plt.subplot(3, 2, 3)
-    plt.plot(train_arr[:, 0], train_arr[:, 2], label="train acc", c="k", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 2], label="train acc", c="k", lw=2, marker="o")
     if plot_valid:
-        plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
-                 f"Epoch: {min_valid_arg}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 2], label="valid acc", c='r', lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 2]), min(train_arr[:, 2])), 
+        #         f"Epoch: {min_valid_arg+1}, Acc: {valid_arr[min_valid_arg, 2]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, Acc: {valid_arr[min_valid_arg, 2]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Accuracy", size=18)
-    plt.legend(fontsize=14, loc=4)
-    plt.xticks(size=14)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
     plt.subplot(3, 2, 4)
-    plt.plot(train_arr[:, 0], train_arr[:, 3], label="train prec", c="k", ls="-", lw=2)
-    plt.plot(train_arr[:, 0], train_arr[:, 4], label="train recall", c="k", ls="--", lw=2)
+    plt.plot(train_arr[:, 0], train_arr[:, 3], label="train prec", c="k", ls="-", lw=2, marker="o")
+    plt.plot(train_arr[:, 0], train_arr[:, 4], label="train recall", c="k", ls="--", lw=2, marker="o")
     if plot_valid:
-        plt.plot(valid_arr[:, 0], valid_arr[:, 3], label="valid prec", c='r', ls="-", lw=2)
-        plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2)
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
-                 f"Epoch: {min_valid_arg}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 3], label="valid prec", c='r', ls="-", lw=2, marker="o")
+        plt.plot(valid_arr[:, 0], valid_arr[:, 4], label="valid recall", c='r', ls="--", lw=2, marker="o")
+        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k", lw=3)
+        #plt.text(valid_arr[min_valid_arg, 0]*1.05, min(min(valid_arr[:, 3]), min(valid_arr[:, 4]), min(train_arr[:, 3]), min(train_arr[:, 4])), 
+        #         f"Epoch: {min_valid_arg+1}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}", fontsize=12, color="r")
+        print(f"Epoch: {min_valid_arg+1}, Prec/Recall: {valid_arr[min_valid_arg, 3]}/{valid_arr[min_valid_arg, 4]}")
     plt.xlabel("Epoch", size=18)
     plt.ylabel("Precision/Recall", size=18)
-    plt.legend(fontsize=14, loc=4)
-    plt.xticks(size=14)
+    plt.legend(fontsize=14, bbox_to_anchor=(0, 1.02, 1, 0.2), 
+               ncol=2, borderaxespad=0, 
+               loc="lower center")
+    plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
     plt.yticks(size=14)
     plt.grid()
     
-    plt.subplot(3, 2, 5)
-    plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
-    plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
+    plt.figtext(0.5, 0.25, f"output_name: {output_name}\nTotal time: {total_time}s\nAve. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", 
+                ha="center", fontsize=14, bbox={"facecolor": "beige", "alpha":0.5, "pad":5})
+
+    # >>>>>> Plot time per epoch, commented out for now, we provide a text summary
+    # plt.subplot(3, 2, 5)
+    # plt.title(f"Dataset: {dataset}\nTotal time: {total_time}s, Ave. Time / epoch: {total_time/(len(time_arr)-1):.3f}s", size=16)
+    # plt.plot(train_arr[1:, 0], diff_time, c="k", lw=2)
 
     # If min_valid_arg is 0 (the first model has the lowest valid loss)
     # Increment min_valid_arg for Time as we use cumsum (lose one point in the plot)
-    if min_valid_arg == 0:
-        min_valid_arg += 1
+    # if min_valid_arg == 0:
+    #     min_valid_arg += 1
 
-    if plot_valid:
-        plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
-        plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 
-                 f"Epoch: {min_valid_arg}, Time to solution: {np.cumsum(diff_time[:min_valid_arg])[-1]}s", fontsize=12, color="r")
-    plt.xlabel("Epoch", size=18)
-    plt.ylabel("Time (each epoch) / sec", size=18)
-    plt.xticks(size=14)
-    plt.yticks(size=14)
-    plt.ylim(min(diff_time)*0.97)
-    plt.grid()
-    
+    # if plot_valid:
+    #     plt.axvline(valid_arr[min_valid_arg, 0], 0, 1, ls="--", c="k")
+    #     plt.text(valid_arr[min_valid_arg, 0]*1.05, min(diff_time)*0.98, 
+    #              f"Epoch: {min_valid_arg+1}, Time to solution: {np.cumsum(diff_time[:min_valid_arg])[-1]}s", fontsize=12, color="r")
+    # plt.xlabel("Epoch", size=18)
+    # plt.ylabel("Time (each epoch) / sec", size=18)
+    # plt.xticks(train_arr[:, 0], train_arr[:, 0].astype(np.integer), size=14)
+    # plt.yticks(size=14)
+    # plt.ylim(min(diff_time)*0.97)
+    # plt.grid()
+
     plt.tight_layout()
-    path2fig = os.path.join(path2fig_dir, f"log_{dataset}.png")
-    plt.savefig(path2fig, dpi=300)
+    path2fig = os.path.join(path2fig_dir, f"log_{output_name}.png")
+    plt.savefig(path2fig, dpi=300, bbox_inches='tight', pad_inches=0)
