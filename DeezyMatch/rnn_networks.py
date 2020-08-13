@@ -145,6 +145,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
     torch.save(model_gru, model_path)
+    torch.save(model_gru.state_dict(), model_path + "_state_dict")
 
     """
     model = TheModelClass(*args, **kwargs)
@@ -240,6 +241,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
     if not os.path.isdir(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
     torch.save(pretrained_model, model_path)
+    torch.save(pretrained_model.state_dict(), model_path + "_state_dict")
 
     """
     model = TheModelClass(*args, **kwargs)
@@ -382,6 +384,7 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
             if not os.path.isdir(os.path.dirname(checkpoint_path)):
                 os.makedirs(os.path.dirname(checkpoint_path))
             torch.save(model, checkpoint_path)
+            torch.save(model.state_dict(), checkpoint_path + "_state_dict")
 
 # ------------------- test_model --------------------
 def test_model(model, test_dl, eval_mode='test', valid_desc=None,
