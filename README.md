@@ -404,7 +404,7 @@ Summary of the arguments/flags:
 This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
 
 <p align="center">
-<img src="./figs/log_t001.png" alt="Example output of plot_log module" width="100%">
+<img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/log_t001.png" alt="Example output of plot_log module" width="100%">
 </p>
 
 DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure:
@@ -1016,7 +1016,7 @@ For a given query, DeezyMatch searches for candidates iteratively. If we set `se
 This adaptive search algorithm significantly reduces the computation time to find and rank a set of candidates in a dataset. Instead of searching the whole dataset, DeezyMatch iteratively compares a query vector with the "most-promising" candidates.
 
 <p align="center">
-<img src="./figs/query_candidate_selection.png" alt="role of search_size in candidate ranker" width="70%">
+<img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/query_candidate_selection.png" alt="role of search_size in candidate ranker" width="70%">
 </p>
 
 In most use cases, `search_size` can be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, the process concludes. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
