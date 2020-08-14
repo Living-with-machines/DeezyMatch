@@ -4,7 +4,6 @@
     <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/feature/logo/figs/DM_logo.jpeg" 
          alt="DeezyMatch logo" width="50%" align="center">
     </p>
-    <h1>DeezyMatch</h1>
     <h2>A Flexible Deep Neural Network Approach to Fuzzy String Matching</h2>
 </div>
  
