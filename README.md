@@ -1,5 +1,6 @@
 <div align="center">
     <br>
+    <img src="./figs/DM_logo.jpeg" alt="DeezyMatch logo">
     <h1>DeezyMatch</h1>
     <h2>A Flexible Deep Neural Network Approach to Fuzzy String Matching</h2>
 </div>
