@@ -400,6 +400,12 @@ def read_input_file(input_file_path):
         dl_inputs['general']['device'] = device
         cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
 
+        if not "early_stopping_patience" in dl_inputs["gru_lstm"]:
+            dl_inputs["gru_lstm"]["early_stopping_patience"] = False
+        
+        if dl_inputs['gru_lstm']["early_stopping_patience"] <= 0:
+            dl_inputs['gru_lstm']["early_stopping_patience"] = False
+        
         # XXX separation in the input CSV file
         # Hardcoded, see issue #38
         dl_inputs['preprocessing']['csv_sep'] = "\t"

@@ -98,13 +98,6 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
     else:
         do_validation = int(do_validation)
     
-    if not "early_stopping_patience" in dl_inputs["gru_lstm"]:
-        early_stopping_patience = False
-        early_stopping_delta = 0
-    else:
-        early_stopping_patience = dl_inputs["gru_lstm"]["early_stopping_patience"]
-        early_stopping_delta = dl_inputs["gru_lstm"]["early_stopping_delta"] 
-
     # --- create the model
     cprint('[INFO]', bc.dgreen, 'create a two_parallel_rnns model')
     model_gru = two_parallel_rnns(main_architecture, vocab_size, embedding_dim, rnn_hidden_dim, output_dim,
@@ -143,9 +136,7 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
         csv_sep=dl_inputs['preprocessing']["csv_sep"],
         map_flag=map_flag,
         do_validation=do_validation,
-        early_stopping_patience=early_stopping_patience,
-        early_stopping_delta=early_stopping_delta
-        )
+        early_stopping_patience=dl_inputs["gru_lstm"]["early_stopping_patience"])
 
     # --- print some simple stats on the run
     print_stats(start_time)
@@ -184,13 +175,6 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         do_validation = 1
     else:
         do_validation = int(do_validation)
-
-    if not "early_stopping_patience" in dl_inputs["gru_lstm"]:
-        early_stopping_patience = False
-        early_stopping_delta = 0
-    else:
-        early_stopping_patience = dl_inputs["gru_lstm"]["early_stopping_patience"]
-        early_stopping_delta = dl_inputs["gru_lstm"]["early_stopping_delta"] 
     
     pretrained_model = torch.load(pretrained_model_path, map_location=torch.device(device))
     
@@ -248,9 +232,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         csv_sep=dl_inputs['preprocessing']["csv_sep"],
         map_flag=map_flag,
         do_validation=do_validation,
-        early_stopping_patience=early_stopping_patience,
-        early_stopping_delta=early_stopping_delta
-        )
+        early_stopping_patience=dl_inputs["gru_lstm"]["early_stopping_patience"])
 
     # --- print some simple stats on the run
     print_stats(start_time)
@@ -275,7 +257,7 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
 def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, 
         pooling_mode='attention', device='cpu', 
         tboard_path=False, model_path=False, csv_sep="\t", map_flag=False, do_validation=1,
-        early_stopping_patience=False, early_stopping_delta=0):
+        early_stopping_patience=False):
 
     num_batch_train = len(train_dl)
     num_batch_valid = len(valid_dl)
@@ -402,12 +384,12 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
                                     map_flag=map_flag,
                                     output_loss=True)
             if early_stopping_patience:
-                if (not es_loss) or (valid_loss <= (es_loss - early_stopping_delta)):
+                if (not es_loss) or (valid_loss <= es_loss):
                     es_loss = valid_loss
                     es_model = copy.deepcopy(model)
                     es_checkpoint = epoch + 1
                     es_counter = 0
-                elif valid_loss > (es_loss - early_stopping_delta):
+                elif valid_loss > es_loss:
                     es_counter += 1
             
                 if es_counter >= early_stopping_patience:
