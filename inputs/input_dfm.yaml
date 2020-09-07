@@ -68,6 +68,11 @@ gru_lstm:
   batch_size: 256
   # shuffle when creating DataLoader
   dl_shuffle: True 
+  # wait these many epochs, if the validation loss does not improve, stop
+  # OR False (deactivate early stopping)
+  early_stopping_patience: False
+  # minimum change in the validation loss to be considered as improvement
+  early_stopping_delta: 0
   random_seed: 123
 
   # if -1 or 1, perform the validation step in every epoch; 
