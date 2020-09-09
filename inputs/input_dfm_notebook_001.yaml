@@ -72,8 +72,8 @@ gru_lstm:
   # Early stopping:
   # Number of epochs with no improvement after which training will be stopped and
   #   the model with the least validation loss will be saved
-  # If False, 0 or negative, early stopping will be deactivated
-  early_stopping_patience: False
+  # If 0 or negative, early stopping will be deactivated
+  early_stopping_patience: -1
 
   # if -1 or 1, perform the validation step in every epoch; 
   # if 0, no validation will be done
