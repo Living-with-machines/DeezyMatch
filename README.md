@@ -401,26 +401,32 @@ Summary of the arguments/flags:
 
 ---
 
-This command generates a figure `log_test001.png` and stores it in `models/test001` directory.
+This command generates a figure `log_t001.png` and stores it in `models/test001` directory.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/log_t001.png" alt="Example output of plot_log module" width="100%">
 </p>
 
-DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure:
+DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure (unless `validation` option in the input file is not equal to 1). When DeezyMatch finishes the last epoch, it will save the model with least validation loss as well (`test001.model` in the following directory structure). Morevoer, DeezyMatch has an `early stopping` functionality. This can be activated by setting the `early_stopping_patience` option in the input file. This option specifies the number of epochs with no improvement after which training will be stopped and the model with the least validation loss will be saved.
 
 ```bash
 models/
 └── test001
     ├── checkpoint00001.model
+    ├── checkpoint00001.model_state_dict
     ├── checkpoint00002.model
+    ├── checkpoint00002.model_state_dict
     ├── checkpoint00003.model
+    ├── checkpoint00003.model_state_dict
     ├── checkpoint00004.model
+    ├── checkpoint00004.model_state_dict
     ├── checkpoint00005.model
+    ├── checkpoint00005.model_state_dict
     ├── input_dfm.yaml
     ├── log_t001.png
     ├── log.txt
     ├── test001.model
+    ├── test001.model_state_dict
     └── test001.vocab
 ```
 

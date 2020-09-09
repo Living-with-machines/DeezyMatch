@@ -69,6 +69,11 @@ gru_lstm:
   # shuffle when creating DataLoader
   dl_shuffle: True 
   random_seed: 123
+  # Early stopping:
+  # Number of epochs with no improvement after which training will be stopped and
+  #   the model with the least validation loss will be saved
+  # If 0 or negative, early stopping will be deactivated
+  early_stopping_patience: -1
 
   # if -1 or 1, perform the validation step in every epoch; 
   # if 0, no validation will be done
