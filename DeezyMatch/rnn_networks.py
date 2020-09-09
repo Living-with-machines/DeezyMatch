@@ -136,27 +136,13 @@ def gru_lstm_network(dl_inputs, model_name, train_dc, valid_dc=False, test_dc=Fa
         csv_sep=dl_inputs['preprocessing']["csv_sep"],
         map_flag=map_flag,
         do_validation=do_validation,
-        early_stopping_patience=dl_inputs["gru_lstm"]["early_stopping_patience"])
+        early_stopping_patience=dl_inputs["gru_lstm"]["early_stopping_patience"],
+        model_name=model_name
+        )
 
     # --- print some simple stats on the run
     print_stats(start_time)
 
-    ## # --- save the model
-    ## cprint('[INFO]', bc.lgreen, 'saving the model')
-    ## model_path = os.path.join(dl_inputs["general"]["models_dir"], 
-    ##                           model_name,
-    ##                           model_name + '.model')
-    ## if not os.path.isdir(os.path.dirname(model_path)):
-    ##     os.makedirs(os.path.dirname(model_path))
-    ## torch.save(model_gru, model_path)
-    ## torch.save(model_gru.state_dict(), model_path + "_state_dict")
-
-    ## """
-    ## model = TheModelClass(*args, **kwargs)
-    ## model.load_state_dict(torch.load(PATH))
-    ## model.eval()
-    ## """
-    
 # ------------------- fine_tuning --------------------
 def fine_tuning(pretrained_model_path, dl_inputs, model_name, 
                 train_dc, valid_dc=False, test_dc=False):
@@ -232,32 +218,18 @@ def fine_tuning(pretrained_model_path, dl_inputs, model_name,
         csv_sep=dl_inputs['preprocessing']["csv_sep"],
         map_flag=map_flag,
         do_validation=do_validation,
-        early_stopping_patience=dl_inputs["gru_lstm"]["early_stopping_patience"])
+        early_stopping_patience=dl_inputs["gru_lstm"]["early_stopping_patience"],
+        model_name=model_name
+        )
 
     # --- print some simple stats on the run
     print_stats(start_time)
-
-    ## # --- save the model
-    ## cprint('[INFO]', bc.lgreen, 'saving the model')
-    ## model_path = os.path.join(dl_inputs["general"]["models_dir"], 
-    ##                           model_name,
-    ##                           model_name + '.model')
-    ## if not os.path.isdir(os.path.dirname(model_path)):
-    ##     os.makedirs(os.path.dirname(model_path))
-    ## torch.save(pretrained_model, model_path)
-    ## torch.save(pretrained_model.state_dict(), model_path + "_state_dict")
-
-    ## """
-    ## model = TheModelClass(*args, **kwargs)
-    ## model.load_state_dict(torch.load(PATH))
-    ## model.eval()
-    ## """
-    
+   
 # ------------------- fit  --------------------
 def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3, 
         pooling_mode='attention', device='cpu', 
         tboard_path=False, model_path=False, csv_sep="\t", map_flag=False, do_validation=1,
-        early_stopping_patience=False):
+        early_stopping_patience=False, model_name="default"):
 
     num_batch_train = len(train_dl)
     num_batch_valid = len(valid_dl)
@@ -383,21 +355,24 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
                                     epoch=epoch+1,
                                     map_flag=map_flag,
                                     output_loss=True)
-            if early_stopping_patience:
-                if (not es_loss) or (valid_loss <= es_loss):
-                    es_loss = valid_loss
-                    es_model = copy.deepcopy(model)
-                    es_checkpoint = epoch + 1
-                    es_counter = 0
-                elif valid_loss > es_loss:
-                    es_counter += 1
+
+            if (not es_loss) or (valid_loss <= es_loss):
+                es_loss = valid_loss
+                es_model = copy.deepcopy(model)
+                es_checkpoint = epoch + 1
+                es_counter = 0
+            else:
+                es_counter += 1
             
+            if early_stopping_patience:
                 if es_counter >= early_stopping_patience:
                     # --- save the model
-                    cprint('[INFO]', bc.lgreen, 'saving the model (early stopped)')
-                    checkpoint_path = os.path.join(model_path, f'early_stopped_checkpoint{es_checkpoint:05d}.model')
+                    checkpoint_path = os.path.join(model_path, 
+                                                   model_name + '.model')
                     if not os.path.isdir(os.path.dirname(checkpoint_path)):
                         os.makedirs(os.path.dirname(checkpoint_path))
+                    cprint('[INFO]', bc.lgreen, 
+                           f'saving the model (early stopped) with least valid loss (checkpoint: {es_checkpoint}) at {checkpoint_path}')
                     torch.save(es_model, checkpoint_path)
                     torch.save(es_model.state_dict(), checkpoint_path + "_state_dict")
                     es_stop = True
@@ -414,6 +389,18 @@ def fit(model, train_dl, valid_dl, loss_fn, opt, epochs=3,
         if es_stop:
             cprint('[INFO]', bc.dgreen, 'Early stopping at epoch: {}, selected epoch: {}'.format(epoch+1, es_checkpoint))
             return 
+    
+    if model_path and epoch > 0:
+        # --- save the model with least validation loss
+        model_path_save = os.path.join(model_path,
+                                       model_name + '.model')
+        if not os.path.isdir(os.path.dirname(model_path_save)):
+            os.makedirs(os.path.dirname(model_path_save))
+        cprint(f'[INFO]', bc.lgreen, 
+               f'saving the model with least valid loss (checkpoint: {es_checkpoint}) at {model_path_save}')
+        torch.save(es_model, model_path_save)
+        torch.save(es_model.state_dict(), model_path_save + "_state_dict")
+
 
 # ------------------- test_model --------------------
 def test_model(model, test_dl, eval_mode='test', valid_desc=None,
@@ -674,6 +661,11 @@ class two_parallel_rnns(nn.Module):
         self.h1, self.c1 = self.init_hidden(x1_seq.size(1), device)
         x1_embs_not_packed = self.emb(x1_seq)
         x1_embs = pack_padded_sequence(x1_embs_not_packed, len1, enforce_sorted=False)
+        # To avoid the following issue:
+        #   RNN module weights are not part of single contiguous chunk of memory. 
+        #   This means they need to be compacted at every call, possibly greatly increasing memory usage. 
+        #   To compact weights again call flatten_parameters().
+        self.rnn_1.flatten_parameters()
         if self.main_architecture.lower() in ["lstm"]:
             rnn_out_1, (self.h1, self.c1) = self.rnn_1(x1_embs, (self.h1, self.c1))
         elif self.main_architecture.lower() in ["gru", "rnn"]:
