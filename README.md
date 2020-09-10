@@ -1,7 +1,7 @@
 <div align="center">
     <br>
     <p align="center">
-    <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/feature/logo/figs/DM_logo.png" 
+    <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/DM_logo.png" 
          alt="DeezyMatch logo" width="30%" align="center">
     </p>
     <h2>A Flexible Deep Neural Network Approach to Fuzzy String Matching</h2>
