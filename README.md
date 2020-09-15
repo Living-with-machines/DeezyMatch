@@ -11,9 +11,6 @@
     <a href="https://pypi.org/project/DeezyMatch/">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/DeezyMatch">
     </a>
-    <a href="https://doi.org/10.5281/zenodo.3983555">
-        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.3983555.svg" alt="DOI">
-    </a>
     <a href="https://github.com/Living-with-machines/DeezyMatch/blob/master/LICENSE">
         <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
     </a>
@@ -41,6 +38,7 @@ Table of contents
     * [Candidate ranking on-the-fly](#candidate-ranking-on-the-fly)
     * [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities)
 - [Examples on how to run DeezyMatch](./examples)
+- [How to cite DeezyMatch](#how-to-cite-deezymatch)
 - [Credits](#credits)
 
 ## Installation
@@ -1026,6 +1024,25 @@ This adaptive search algorithm significantly reduces the computation time to fin
 </p>
 
 In most use cases, `search_size` can be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, the process concludes. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
+
+## How to cite DeezyMatch
+
+Please consider acknowledging DeezyMatch if it helps you to obtain results and figures for publications or presentations, by citing:
+
+```text
+Hosseini, Nanni and Coll Ardanuy (2020, accepted), DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching, EMNLP: System Demonstrations.
+```
+
+and in BibTeX:
+
+```bibtex
+@inproceedings{hosseini2020deezy,
+  title={DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching},
+  author={Hosseini, Kasra and Nanni, Federico and Coll Ardanuy, Mariona},
+  booktitle={EMNLP: System Demonstrations (accepted)},
+  year={2020}
+}
+```
 
 ## Credits
 
