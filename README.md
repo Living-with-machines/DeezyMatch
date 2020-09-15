@@ -1030,7 +1030,7 @@ In most use cases, `search_size` can be set `>= num_candidates`. However, if `nu
 Please consider acknowledging DeezyMatch if it helps you to obtain results and figures for publications or presentations, by citing:
 
 ```text
-Hosseini, Nanni and Coll Ardanuy (2020, accepted), DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching, EMNLP: System Demonstrations.
+Hosseini, Nanni and Coll Ardanuy (2020), DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching, EMNLP: System Demonstrations.
 ```
 
 and in BibTeX:
@@ -1039,7 +1039,7 @@ and in BibTeX:
 @inproceedings{hosseini2020deezy,
   title={DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching},
   author={Hosseini, Kasra and Nanni, Federico and Coll Ardanuy, Mariona},
-  booktitle={EMNLP: System Demonstrations (accepted)},
+  booktitle={EMNLP: System Demonstrations},
   year={2020}
 }
 ```
