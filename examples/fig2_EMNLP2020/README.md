@@ -7,5 +7,5 @@ Hosseini, Nanni and Coll Ardanuy (2020), DeezyMatch: A Flexible Deep Learning Ap
 ```
 
 - `Fig2_EMNLP_training.ipynb`: train and fine-tune a suit of pair classifiers.
-- `Fig2_EMNLP_inference.ipynb`: model inference using the models trained in the previous notebook.
-- `Fig2_EMNLP_plot_results.ipynb`: plots the results of model inference done in the `Fig2_EMNLP_inference` notebook.
+- `Fig2_EMNLP_inference.ipynb`: model inference using the models trained in the `Fig2_EMNLP_training.ipyn` notebook.
+- `Fig2_EMNLP_plot_results.ipynb`: plot the results of model inference done in the `Fig2_EMNLP_inference` notebook.
