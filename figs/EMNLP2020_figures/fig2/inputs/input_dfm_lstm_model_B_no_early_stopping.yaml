@@ -1,0 +1,101 @@
+general:
+  use_gpu: True    # only if available
+  # specify CUDA device, these are 0-indexed, e.g., 
+  #   cuda:0, cuda:1 or others. "cuda" is the default CUDA device
+  gpu_device: "cuda:1"
+  # Parent dir to save trained models 
+  models_dir: "./models"
+
+preprocessing:
+  # normalizing text to the ASCII encoding standard
+  uni2ascii: True
+  lowercase: False
+  # removing both the leading and the trailing empty characters
+  strip: True
+  only_latin_letters: False
+  # Strings in the inputs will be prefix + string + suffix
+  prefix_suffix: ["|", "|"]
+  # Accepted proportion of characters in a string that are not present in our vocabulary, i.e.,
+  # String is accepted if:
+  # (number of its characters found in the vocabulary)/(total number its characters) >= missing_char_threshold
+  missing_char_threshold: 0.5
+  # read a list of characters and add to the vocabulary
+  read_list_chars: "./inputs/characters_v001.vocab"
+
+# --- RNN/GRU/LSTM architecture/misc info
+gru_lstm:
+  main_architecture: "lstm"    # rnn, gru, lstm
+  mode:    # Tokenization mode
+    # choices: "char", "ngram", "word"
+    # for example: tokenize: ["char", "ngram", "word"] or ["char", "word"] 
+    tokenize: ["char"]
+    # ONLY if "ngram" is selected in tokenize, the following args will be used:
+    min_gram: 2
+    max_gram: 3
+  bidirectional: True    # if True, becomes a bidirectional RNN/GRU/LSTM
+  # num_layers
+  # number of recurrent layers. e.g., setting num_layers=2 means stacking two 
+  #   RNN/GRU/LSTMs together to form a stacked RNN/GRU/LSTM,
+  #   with the second RNN/GRU/LSTM taking in outputs of the first RNN/GRU/LSTM and computing the final results.
+  num_layers: 2
+  # number of dimensions of the first fully connected network
+  fc1_out_dim: 120    
+  # pooling_mode:
+  # hstates_layers_simple, hstates_layers, hstates
+  # hstates_subtract, hstates_l2_distance, hstates_cosine
+  # average, max
+  # attention
+  pooling_mode: 'hstates_layers'    
+  # rnn_dropout:
+  # if non-zero, introduces a Dropout layer on the outputs of each RNN/LSTM/GRU layer except the last layer,
+  #   with dropout probability equal to rnn_dropout.
+  rnn_dropout: 0.01
+  # fully-connected layers dropout depends on the number of fc layers (currently there are two)
+  fc_dropout: [0.01, 0.01]  
+  # attention layer dropout depends on the number of attention layers (currently there are two)
+  att_dropout: [0.01, 0.01] 
+  # Add bias to all learnable parameters
+  bias: True
+
+  rnn_hidden_dim: 60
+  max_seq_len: 120
+  embedding_dim: 60
+  output_dim: 2
+
+  learning_rate: 0.001 # 3e-4
+  optimizer: adam
+  epochs: 10
+  batch_size: 64
+  # shuffle when creating DataLoader
+  dl_shuffle: True 
+  # wait these many epochs, if the validation loss does not improve, stop
+  # OR False (deactivate early stopping)
+  early_stopping_patience: 0
+  # minimum change in the validation loss to be considered as improvement
+  early_stopping_delta: 0
+  random_seed: 123
+
+  # if -1 or 1, perform the validation step in every epoch; 
+  # if 0, no validation will be done
+  # otherwise, specify the interval (integer)
+  validation: 1
+  # split dataset
+  train_proportion: 0.7
+  val_proportion: 0.3
+  test_proportion: 0.0
+
+  # False or path to a directory to create tensor-board
+  #create_tensor_board: "./tb_gru_test" 
+  create_tensor_board: False
+
+  # Layers to freeze during fine-tuning
+  layers_to_freeze: ["emb"]
+
+inference:
+ # Output predictions and save the results in output_preds_file
+ output_preds: True
+ # either a path or "default"
+ #   "default" saves the prediction output inside the model directory
+ output_preds_file: "default"
+ # change it to true to have Mean Average Precision as an eval metric. Note that this would have an impact on computational time
+ eval_map_metric: False
