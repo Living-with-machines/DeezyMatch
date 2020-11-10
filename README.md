@@ -807,7 +807,7 @@ candidates_pd = \
 
 `query_scenario` is the directory that contains all the assembled query vectors [(see)](#combine-vector-representations) while `candidate_scenario` contains the assembled candidate vectors.
 
-`ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs). 
+`ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine distance), `conf` (confidence as measured by DeezyMatch prediction outputs). 
 
 :warning: In our experiments, `conf` was not a good metric to rank candidates. Consider using `faiss` or `cosine` instead.
 
@@ -816,7 +816,7 @@ candidates_pd = \
 ```text
 A candidate will be selected if:
     faiss-distance <= threshold
-    cosine-similarity >= threshold
+    cosine-distance <= threshold
     prediction-confidence >= threshold
 ```
 
@@ -833,6 +833,7 @@ The DeezyMatch model and its vocabulary are specified by `pretrained_model_path`
 The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `output_path` which is in a pandas dataframe fromat. The first few rows are:
 
 ```bash
+XXX UPDATE
                               query                                         pred_score                                     faiss_distance                                         cosine_sim                             candidate_original_ids  query_original_id  num_all_searches
 id                                                                                                                                                                                                                                                                                  
 0                        la dom nxy      {'la dom nxy': 0.7976, 'Laohuzhuang': 0.7717}         {'la dom nxy': 0.0, 'Laohuzhuang': 2.6753}         {'la dom nxy': 1.0, 'Laohuzhuang': 0.8917}             {'la dom nxy': 0, 'Laohuzhuang': 3743}                  0                 2
@@ -841,7 +842,7 @@ id
 3                         Sutangcun       {'Sutangcun': 0.7508, 'Senge Pa`in': 0.7564}          {'Sutangcun': 0.0, 'Senge Pa`in': 2.2971}          {'Sutangcun': 1.0, 'Senge Pa`in': 0.9071}              {'Sutangcun': 3, 'Senge Pa`in': 8304}                  3                 2
 ```
 
-As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
+As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_dist` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
 
 Similarly, the above results can be generated via command line:
 
@@ -857,8 +858,8 @@ Summary of the arguments/flags:
 |-----------------------	|-------------------	|-------------------------------------------------------------------------------------------------	|
 | query_scenario        	| -qs               	| directory that contains all the assembled query vectors                                                                                                                     	|
 | candidate_scenario    	| -cs               	| directory that contains all the assembled candidate vectors                                                                                                                 	|
-| ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine similarity),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
-| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= threshold,<br>cosine-similarity >= threshold,<br>prediction-confidence >= threshold 	|
+| ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine distance),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
+| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= threshold,<br>cosine-distance <= threshold,<br>prediction-confidence >= threshold 	|
 | query                 	| -q                	| one string or a list of strings to be used in candidate ranking on-the-fly                                                                                                  	|
 | num_candidates        	| -n                	| number of desired candidates                                                                                                                                                	|
 | search_size           	| -sz               	| number of candidates to be tested at each iteration                                                                                                                         	|
@@ -871,20 +872,20 @@ Summary of the arguments/flags:
 ---
 
 **Other methods**
-
-* Select candidates based on cosine similarity:
+XXXX
+* Select candidates based on cosine distance:
 
 ```python
 from DeezyMatch import candidate_ranker
 
-# Select candidates based on cosine similarity:
+# Select candidates based on cosine distance:
 # find candidates from candidate_scenario 
 # for queries specified in query_scenario
 candidates_pd = \
     candidate_ranker(query_scenario="./combined/queries_test",
                      candidate_scenario="./combined/candidates_test", 
                      ranking_metric="cosine", 
-                     selection_threshold=0.51, 
+                     selection_threshold=0.49, 
                      num_candidates=2, 
                      search_size=2, 
                      output_path="ranker_results/test_candidates_deezymatch", 
@@ -893,7 +894,7 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
-Note that the only differences compared to the previous command are `ranking_metric="cosine"` and `selection_threshold=0.51`.
+Note that the only differences compared to the previous command are `ranking_metric="cosine"` and `selection_threshold=0.49`.
 
 ## Candidate ranking on-the-fly
 
