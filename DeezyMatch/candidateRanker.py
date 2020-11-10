@@ -140,13 +140,13 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
         directory that contains all the assembled candidate vectors
     ranking_metric
         choices are `faiss` (used here, L2-norm distance), 
-                    `cosine` (cosine similarity), 
+                    `cosine` (cosine distance), 
                     `conf` (confidence as measured by DeezyMatch prediction outputs)
     selection_threshold 
         changes according to the `ranking_metric`:
           A candidate will be selected if:
               faiss-distance <= threshold
-              cosine-similarity >= threshold
+              cosine-distance <= threshold
               prediction-confidence >= threshold
     query
         one string or a list of strings to be used in candidate ranking on-the-fly
@@ -280,6 +280,7 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
             # Compute cosine similarity
             cosine_sim = cosine_similarity(vecs_query[iq:(iq+1)].detach().cpu().numpy(), 
                                            vecs_candidates.detach().cpu().numpy()[orig_id_candis])
+            cosine_dist = 1. - cosine_sim
     
             if not pretrained_model_path in [False, None]:
                 all_preds = candidate_conf_calc(query_candidate_pd, 
@@ -294,14 +295,14 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
     
     
             query_candidate_pd['faiss_dist'] = found_neighbours[0][0, id_0_neigh:id_1_neigh]
-            query_candidate_pd['cosine_sim'] = cosine_sim[0] 
+            query_candidate_pd['cosine_dist'] = cosine_dist[0] 
             query_candidate_pd['s1_orig_ids'] = orig_id_queries 
             query_candidate_pd['s2_orig_ids'] = orig_id_candis 
     
             if ranking_metric.lower() in ["faiss"]:
                 query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["faiss_dist"] <= selection_threshold]
             elif ranking_metric.lower() in ["cosine"]:
-                query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["cosine_sim"] >= selection_threshold]
+                query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["cosine_dist"] <= selection_threshold]
             elif ranking_metric.lower() in ["conf"]:
                 if not pretrained_model_path in [False, None]:
                     query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["dl_match"] >= selection_threshold]
@@ -322,7 +323,7 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
                     break
             elif ranking_metric.lower() in ["cosine"]:
                 # 0.99 is multiplied to avoid issues with float numbers and rounding errors
-                if query_candidate_pd["cosine_sim"].min() < (selection_threshold*0.99):
+                if query_candidate_pd["cosine_dist"].max() > (selection_threshold*1.01):
                     break 
     
             # Go to the next zone    
@@ -332,16 +333,18 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
         
         # write results to output_pd
         mydict_dl_match = OrderedDict({})
+        mydict_dl_1_minus_match = OrderedDict({})
         mydict_faiss_dist = OrderedDict({})
         mydict_candid_id = OrderedDict({})
-        mydict_cosine_sim = OrderedDict({})
+        mydict_cosine_dist = OrderedDict({})
         if len(collect_neigh_pd) == 0:
             one_row = {
                 "id": orig_id_queries, 
                 "query": all_queries_no_preproc[0], 
                 "pred_score": [mydict_dl_match], 
+                "1-pred_score": [mydict_dl_1_minus_match],
                 "faiss_distance": [mydict_faiss_dist], 
-                "cosine_sim": [mydict_cosine_sim],
+                "cosine_dist": [mydict_cosine_dist],
                 "candidate_original_ids": [mydict_candid_id], 
                 "query_original_id": orig_id_queries,
                 "num_all_searches": id_1_neigh 
@@ -351,24 +354,27 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
         if ranking_metric.lower() in ["faiss"]:
             collect_neigh_pd = collect_neigh_pd.sort_values(by="faiss_dist")[:num_candidates]
         elif ranking_metric.lower() in ["cosine"]:
-            collect_neigh_pd = collect_neigh_pd.sort_values(by="cosine_sim", ascending=False)[:num_candidates]
+            collect_neigh_pd = collect_neigh_pd.sort_values(by="cosine_dist")[:num_candidates]
         elif ranking_metric.lower() in ["conf"]:
             collect_neigh_pd = collect_neigh_pd.sort_values(by="dl_match", ascending=False)[:num_candidates]
     
         for i_row, row in collect_neigh_pd.iterrows():
             if not pretrained_model_path in [False, None]:
                 mydict_dl_match[row["s2_orig"]] = round(row["dl_match"], 4)
+                mydict_dl_1_minus_match[row["s2_orig"]] = 1. - round(row["dl_match"], 4)
             else:
                 mydict_dl_match[row["s2_orig"]] = row["dl_match"]
+                mydict_dl_1_minus_match[row["s2_orig"]] = 1. - row["dl_match"]
             mydict_faiss_dist[row["s2_orig"]] = round(row["faiss_dist"], 4)
-            mydict_cosine_sim[row["s2_orig"]] = round(row["cosine_sim"], 4)
+            mydict_cosine_dist[row["s2_orig"]] = round(row["cosine_dist"], 4)
             mydict_candid_id[row["s2_orig"]] = row["s2_orig_ids"]
         one_row = {
             "id": orig_id_queries, 
             "query": all_queries_no_preproc[0], 
             "pred_score": [mydict_dl_match], 
+            "1-pred_score": [mydict_dl_1_minus_match], 
             "faiss_distance": [mydict_faiss_dist], 
-            "cosine_sim": [mydict_cosine_sim],
+            "cosine_dist": [mydict_cosine_dist],
             "candidate_original_ids": [mydict_candid_id], 
             "query_original_id": orig_id_queries,
             "num_all_searches": id_1_neigh 
