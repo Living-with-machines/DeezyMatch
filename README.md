@@ -19,6 +19,7 @@
 
 DeezyMatch can be applied for performing the following tasks:
 
+- Fuzzy string matching
 - Record linkage
 - Candidate selection for entity linking systems
 - Toponym matching
@@ -148,7 +149,10 @@ mkdir dataset inputs
 
 These three files can be downloaded directly from `inputs` and `dataset` directories on [DeezyMatch repo](https://github.com/Living-with-machines/DeezyMatch).
 
-**Note on vocabulary:** `characters_v001.vocab` combines all characters from the different datasets we have used in our experiments (Santos et al, 2018 and other datasets which will be described in a forthcoming publication). It consists of 7,540 characters from multiple alphabets, containing special characters.
+**Note on vocabulary:** `characters_v001.vocab` combines all characters from the different datasets we have used in our experiments 
+(See [DeezyMatch's paper](https://www.aclweb.org/anthology/2020.emnlp-demos.9/) and 
+[this paper](https://arxiv.org/abs/2009.08114) for a detailed description of the datasets). 
+It consists of 7,540 characters from multiple alphabets, containing special characters.
 
 `dataset-string-similarity_test.txt` contains 9995 example rows. The original dataset can be found here: https://github.com/ruipds/Toponym-Matching.
 
@@ -817,7 +821,7 @@ candidates_pd = \
 A candidate will be selected if:
     faiss-distance <= threshold
     cosine-distance <= threshold
-    prediction-confidence >= threshold
+    prediction-confidence >= threshold     :warning: Here, we define a **minimum** value while in the other two metrics (i.e., faiss-/cosine-distance), we define a **maximum** value.
 ```
 
 :warning: Note that `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
