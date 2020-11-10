@@ -377,7 +377,8 @@ A new model directory called `test001` will be created in `models` directory (as
 * Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
 * Delimiter is fixed to `\t` for now.
 
-DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
+DeezyMatch keeps track of some evaluation metrics (e.g., loss/accuracy/precision/recall/F1) at each epoch. 
+It is possible to plot the log-file by:
 
 ```python
 from DeezyMatch import plot_log
@@ -410,7 +411,12 @@ This command generates a figure `log_t001.png` and stores it in `models/test001`
 <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/log_t001.png" alt="Example output of plot_log module" width="100%">
 </p>
 
-DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure (unless `validation` option in the input file is not equal to 1). When DeezyMatch finishes the last epoch, it will save the model with least validation loss as well (`test001.model` in the following directory structure). Morevoer, DeezyMatch has an `early stopping` functionality. This can be activated by setting the `early_stopping_patience` option in the input file. This option specifies the number of epochs with no improvement after which training will be stopped and the model with the least validation loss will be saved.
+DeezyMatch **stores models, vocabularies, input file, log file and checkpoints (for each epoch)** 
+in the following directory structure (unless `validation` option in the input file is not equal to 1). 
+When DeezyMatch finishes the last epoch, it will **save the model with least validation loss as well** (`test001.model` in the following directory structure). 
+Moreover, DeezyMatch has an **early stopping** functionality. 
+This can be activated by setting the `early_stopping_patience` option in the input file. 
+This option specifies the number of epochs with no improvement after which training will be stopped and the model with the least validation loss will be saved.
 
 ```bash
 models/
@@ -522,7 +528,8 @@ fc2.bias True
 ============================================================
 ```
 
-The first column lists the parameters in the model, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "rnn_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
+The first column lists the parameters in the model, and the second column specifies if those parameters will be used in the optimization or not. 
+In our example, we set `layers_to_freeze: ["emb", "rnn_1", "attn"]`, so all the parameters except for `fc1` and `fc2` will not be changed during the training.
 
 It is possible to print all parameters in a model by:
 
@@ -563,7 +570,7 @@ Summary of the arguments/flags:
 | pretrained_model_path 	| -m                	| path to the pretrained model                                                   	|
 | pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                              	|
 | inference_mode        	| -mode             	| two options:<br>test (inference, default),<br>vect (generate vector representations) 	|
-| scenario              	| -sc, --scenario   	| name of the experiment top-directory                                           	|
+| scenario              	| -sc, --scenario   	| name of the experiment top-directory (only for `inference_mode='vect'`)                                           	|
 | cutoff                	| -n                	| number of examples to be used (optional)                                       	|
 
 ---
@@ -572,22 +579,33 @@ The inference component creates a file: `models/finetuned_test001/pred_results_d
 
 ```bash
 # s1	s2	prediction	p0	p1	label
-Krutoy	Крутой	1	0.1432	0.8568	1
-Sharunyata	Shartjugskij	0	0.9553	0.0447	0
-Sutangcun	羊山村	1	0.3031	0.6969	0
-同心村	tong xin cun	1	0.1666	0.8334	1
-Engeskjæran	Abrahamskjeret	0	0.7942	0.2058	0
-Izumo-zaki	Tsumo-zaki	1	0.3216	0.6784	1
-Qermez Khalifeh-ye `Olya	Qermez Khalīfeh-ye ‘Olyā	1	0.1267	0.8733	1
-კირენია	Κυρά	0	0.8817	0.1183	0
-Ozero Pogoreloe	Ozero Pogoreloye	1	0.2111	0.7889	1
-Anfijld	ਮਾਕਰੋਨ ਸਟੇਡੀਅਮ	0	0.6214	0.3786	0
-Qanât el-Manzala	El-Manzala Canal	1	0.2361	0.7639	1
-Yŏhangmyŏn-samuso	yeohangmyeonsamuso	1	0.0820	0.9180	1
-Mājra	Lahāri Tibba	0	0.5295	0.4705	0
+la dom nxy	ลำโดมน้อย	1	0.3938	0.6062	1
+Krutoy	Крутой	1	0.1193	0.8807	1
+Sharunyata	Shartjugskij	0	0.9560	0.0440	0
+同心村	tong xin cun	1	0.1710	0.8290	1
+Engeskjæran	Abrahamskjeret	0	0.8603	0.1397	0
+Qermez Khalifeh-ye `Olya	Qermez Khalīfeh-ye ‘Olyā	1	0.1599	0.8401	1
+კირენია	Κυρά	0	0.8704	0.1296	0
+Ozero Pogoreloe	Ozero Pogoreloye	1	0.2796	0.7204	1
+Anfijld	ਮਾਕਰੋਨ ਸਟੇਡੀਅਮ	0	0.5527	0.4473	0
+Qanât el-Manzala	El-Manzala Canal	1	0.2040	0.7960	1
+唐家湾	zhang jia wan zi	1	0.4748	0.5252	0
+Ozernoje	Ozernoye	1	0.1916	0.8084	1
+小罗坝	shi yuan qiang	0	0.6955	0.3045	0
+Wādī Qānī	Uàdi Gani	1	0.3430	0.6570	1
 ```
 
-`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8568`. In these examples, DeezyMatch correctly predicts the label in all rows except for `Sutangcun       羊山村` (with `p0=0.3031` and `p1=0.6969`). It should be noted, in this example and for showcasing DeezyMatch's functionalities, the model was trained and used for inference on one dataset. <ins>In practice, we train a model on a dataset and use it for prediction/inference on other datasets</ins>. Also, the dataset used to train the above model has around ~10K rows. Again, in practice, we use <ins>larger datasets</ins> for training.
+`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. 
+For example, in the second row, the actual label is 1 (last column), 
+the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8807`. 
+In these examples, DeezyMatch correctly predicts the label in all rows except for 
+`唐家湾	zhang jia wan zi` (with `p0=0.4748` and `p1=0.5252`). 
+
+:bangbang: It should be noted, in this example and for showcasing DeezyMatch's functionalities, 
+the model was trained and used for inference on one dataset. 
+<ins>In practice, we train a model on a dataset and use it for prediction/inference on other datasets</ins>. 
+Also, the dataset used to train the above model has around ~10K rows. 
+Again, in practice, we use <ins>larger datasets</ins> for training.
 
 ### Generate query and candidate vectors
 
