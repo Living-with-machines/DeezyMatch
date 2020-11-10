@@ -824,7 +824,8 @@ A candidate will be selected if:
     prediction-confidence >= threshold 
 ```
 
-:bangbang: Here, we define a **minimum** value while in the other two metrics (i.e., faiss-/cosine-distance), we define a **maximum** value.
+:bangbang: In `conf` (i.e., prediction-confidence), we define a **minimum** value 
+while in the other two metrics (i.e., `faiss` and `cosine`), we define a **maximum** value.
 
 :warning: Note that `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
 
