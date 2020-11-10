@@ -1055,30 +1055,43 @@ myranker.output
 
 For a given query, DeezyMatch searches for candidates iteratively. If we set `search_size` to **five**, at each iteration (i.e., one colored region in the figure below), the query vector is compared with **five** potential candidate vectors according to the selected ranking metric (`ranking_metric` argument). In step-1, the five closest candidate vectors, as measured by L2-norm distance, are examined. Four (out of five) candidate vectors passed the threshold (specified by `selection_threshold` argument) in the figure (step-1). However, in this example, we assume `num_candidates` is 10. So, DeezyMatch examines the second batch of potential candidates, again five vectors (as specified by `search_size`). Three (out of five) candidates pass the threshold in step-2. Finally, in the third iteration, three more candidates are found. DeezyMatch collects the information of these ten candidates and go to the next query.
 
-This adaptive search algorithm significantly reduces the computation time to find and rank a set of candidates in a dataset. Instead of searching the whole dataset, DeezyMatch iteratively compares a query vector with the "most-promising" candidates.
+This adaptive search algorithm significantly reduces the computation time to find and rank a set of candidates in a (large) dataset. 
+Instead of searching the whole dataset, DeezyMatch iteratively compares a query vector with the "most-promising" candidates.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/query_candidate_selection.png" alt="role of search_size in candidate ranker" width="70%">
 </p>
 
-In most use cases, `search_size` can be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, the process concludes. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
+In most use cases, `search_size` can be set `>= num_candidates`. 
+However, if `num_candidates` is very large, it is better to set the `search_size` to a lower value. 
+Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, the process concludes. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
 
 ## How to cite DeezyMatch
 
 Please consider acknowledging DeezyMatch if it helps you to obtain results and figures for publications or presentations, by citing:
 
+ACL link: https://www.aclweb.org/anthology/2020.emnlp-demos.9/
+
 ```text
-Hosseini, Nanni and Coll Ardanuy (2020), DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching, EMNLP: System Demonstrations.
+Kasra Hosseini, Federico Nanni, and Mariona Coll Ardanuy (2020), DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching, In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations, pages 62–69. Association for Computational Linguistics.
 ```
 
 and in BibTeX:
 
 ```bibtex
-@inproceedings{hosseini2020deezy,
-  title={DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching},
-  author={Hosseini, Kasra and Nanni, Federico and Coll Ardanuy, Mariona},
-  booktitle={EMNLP: System Demonstrations},
-  year={2020}
+@inproceedings{hosseini-etal-2020-deezymatch,
+    title = "{D}eezy{M}atch: A Flexible Deep Learning Approach to Fuzzy String Matching",
+    author = "Hosseini, Kasra  and
+      Nanni, Federico  and
+      Coll Ardanuy, Mariona",
+    booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations",
+    month = oct,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.emnlp-demos.9",
+    pages = "62--69",
+    abstract = "We present DeezyMatch, a free, open-source software library written in Python for fuzzy string matching and candidate ranking. Its pair classifier supports various deep neural network architectures for training new classifiers and for fine-tuning a pretrained model, which paves the way for transfer learning in fuzzy string matching. This approach is especially useful where only limited training examples are available. The learned DeezyMatch models can be used to generate rich vector representations from string inputs. The candidate ranker component in DeezyMatch uses these vector representations to find, for a given query, the best matching candidates in a knowledge base. It uses an adaptive searching algorithm applicable to large knowledge bases and query sets. We describe DeezyMatch{'}s functionality, design and implementation, accompanied by a use case in toponym matching and candidate ranking in realistic noisy datasets.",
 }
 ```
 
@@ -1088,3 +1101,5 @@ You can [reproduce Fig. 2 of DeezyMatch's paper, EMNLP2020, here.](./figs/EMNLP2
 ## Credits
 
 This project extensively uses the ideas/neural-network-architecture published in https://github.com/ruipds/Toponym-Matching. 
+
+This work was supported by Living with Machines (AHRC grant AH/S01179X/1) and The Alan Turing Institute (EPSRC grant EP/ N510129/1).
