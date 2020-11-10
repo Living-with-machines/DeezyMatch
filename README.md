@@ -874,7 +874,8 @@ id
 5   rongreiyn ban hwy h wk cxmthxng  {'rongreiyn ban hwy h wk cxmthxng': 0.7189, 'r...  {'rongreiyn ban hwy h wk cxmthxng': 0.2811, 'r...  {'rongreiyn ban hwy h wk cxmthxng': 0.0, 'rong...  {'rongreiyn ban hwy h wk cxmthxng': 0.0, 'rong...  {'rongreiyn ban hwy h wk cxmthxng': 5, 'rongre...                  5                 2
 ```
 
-As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_dist` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
+As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_dist` and `candidate_original_ids`) are the same as the queries (second column), 
+as we have used one dataset for both queries and candidates.
 
 Similarly, the above results can be generated via command line:
 
@@ -891,7 +892,7 @@ Summary of the arguments/flags:
 | query_scenario        	| -qs               	| directory that contains all the assembled query vectors                                                                                                                     	|
 | candidate_scenario    	| -cs               	| directory that contains all the assembled candidate vectors                                                                                                                 	|
 | ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine distance),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
-| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= threshold,<br>cosine-distance <= threshold,<br>prediction-confidence >= threshold 	|
+| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= selection_threshold,<br>cosine-distance <= selection_threshold,<br>prediction-confidence >= selection_threshold 	|
 | query                 	| -q                	| one string or a list of strings to be used in candidate ranking on-the-fly                                                                                                  	|
 | num_candidates        	| -n                	| number of desired candidates                                                                                                                                                	|
 | search_size           	| -sz               	| number of candidates to be tested at each iteration                                                                                                                         	|
