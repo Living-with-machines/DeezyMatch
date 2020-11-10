@@ -38,6 +38,7 @@ Table of contents
     * [Candidate ranking on-the-fly](#candidate-ranking-on-the-fly)
     * [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities)
 - [Examples on how to run DeezyMatch](./examples)
+- [Reproduce Fig. 2 of DeezyMatch's paper, EMNLP2020](./figs/EMNLP2020_figures/fig2)
 - [How to cite DeezyMatch](#how-to-cite-deezymatch)
 - [Credits](#credits)
 
