@@ -842,9 +842,9 @@ candidates_pd = \
 
 ```text
 A candidate will be selected if:
-    faiss-distance <= threshold
-    cosine-distance <= threshold
-    prediction-confidence >= threshold 
+    faiss-distance <= selection_threshold
+    cosine-distance <= selection_threshold
+    prediction-confidence >= selection_threshold
 ```
 
 :bangbang: In `conf` (i.e., prediction-confidence), 
