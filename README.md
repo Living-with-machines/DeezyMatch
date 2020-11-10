@@ -751,7 +751,8 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
 ```
 
 Here, `rnn_passes` specifies that `combine_vecs` should assemble all vectors generated in the forward and backward RNN/GRU/LSTM passes 
-(which are stored in the `input_scenario` directory). NOTE: we have a backward pass only if `bidirectional` is set to `True` in the input file.
+(which are stored in the `input_scenario` directory). 
+**NOTE:** we have a backward pass only if `bidirectional` is set to `True` in the input file.
 
 The results (for both query and candidate vectors) are stored in the `output_scenario` as follows:
 
@@ -805,7 +806,10 @@ Summary of the arguments/flags:
 
 #### CandidateRanker
 
-Candidate ranker uses the vector representations, generated and assembled in the previous sections, to find a set of candidates (from a dataset) for given queries in the same or another dataset. In the following example, for queries stored in `query_scenario`, we want to find 2 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
+Candidate ranker uses the vector representations, generated and assembled in the previous sections, 
+to find a set of candidates (from a dataset or knowledge base) for given queries in the same or another dataset. 
+In the following example, for queries stored in `query_scenario`, 
+we want to find 2 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
 
 :warning: It is also possible to do [candidate ranking on-the-fly](#candidate-ranking-on-the-fly) in which query vectors are not read from a dataset (instead, they are generated on-the-fly).
 
