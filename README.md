@@ -597,7 +597,7 @@ Wādī Qānī	Uàdi Gani	1	0.3430	0.6570	1
 
 `p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. 
 For example, in the second row, the actual label is 1 (last column), 
-the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8807`. 
+the predicted label is 1 (third column), and the model confidence on the predicted label is `p1=0.8807`. 
 In these examples, DeezyMatch correctly predicts the label in all rows except for 
 `唐家湾	zhang jia wan zi` (with `p0=0.4748` and `p1=0.5252`). 
 
@@ -624,8 +624,8 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
              scenario="queries/test")
 ```
 
-Compared to the previous section, here we have three additional arguments: 
-* `inference_mode="vect"`: generate vector representations for the first column in `dataset_path`.
+Compared to the previous section, here we have two additional arguments: 
+* `inference_mode="vect"`: generate vector representations for the **first column** in `dataset_path`.
 * `scenario`: directory to store the vectors.
 
 The same can be done via command line:
@@ -750,7 +750,8 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
              print_every=10)
 ```
 
-Here, `rnn_passes` specifies that `combine_vecs` should assemble all vectors generated in the forward and backward RNN/GRU/LSTM passes (and stored in the `input_scenario` directory). NOTE: we have a backward pass only if `bidirectional` is set to `True` in the input file.
+Here, `rnn_passes` specifies that `combine_vecs` should assemble all vectors generated in the forward and backward RNN/GRU/LSTM passes 
+(which are stored in the `input_scenario` directory). NOTE: we have a backward pass only if `bidirectional` is set to `True` in the input file.
 
 The results (for both query and candidate vectors) are stored in the `output_scenario` as follows:
 
