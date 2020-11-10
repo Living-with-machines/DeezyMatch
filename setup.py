@@ -19,7 +19,7 @@ setuptools.setup(
     packages = setuptools.find_packages(),
     include_package_data = True,
     platforms="OS Independent",
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=REQUIRED_PACKAGES,
     classifiers=[
         "Development Status :: 3 - Alpha",
