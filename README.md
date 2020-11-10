@@ -821,8 +821,10 @@ candidates_pd = \
 A candidate will be selected if:
     faiss-distance <= threshold
     cosine-distance <= threshold
-    prediction-confidence >= threshold     :warning: Here, we define a **minimum** value while in the other two metrics (i.e., faiss-/cosine-distance), we define a **maximum** value.
+    prediction-confidence >= threshold 
 ```
+
+!! Here, we define a **minimum** value while in the other two metrics (i.e., faiss-/cosine-distance), we define a **maximum** value.
 
 :warning: Note that `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
 
