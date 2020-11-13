@@ -14,7 +14,7 @@
     <a href="https://github.com/Living-with-machines/DeezyMatch/blob/master/LICENSE">
         <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
     </a>
-    <a href="https://mybinder.org/v2/gh/Living-with-machines/DeezyMatch/HEAD?filepath=examples%2Fexample_001.ipynb">
+    <a href="https://mybinder.org/v2/gh/Living-with-machines/DeezyMatch/HEAD?filepath=examples">
         <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
     </a>
     <br/>
