@@ -14,11 +14,15 @@
     <a href="https://github.com/Living-with-machines/DeezyMatch/blob/master/LICENSE">
         <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
     </a>
+    <a href="https://mybinder.org/v2/gh/Living-with-machines/DeezyMatch/HEAD?filepath=examples">
+        <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
+    </a>
     <br/>
 </p>
 
 DeezyMatch can be applied for performing the following tasks:
 
+- Fuzzy string matching
 - Record linkage
 - Candidate selection for entity linking systems
 - Toponym matching
@@ -38,6 +42,7 @@ Table of contents
     * [Candidate ranking on-the-fly](#candidate-ranking-on-the-fly)
     * [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities)
 - [Examples on how to run DeezyMatch](./examples)
+- [Reproduce Fig. 2 of DeezyMatch's paper, EMNLP2020](./figs/EMNLP2020_figures/fig2)
 - [How to cite DeezyMatch](#how-to-cite-deezymatch)
 - [Credits](#credits)
 
@@ -147,7 +152,10 @@ mkdir dataset inputs
 
 These three files can be downloaded directly from `inputs` and `dataset` directories on [DeezyMatch repo](https://github.com/Living-with-machines/DeezyMatch).
 
-**Note on vocabulary:** `characters_v001.vocab` combines all characters from the different datasets we have used in our experiments (Santos et al, 2018 and other datasets which will be described in a forthcoming publication). It consists of 7,540 characters from multiple alphabets, containing special characters.
+**Note on vocabulary:** `characters_v001.vocab` combines all characters from the different datasets we have used in our experiments 
+(See [DeezyMatch's paper](https://www.aclweb.org/anthology/2020.emnlp-demos.9/) and 
+[this paper](https://arxiv.org/abs/2009.08114) for a detailed description of the datasets). 
+It consists of 7,540 characters from multiple alphabets, containing special characters.
 
 `dataset-string-similarity_test.txt` contains 9995 example rows. The original dataset can be found here: https://github.com/ruipds/Toponym-Matching.
 
@@ -372,7 +380,8 @@ A new model directory called `test001` will be created in `models` directory (as
 * Currently, the third column (label column) should be one of (case-insensitive): ["true", "false", "1", "0"]
 * Delimiter is fixed to `\t` for now.
 
-DeezyMatch keeps some information about the metrics (e.g., loss/accuracy/precision/recall/F1) for each epoch. It is possible to plot the log-file by:
+DeezyMatch keeps track of some evaluation metrics (e.g., loss/accuracy/precision/recall/F1) at each epoch. 
+It is possible to plot the log-file by:
 
 ```python
 from DeezyMatch import plot_log
@@ -405,7 +414,12 @@ This command generates a figure `log_t001.png` and stores it in `models/test001`
 <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/log_t001.png" alt="Example output of plot_log module" width="100%">
 </p>
 
-DeezyMatch stores models, vocabularies, input file, log file and checkpoints (for each epoch) in the following directory structure (unless `validation` option in the input file is not equal to 1). When DeezyMatch finishes the last epoch, it will save the model with least validation loss as well (`test001.model` in the following directory structure). Morevoer, DeezyMatch has an `early stopping` functionality. This can be activated by setting the `early_stopping_patience` option in the input file. This option specifies the number of epochs with no improvement after which training will be stopped and the model with the least validation loss will be saved.
+DeezyMatch **stores models, vocabularies, input file, log file and checkpoints (for each epoch)** 
+in the following directory structure (unless `validation` option in the input file is not equal to 1). 
+When DeezyMatch finishes the last epoch, it will **save the model with least validation loss as well** (`test001.model` in the following directory structure). 
+Moreover, DeezyMatch has an **early stopping** functionality. 
+This can be activated by setting the `early_stopping_patience` option in the input file. 
+This option specifies the number of epochs with no improvement after which training will be stopped and the model with the least validation loss will be saved.
 
 ```bash
 models/
@@ -517,7 +531,8 @@ fc2.bias True
 ============================================================
 ```
 
-The first column lists the parameters in the model, and the second column specifies if those parameters will be used in the optimization or not. In our example, we set `["emb", "rnn_1", "attn"]` and all the parameters except for `fc1` and `fc2` will not be changed during the training.
+The first column lists the parameters in the model, and the second column specifies if those parameters will be used in the optimization or not. 
+In our example, we set `layers_to_freeze: ["emb", "rnn_1", "attn"]`, so all the parameters except for `fc1` and `fc2` will not be changed during the training.
 
 It is possible to print all parameters in a model by:
 
@@ -558,7 +573,7 @@ Summary of the arguments/flags:
 | pretrained_model_path 	| -m                	| path to the pretrained model                                                   	|
 | pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                              	|
 | inference_mode        	| -mode             	| two options:<br>test (inference, default),<br>vect (generate vector representations) 	|
-| scenario              	| -sc, --scenario   	| name of the experiment top-directory                                           	|
+| scenario              	| -sc, --scenario   	| name of the experiment top-directory (only for `inference_mode='vect'`)                                           	|
 | cutoff                	| -n                	| number of examples to be used (optional)                                       	|
 
 ---
@@ -567,22 +582,33 @@ The inference component creates a file: `models/finetuned_test001/pred_results_d
 
 ```bash
 # s1	s2	prediction	p0	p1	label
-Krutoy	Крутой	1	0.1432	0.8568	1
-Sharunyata	Shartjugskij	0	0.9553	0.0447	0
-Sutangcun	羊山村	1	0.3031	0.6969	0
-同心村	tong xin cun	1	0.1666	0.8334	1
-Engeskjæran	Abrahamskjeret	0	0.7942	0.2058	0
-Izumo-zaki	Tsumo-zaki	1	0.3216	0.6784	1
-Qermez Khalifeh-ye `Olya	Qermez Khalīfeh-ye ‘Olyā	1	0.1267	0.8733	1
-კირენია	Κυρά	0	0.8817	0.1183	0
-Ozero Pogoreloe	Ozero Pogoreloye	1	0.2111	0.7889	1
-Anfijld	ਮਾਕਰੋਨ ਸਟੇਡੀਅਮ	0	0.6214	0.3786	0
-Qanât el-Manzala	El-Manzala Canal	1	0.2361	0.7639	1
-Yŏhangmyŏn-samuso	yeohangmyeonsamuso	1	0.0820	0.9180	1
-Mājra	Lahāri Tibba	0	0.5295	0.4705	0
+la dom nxy	ลำโดมน้อย	1	0.3938	0.6062	1
+Krutoy	Крутой	1	0.1193	0.8807	1
+Sharunyata	Shartjugskij	0	0.9560	0.0440	0
+同心村	tong xin cun	1	0.1710	0.8290	1
+Engeskjæran	Abrahamskjeret	0	0.8603	0.1397	0
+Qermez Khalifeh-ye `Olya	Qermez Khalīfeh-ye ‘Olyā	1	0.1599	0.8401	1
+კირენია	Κυρά	0	0.8704	0.1296	0
+Ozero Pogoreloe	Ozero Pogoreloye	1	0.2796	0.7204	1
+Anfijld	ਮਾਕਰੋਨ ਸਟੇਡੀਅਮ	0	0.5527	0.4473	0
+Qanât el-Manzala	El-Manzala Canal	1	0.2040	0.7960	1
+唐家湾	zhang jia wan zi	1	0.4748	0.5252	0
+Ozernoje	Ozernoye	1	0.1916	0.8084	1
+小罗坝	shi yuan qiang	0	0.6955	0.3045	0
+Wādī Qānī	Uàdi Gani	1	0.3430	0.6570	1
 ```
 
-`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. For example, in the first row, the actual label is 1 (last column), the predicted label is 1 (third column), and the model confidence on the predicted label is `0.8568`. In these examples, DeezyMatch correctly predicts the label in all rows except for `Sutangcun       羊山村` (with `p0=0.3031` and `p1=0.6969`). It should be noted, in this example and for showcasing DeezyMatch's functionalities, the model was trained and used for inference on one dataset. <ins>In practice, we train a model on a dataset and use it for prediction/inference on other datasets</ins>. Also, the dataset used to train the above model has around ~10K rows. Again, in practice, we use <ins>larger datasets</ins> for training.
+`p0` and `p1` are probabilities assigned to labels 0 and 1, respectively. 
+For example, in the second row, the actual label is 1 (last column), 
+the predicted label is 1 (third column), and the model confidence on the predicted label is `p1=0.8807`. 
+In these examples, DeezyMatch correctly predicts the label in all rows except for 
+`唐家湾	zhang jia wan zi` (with `p0=0.4748` and `p1=0.5252`). 
+
+:bangbang: It should be noted, in this example and for showcasing DeezyMatch's functionalities, 
+the model was trained and used for inference on one dataset. 
+<ins>In practice, we train a model on a dataset and use it for prediction/inference on other datasets</ins>. 
+Also, the dataset used to train the above model has around ~10K rows. 
+Again, in practice, we use <ins>larger datasets</ins> for training.
 
 ### Generate query and candidate vectors
 
@@ -601,8 +627,8 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
              scenario="queries/test")
 ```
 
-Compared to the previous section, here we have three additional arguments: 
-* `inference_mode="vect"`: generate vector representations for the first column in `dataset_path`.
+Compared to the previous section, here we have two additional arguments: 
+* `inference_mode="vect"`: generate vector representations for the **first column** in `dataset_path`.
 * `scenario`: directory to store the vectors.
 
 The same can be done via command line:
@@ -727,7 +753,9 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
              print_every=10)
 ```
 
-Here, `rnn_passes` specifies that `combine_vecs` should assemble all vectors generated in the forward and backward RNN/GRU/LSTM passes (and stored in the `input_scenario` directory). NOTE: we have a backward pass only if `bidirectional` is set to `True` in the input file.
+Here, `rnn_passes` specifies that `combine_vecs` should assemble all vectors generated in the forward and backward RNN/GRU/LSTM passes 
+(which are stored in the `input_scenario` directory). 
+**NOTE:** we have a backward pass only if `bidirectional` is set to `True` in the input file.
 
 The results (for both query and candidate vectors) are stored in the `output_scenario` as follows:
 
@@ -781,7 +809,10 @@ Summary of the arguments/flags:
 
 #### CandidateRanker
 
-Candidate ranker uses the vector representations, generated and assembled in the previous sections, to find a set of candidates (from a dataset) for given queries in the same or another dataset. In the following example, for queries stored in `query_scenario`, we want to find 2 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
+Candidate ranker uses the vector representations, generated and assembled in the previous sections, 
+to find a set of candidates (from a dataset or knowledge base) for given queries in the same or another dataset. 
+In the following example, for queries stored in `query_scenario`, 
+we want to find 2 candidates (specified by `num_candidates`) from a dataset stored in `candidate_scenario`.
 
 :warning: It is also possible to do [candidate ranking on-the-fly](#candidate-ranking-on-the-fly) in which query vectors are not read from a dataset (instead, they are generated on-the-fly).
 
@@ -806,7 +837,7 @@ candidates_pd = \
 
 `query_scenario` is the directory that contains all the assembled query vectors [(see)](#combine-vector-representations) while `candidate_scenario` contains the assembled candidate vectors.
 
-`ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine similarity), `conf` (confidence as measured by DeezyMatch prediction outputs). 
+`ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine distance), `conf` (confidence as measured by DeezyMatch prediction outputs). 
 
 :warning: In our experiments, `conf` was not a good metric to rank candidates. Consider using `faiss` or `cosine` instead.
 
@@ -814,10 +845,14 @@ candidates_pd = \
 
 ```text
 A candidate will be selected if:
-    faiss-distance <= threshold
-    cosine-similarity >= threshold
-    prediction-confidence >= threshold
+    faiss-distance <= selection_threshold
+    cosine-distance <= selection_threshold
+    prediction-confidence >= selection_threshold
 ```
+
+:bangbang: In `conf` (i.e., prediction-confidence), 
+the threshold corresponds to the **minimum** accepted value, 
+while in `faiss` and `cosine` metrics, the threshold is the **maximum** accepted value.
 
 :warning: Note that `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
 
@@ -832,15 +867,18 @@ The DeezyMatch model and its vocabulary are specified by `pretrained_model_path`
 The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `output_path` which is in a pandas dataframe fromat. The first few rows are:
 
 ```bash
-                              query                                         pred_score                                     faiss_distance                                         cosine_sim                             candidate_original_ids  query_original_id  num_all_searches
-id                                                                                                                                                                                                                                                                                  
-0                        la dom nxy      {'la dom nxy': 0.7976, 'Laohuzhuang': 0.7717}         {'la dom nxy': 0.0, 'Laohuzhuang': 2.6753}         {'la dom nxy': 1.0, 'Laohuzhuang': 0.8917}             {'la dom nxy': 0, 'Laohuzhuang': 3743}                  0                 2
-1                            Krutoy             {'Krutoy': 0.6356, 'Krugloye': 0.6229}                {'Krutoy': 0.0, 'Krugloye': 1.9234}                {'Krutoy': 1.0, 'Krugloye': 0.9526}                    {'Krutoy': 1, 'Krugloye': 4549}                  1                 2
-2                        Sharunyata  {'Sharunyata': 0.7585, 'Shēlah-ye Nasar-e Jari...  {'Sharunyata': 0.0, 'Shēlah-ye Nasar-e Jaritā'...  {'Sharunyata': 1.0, 'Shēlah-ye Nasar-e Jaritā'...  {'Sharunyata': 2, 'Shēlah-ye Nasar-e Jaritā': ...                  2                 2
-3                         Sutangcun       {'Sutangcun': 0.7508, 'Senge Pa`in': 0.7564}          {'Sutangcun': 0.0, 'Senge Pa`in': 2.2971}          {'Sutangcun': 1.0, 'Senge Pa`in': 0.9071}              {'Sutangcun': 3, 'Senge Pa`in': 8304}                  3                 2
+                              query                                         pred_score                                       1-pred_score                                     faiss_distance                                        cosine_dist                             candidate_original_ids  query_original_id  num_all_searches
+id
+0                        la dom nxy         {'la dom nxy': 0.6498, 'Laowuxia': 0.5418}  {'la dom nxy': 0.35019999999999996, 'Laowuxia'...            {'la dom nxy': 0.0, 'Laowuxia': 3.3053}             {'la dom nxy': 0.0, 'Laowuxia': 0.159}                {'la dom nxy': 0, 'Laowuxia': 9624}                  0                 2
+1                            Krutoy                 {'Krutoy': 0.7946, 'wrkt': 0.8277}    {'Krutoy': 0.20540000000000003, 'wrkt': 0.1723}                    {'Krutoy': 0.0, 'wrkt': 2.2673}                   {'Krutoy': -0.0, 'wrkt': 0.0599}                        {'Krutoy': 1, 'wrkt': 7955}                  1                 2
+2                        Sharunyata  {'Sharunyata': 0.7379, 'Shēlah-ye Nasar-e Jari...  {'Sharunyata': 0.2621, 'Shēlah-ye Nasar-e Jari...  {'Sharunyata': 0.0, 'Shēlah-ye Nasar-e Jaritā'...  {'Sharunyata': 0.0, 'Shēlah-ye Nasar-e Jaritā'...  {'Sharunyata': 2, 'Shēlah-ye Nasar-e Jaritā': ...                  2                 2
+3                         Sutangcun      {'Sutangcun': 0.5301, 'Seohongcheon': 0.5691}  {'Sutangcun': 0.4699, 'Seohongcheon': 0.430899...         {'Sutangcun': 0.0, 'Seohongcheon': 2.7927}         {'Sutangcun': 0.0, 'Seohongcheon': 0.1545}             {'Sutangcun': 3, 'Seohongcheon': 2184}                  3                 2
+4                   Jowkār-e Shafī‘  {'Jowkār-e Shafī‘': 0.6177, 'wad thung kha phi...  {'Jowkār-e Shafī‘': 0.3823, 'wad thung kha phi...  {'Jowkār-e Shafī‘': 0.0, 'wad thung kha phi': ...  {'Jowkār-e Shafī‘': 0.0, 'wad thung kha phi': ...  {'Jowkār-e Shafī‘': 4, 'wad thung kha phi': 9489}                  4                 2
+5   rongreiyn ban hwy h wk cxmthxng  {'rongreiyn ban hwy h wk cxmthxng': 0.7189, 'r...  {'rongreiyn ban hwy h wk cxmthxng': 0.2811, 'r...  {'rongreiyn ban hwy h wk cxmthxng': 0.0, 'rong...  {'rongreiyn ban hwy h wk cxmthxng': 0.0, 'rong...  {'rongreiyn ban hwy h wk cxmthxng': 5, 'rongre...                  5                 2
 ```
 
-As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_sim` and `candidate_original_ids`) are the same as the queries (second column), as we used one dataset for both queries and candidates.
+As expected, candidate mentions (in `pred_score`, `faiss_distance`, `cosine_dist` and `candidate_original_ids`) are the same as the queries (second column), 
+as we have used one dataset for both queries and candidates.
 
 Similarly, the above results can be generated via command line:
 
@@ -856,8 +894,8 @@ Summary of the arguments/flags:
 |-----------------------	|-------------------	|-------------------------------------------------------------------------------------------------	|
 | query_scenario        	| -qs               	| directory that contains all the assembled query vectors                                                                                                                     	|
 | candidate_scenario    	| -cs               	| directory that contains all the assembled candidate vectors                                                                                                                 	|
-| ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine similarity),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
-| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= threshold,<br>cosine-similarity >= threshold,<br>prediction-confidence >= threshold 	|
+| ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine distance),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
+| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= selection_threshold,<br>cosine-distance <= selection_threshold,<br>prediction-confidence >= selection_threshold 	|
 | query                 	| -q                	| one string or a list of strings to be used in candidate ranking on-the-fly                                                                                                  	|
 | num_candidates        	| -n                	| number of desired candidates                                                                                                                                                	|
 | search_size           	| -sz               	| number of candidates to be tested at each iteration                                                                                                                         	|
@@ -871,19 +909,19 @@ Summary of the arguments/flags:
 
 **Other methods**
 
-* Select candidates based on cosine similarity:
+* Select candidates based on cosine distance:
 
 ```python
 from DeezyMatch import candidate_ranker
 
-# Select candidates based on cosine similarity:
+# Select candidates based on cosine distance:
 # find candidates from candidate_scenario 
 # for queries specified in query_scenario
 candidates_pd = \
     candidate_ranker(query_scenario="./combined/queries_test",
                      candidate_scenario="./combined/candidates_test", 
                      ranking_metric="cosine", 
-                     selection_threshold=0.51, 
+                     selection_threshold=0.49, 
                      num_candidates=2, 
                      search_size=2, 
                      output_path="ranker_results/test_candidates_deezymatch", 
@@ -892,7 +930,7 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
-Note that the only differences compared to the previous command are `ranking_metric="cosine"` and `selection_threshold=0.51`.
+Note that the only differences compared to the previous command are `ranking_metric="cosine"` and `selection_threshold=0.49`.
 
 ## Candidate ranking on-the-fly
 
@@ -1017,35 +1055,51 @@ myranker.output
 
 For a given query, DeezyMatch searches for candidates iteratively. If we set `search_size` to **five**, at each iteration (i.e., one colored region in the figure below), the query vector is compared with **five** potential candidate vectors according to the selected ranking metric (`ranking_metric` argument). In step-1, the five closest candidate vectors, as measured by L2-norm distance, are examined. Four (out of five) candidate vectors passed the threshold (specified by `selection_threshold` argument) in the figure (step-1). However, in this example, we assume `num_candidates` is 10. So, DeezyMatch examines the second batch of potential candidates, again five vectors (as specified by `search_size`). Three (out of five) candidates pass the threshold in step-2. Finally, in the third iteration, three more candidates are found. DeezyMatch collects the information of these ten candidates and go to the next query.
 
-This adaptive search algorithm significantly reduces the computation time to find and rank a set of candidates in a dataset. Instead of searching the whole dataset, DeezyMatch iteratively compares a query vector with the "most-promising" candidates.
+This adaptive search algorithm significantly reduces the computation time to find and rank a set of candidates in a (large) dataset. 
+Instead of searching the whole dataset, DeezyMatch iteratively compares a query vector with the "most-promising" candidates.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/Living-with-machines/DeezyMatch/master/figs/query_candidate_selection.png" alt="role of search_size in candidate ranker" width="70%">
 </p>
 
-In most use cases, `search_size` can be set `>= num_candidates`. However, if `num_candidates` is very large, it is better to set the `search_size` to lower values. Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, the process concludes. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
+In most use cases, `search_size` can be set `>= num_candidates`. 
+However, if `num_candidates` is very large, it is better to set the `search_size` to a lower value. 
+Let's clarify this in an example. First, assume `num_candidates=4` (number of desired candidates is 4 for each query). If we set the `search_size` to values less than 4, let's say, 2. DeezyMatch needs to do at least two iterations. In the first iteration, it looks at the closest 2 candidate vectors (as `search_size` is 2). In the second iteration, candidate vectors 3 and 4 will be examined. So two iterations. Another choice is `search_size=4`. Here, DeezyMatch looks at 4 candidates in the first iteration, if they pass the threshold, the process concludes. If not, it will seach candidates 5-8 in the next iteration. Now, let's assume `num_candidates=1001` (i.e., number of desired candidates is 1001 for each query). If we set the `search_size=1000`, DeezyMatch has to search at least 2000 candidates (2 x 1000 `search_size`). If we set `search_size=100`, this time, DeezyMatch has to search at least 1100 candidates (11 x 100 `search_size`). So 900 vectors less. In the end, it is a trade-off between iterations and `search_size`.
 
 ## How to cite DeezyMatch
 
 Please consider acknowledging DeezyMatch if it helps you to obtain results and figures for publications or presentations, by citing:
 
+ACL link: https://www.aclweb.org/anthology/2020.emnlp-demos.9/
+
 ```text
-Hosseini, Nanni and Coll Ardanuy (2020), DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching, EMNLP: System Demonstrations.
+Kasra Hosseini, Federico Nanni, and Mariona Coll Ardanuy (2020), DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching, In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations, pages 62–69. Association for Computational Linguistics.
 ```
 
 and in BibTeX:
 
 ```bibtex
-@inproceedings{hosseini2020deezy,
-  title={DeezyMatch: A Flexible Deep Learning Approach to Fuzzy String Matching},
-  author={Hosseini, Kasra and Nanni, Federico and Coll Ardanuy, Mariona},
-  booktitle={EMNLP: System Demonstrations},
-  year={2020}
+@inproceedings{hosseini-etal-2020-deezymatch,
+    title = "{D}eezy{M}atch: A Flexible Deep Learning Approach to Fuzzy String Matching",
+    author = "Hosseini, Kasra  and
+      Nanni, Federico  and
+      Coll Ardanuy, Mariona",
+    booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations",
+    month = oct,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.emnlp-demos.9",
+    pages = "62--69",
+    abstract = "We present DeezyMatch, a free, open-source software library written in Python for fuzzy string matching and candidate ranking. Its pair classifier supports various deep neural network architectures for training new classifiers and for fine-tuning a pretrained model, which paves the way for transfer learning in fuzzy string matching. This approach is especially useful where only limited training examples are available. The learned DeezyMatch models can be used to generate rich vector representations from string inputs. The candidate ranker component in DeezyMatch uses these vector representations to find, for a given query, the best matching candidates in a knowledge base. It uses an adaptive searching algorithm applicable to large knowledge bases and query sets. We describe DeezyMatch{'}s functionality, design and implementation, accompanied by a use case in toponym matching and candidate ranking in realistic noisy datasets.",
 }
 ```
 
 The results presented in this paper were generated by [DeezyMatch v1.2.0 (Released: Sep 15, 2020)](https://github.com/Living-with-machines/DeezyMatch/releases/tag/v1.2.0).
+You can [reproduce Fig. 2 of DeezyMatch's paper, EMNLP2020, here.](./figs/EMNLP2020_figures/fig2) 
 
 ## Credits
 
 This project extensively uses the ideas/neural-network-architecture published in https://github.com/ruipds/Toponym-Matching. 
+
+This work was supported by Living with Machines (AHRC grant AH/S01179X/1) and The Alan Turing Institute (EPSRC grant EP/ N510129/1).
