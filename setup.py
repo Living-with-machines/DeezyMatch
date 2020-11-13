@@ -5,7 +5,7 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="DeezyMatch",
-    version="1.2.0",
+    version="1.2.1",
     description="A Flexible Deep Learning Approach to Fuzzy String Matching",
     author=u"The LwM Development Team",
     #author_email="",
