@@ -324,7 +324,7 @@ def read_command_candidate_ranker():
                         help="Selection criterion. NOTE: changes according to the ranking metric specified by -rm. " \
                              "A candidate will be selected if:" \
                              "faiss-distance <= threshold, " \
-                             "cosine-similarity >= threshold, " \
+                             "cosine-distance <= threshold, " \
                              "prediction-confidence >= threshold", 
                         default=0.8)
 
