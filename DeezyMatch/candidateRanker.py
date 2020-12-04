@@ -311,14 +311,18 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
             else:
                 sys.exit(f"[ERROR] ranking_metric: {ranking_metric} is not implemented. See the documentation.")
     
-            num_found_candidates += len(query_candidate_filtered_pd)
-            print("ID: %s/%s -- Number of found candidates so far: %s, searched: %s" % (iq+1, len(vecs_query), num_found_candidates, id_1_neigh))
-    
-            if num_found_candidates > 0:
+            # remove duplicates
+            query_candidate_filtered_pd = query_candidate_filtered_pd[~query_candidate_filtered_pd.duplicated(["s2_orig"])]
+
+            if len(query_candidate_filtered_pd) > 0:
                 collect_neigh_pd = collect_neigh_pd.append(query_candidate_filtered_pd)
+                collect_neigh_pd = collect_neigh_pd[~collect_neigh_pd.duplicated(["s2_orig"])]
+
+            num_found_candidates = len(collect_neigh_pd)
+            print("ID: %s/%s -- Number of found candidates so far: %s, searched: %s" % (iq+1, len(vecs_query), num_found_candidates, id_1_neigh))
             
             if ranking_metric.lower() in ["faiss"]:
-                # 1.01 is multiplied to avoid issues with float numbers and rounding erros
+                # 1.01 is multiplied to avoid issues with float numbers and rounding errors
                 if query_candidate_pd["faiss_dist"].max() > (selection_threshold*1.01):
                     break
             elif ranking_metric.lower() in ["cosine"]:
