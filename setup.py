@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="DeezyMatch",
-    version="1.2.1",
+    version="1.2.2",
     description="A Flexible Deep Learning Approach to Fuzzy String Matching",
     author=u"The LwM Development Team",
     #author_email="",
