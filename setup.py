@@ -8,7 +8,7 @@ setuptools.setup(
     #author_email="",
     license="MIT License",
     keywords=["Fuzzy String Matching", "Deep Learning", "NLP", "Natural Language Processing", "living with machines"],
-    long_description = open('README.md').read(),
+    long_description = open('README.md', encoding='utf-8', errors='replace').read(),
     long_description_content_type = 'text/markdown',
     zip_safe = False,
     url="https://github.com/Living-with-machines/DeezyMatch",
