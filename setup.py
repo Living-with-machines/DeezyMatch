@@ -21,7 +21,7 @@ setuptools.setup(
         "torch==1.5.0",
         "torchvision==0.6.0",
         "ipywidgets==7.5.1",
-        "PyYAML==5.3.1",
+        "PyYAML==5.4",
         "scikit-learn==0.23.1",
         "pandas==1.0.3",
         "faiss-cpu==1.6.3",
