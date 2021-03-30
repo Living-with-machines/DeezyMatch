@@ -17,6 +17,9 @@
     <a href="https://mybinder.org/v2/gh/Living-with-machines/DeezyMatch/HEAD?filepath=examples">
         <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
     </a>
+    <a href="https://github.com/Living-with-machines/DeezyMatch/workflows/Continuous%20integration/badge.svg">
+        <img alt="Continuous integration badge" src="https://github.com/Living-with-machines/DeezyMatch/workflows/Continuous%20integration/badge.svg">
+    </a>
     <br/>
 </p>
 
