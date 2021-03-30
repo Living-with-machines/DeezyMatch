@@ -72,17 +72,17 @@ def test_assemble_candidates():
 def test_candidate_ranker():
     from DeezyMatch import candidate_ranker
     
-    ### # Select candidates based on L2-norm distance (aka faiss distance):
-    ### # find candidates from candidate_scenario
-    ### # for queries specified in query_scenario
-    ### candidates_pd = \
-    ###     candidate_ranker(query_scenario="./combined/queries_test",
-    ###                      candidate_scenario="./combined/candidates_test",
-    ###                      ranking_metric="faiss",
-    ###                      selection_threshold=5.,
-    ###                      num_candidates=2,
-    ###                      search_size=10,
-    ###                      output_path="ranker_results/test_candidates_deezymatch",
-    ###                      pretrained_model_path="./models/finetuned_test001/finetuned_test001.model",
-    ###                      pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
-    ###                      number_test_rows=20)
+    # Select candidates based on L2-norm distance (aka faiss distance):
+    # find candidates from candidate_scenario
+    # for queries specified in query_scenario
+    candidates_pd = \
+        candidate_ranker(query_scenario="./combined/queries_test",
+                         candidate_scenario="./combined/candidates_test",
+                         ranking_metric="faiss",
+                         selection_threshold=5.,
+                         num_candidates=2,
+                         search_size=10,
+                         output_path="ranker_results/test_candidates_deezymatch",
+                         pretrained_model_path="./models/finetuned_test001/finetuned_test001.model",
+                         pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
+                         number_test_rows=5)
