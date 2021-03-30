@@ -23,7 +23,7 @@ setuptools.setup(
         "ipywidgets==7.5.1",
         "PyYAML==5.4",
         "scikit-learn==0.23.1",
-        "pandas==1.0.3",
+        "pandas==1.0.5",
         "faiss-cpu==1.6.3",
         "tqdm==4.46.0",
         "tensorboard==2.2.2",
