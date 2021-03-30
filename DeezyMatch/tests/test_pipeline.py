@@ -81,7 +81,7 @@ def test_candidate_ranker():
                          ranking_metric="faiss",
                          selection_threshold=5.,
                          num_candidates=2,
-                         search_size=2,
+                         search_size=10,
                          output_path="ranker_results/test_candidates_deezymatch",
                          pretrained_model_path="./models/finetuned_test001/finetuned_test001.model",
                          pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
