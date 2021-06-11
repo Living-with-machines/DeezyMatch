@@ -506,7 +506,7 @@ def create_3d_input_arrays_chars(mylist, char_labels, max_seq_len, len_chars, tm
     aux_arr = np.memmap("tmp-{}-{}".format(mycounter, tmp_file_suffix),
                         mode="w+",
                         shape=(len(mylist), max_seq_len, len_chars),
-                        dtype=np.bool)
+                        dtype=bool)
 
     for i, one_example in enumerate(mylist):
         for t, char in enumerate(one_example):
