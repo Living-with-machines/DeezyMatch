@@ -108,7 +108,9 @@ DeezyMatch can be installed in different ways:
     cd /path/to/my/DeezyMatch
     pip install -v -e .
     ```
-
+    
+    The -e flag installs the project in editable mode (i.e. setuptools "develop mode")
+   
     * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
 
     ```bash
