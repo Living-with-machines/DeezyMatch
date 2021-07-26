@@ -20,6 +20,8 @@ from torch.nn.modules.module import _addindent
 
 # ------------------- normalizeString --------------------
 def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin_letters=False, prefix_suffix=["|", "|"]):
+    
+    # Convert string to ASCII
     if uni2ascii:
         s = unicodedata.normalize('NFKD', str(s))
     if lowercase:
