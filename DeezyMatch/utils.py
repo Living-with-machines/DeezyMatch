@@ -27,6 +27,7 @@ def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin
     #Convert to lowercase
     if lowercase:
         s = s.lower()
+    # Strip the string of non-essentials
     if strip:
         s = s.strip()
     if only_latin_letters:
