@@ -24,6 +24,7 @@ def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin
     # Convert string to ASCII
     if uni2ascii:
         s = unicodedata.normalize('NFKD', str(s))
+    #Convert to lowercase
     if lowercase:
         s = s.lower()
     if strip:
