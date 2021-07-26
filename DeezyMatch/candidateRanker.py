@@ -326,7 +326,7 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
                 if query_candidate_pd["faiss_dist"].max() > (selection_threshold*1.01):
                     break
             elif ranking_metric.lower() in ["cosine"]:
-                # 0.99 is multiplied to avoid issues with float numbers and rounding errors
+                # 0.1.01 is multiplied to avoid issues with float numbers and rounding errors
                 if query_candidate_pd["cosine_dist"].max() > (selection_threshold*1.01):
                     break 
     
