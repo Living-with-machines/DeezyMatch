@@ -19,7 +19,16 @@ from torch.nn.modules.module import _addindent
 
 
 # ------------------- normalizeString --------------------
-def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin_letters=False, prefix_suffix=["|", "|"]):
+def normalizeString(s, uni2ascii=False: bool, lowercase=False: bool, strip=False: bool, only_latin_letters=False: bool, prefix_suffix=["|", "|"]: list):
+    """
+    Normalizes input string.
+    :param uni2ascii: boolean: Convert input string to ASCII.
+    :param lowercase: boolean: Convert input string to lowercase.
+    :param strip: boolean: Remove trailing whitespace.
+    :param only_latin_letters: boolean: Remove non-latin letters.
+    :param prefix_suffix: wrap string with `prefix` and `suffix`.
+    :return
+    """
     if uni2ascii:
         s = unicodedata.normalize('NFKD', str(s))
     if lowercase:
