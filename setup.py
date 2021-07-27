@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="DeezyMatch",
-    version="1.2.2",
+    version="1.2.3",
     description="A Flexible Deep Learning Approach to Fuzzy String Matching",
     author=u"The LwM Development Team",
     #author_email="",
@@ -21,9 +21,9 @@ setuptools.setup(
         "torch==1.5.0",
         "torchvision==0.6.0",
         "ipywidgets==7.5.1",
-        "PyYAML==5.3.1",
+        "PyYAML==5.4",
         "scikit-learn==0.23.1",
-        "pandas==1.0.3",
+        "pandas==1.0.5",
         "faiss-cpu==1.6.3",
         "tqdm==4.46.0",
         "tensorboard==2.2.2",

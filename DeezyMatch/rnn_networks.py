@@ -27,7 +27,7 @@ import sys
 import time
 #from tqdm import tqdm, tnrange
 from tqdm.autonotebook import tqdm
-from tqdm import tnrange
+from tqdm.notebook import tnrange
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
