@@ -2,8 +2,8 @@ import setuptools
 
 setuptools.setup(
     name="DeezyMatch",
-    version="1.2.3",
-    description="A Flexible Deep Learning Approach to Fuzzy String Matching",
+    version="1.2.4",
+    description="A Flexible Deep Learning Approach to Fuzzy String Matching and Candidate Ranking",
     author=u"The LwM Development Team",
     #author_email="",
     license="MIT License",
@@ -18,18 +18,18 @@ setuptools.setup(
     platforms="OS Independent",
     python_requires='>=3.7',
     install_requires=[
-        "torch==1.5.0",
-        "torchvision==0.6.0",
-        "ipywidgets==7.5.1",
-        "PyYAML==5.4",
-        "scikit-learn==0.23.1",
-        "pandas==1.0.5",
-        "faiss-cpu==1.6.3",
-        "tqdm==4.46.0",
-        "tensorboard==2.2.2",
-        "matplotlib==3.2.1",
-        "jupyter-client==6.1.5",
-        "jupyter-core==4.6.3"
+        "torch>=1.5.0",
+        "torchvision>=0.6.0",
+        "ipywidgets>=7.5.1",
+        "PyYAML>=5.4",
+        "scikit-learn>=0.23.1",
+        "pandas>=1.2.0",
+        "faiss-cpu>=1.6.3",
+        "tqdm>=4.57.0",
+        "tensorboard>=2.2.2",
+        "matplotlib>=3.2.1",
+        "jupyter-client>=6.1.5",
+        "jupyter-core>=4.6.3"
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
