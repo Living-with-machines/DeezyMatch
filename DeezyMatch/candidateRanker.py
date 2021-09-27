@@ -175,7 +175,7 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
                 found_input = True
                 break
         if not found_input:
-            sys.exit(f"[ERROR] no input file (*.yaml file) could be found in the dir: {scenario}")
+            sys.exit(f"[ERROR] no input file (*.yaml file) could be found in the dir: {candidate_scenario}")
     
     # read input file
     dl_inputs = read_input_file(input_file_path)
