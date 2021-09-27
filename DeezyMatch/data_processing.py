@@ -297,7 +297,7 @@ class DatasetClass(Dataset):
         X2 = self.df.s2_indx_pad.iloc[idx]
         len2 = self.df.s2_len.iloc[idx]
 
-        y = self.df.label.iloc[idx].astype(int)
+        y = int(self.df.label.iloc[idx])
 
         id2pass = self.df.index[idx]
         return X1, len1, X2, len2, y, id2pass
