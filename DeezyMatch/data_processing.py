@@ -22,7 +22,7 @@ set_seed_everywhere(1364)
 # ------------------- csv_split_tokenize --------------------
 def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_examples=None, missing_char_threshold=0.5,
                        train_prop=0.7, val_prop=0.15, test_prop=0.15,
-                       preproc_steps=(True, True, True, False), 
+                       preproc_steps=(True, True, True, False, ["|", "|"]), 
                        max_seq_len=100, mode="char", read_list_chars=False, csv_sep="\t"):
 
     # --- read CSV file (dataset)
