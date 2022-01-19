@@ -23,12 +23,11 @@
     <br/>
 </p>
 
-DeezyMatch can be applied for performing the following tasks:
+DeezyMatch can be applied as a component of the following tasks:
 
-- Fuzzy string matching
 - Record linkage
-- Candidate selection for entity linking systems
-- Toponym matching
+- Entity linking
+- Query expansion
 
 Table of contents
 -----------------
@@ -51,9 +50,7 @@ Table of contents
 
 ## Installation
 
-We strongly recommend installation via Anaconda:
-
-* Refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/).
+We strongly recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
 
 * Create a new environment for DeezyMatch
 
@@ -67,68 +64,60 @@ conda create -n py37deezy python=3.7
 conda activate py37deezy
 ```
 
-DeezyMatch can be installed in different ways:
+* DeezyMatch can be installed in different ways:
 
-1. **install DeezyMatch via [PyPi](https://pypi.org/project/DeezyMatch/)**: which tends to be the most user-friendly option:
+  1. **install DeezyMatch via [PyPi](https://pypi.org/project/DeezyMatch/)**: which tends to be the most user-friendly option:
 
     ```bash
     pip install DeezyMatch
     ```
 
-    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+  2. **install DeezyMatch from the source code**:
 
-    ```bash
-    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
-    ```
+      * Clone DeezyMatch source code:
 
-    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
+      ```bash
+      git clone https://github.com/Living-with-machines/DeezyMatch.git
+      ```
 
-2. **install DeezyMatch from the source code**:
+      * Install DeezyMatch dependencies:
 
-    * Clone DeezyMatch source code:
+      ```
+      cd /path/to/my/DeezyMatch
+      pip install -r requirements.txt
+      ```
 
-    ```bash
-    git clone https://github.com/Living-with-machines/DeezyMatch.git
-    ```
+      * Install DeezyMatch using one of the following two options:
+      
+        * Install DeezyMatch in non-editable mode:
 
-    * Install DeezyMatch dependencies:
+          ```
+          cd /path/to/my/DeezyMatch
+          python setup.py install
+          ```
 
-    ```
-    cd /path/to/my/DeezyMatch
-    pip install -r requirements.txt
-    ```
+        * Install DeezyMatch in editable mode:
 
-    * Install DeezyMatch:
+          ```
+          cd /path/to/my/DeezyMatch
+          pip install -v -e .
+          ```
 
-    ```
-    cd /path/to/my/DeezyMatch
-    python setup.py install
-    ```
+* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
 
-    Alternatively:
+  ```bash
+  python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+  ```
 
-    ```
-    cd /path/to/my/DeezyMatch
-    pip install -v -e .
-    ```
+* Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
 
-    * We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
-
-    ```bash
-    python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
-    ```
-
-    * Continue with the [Tutorial](#run-deezymatch-as-a-python-module-or-via-command-line)!
-
----
-
-:warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateRanker.py`, one way to solve this issue is by:
-
-```bash
-pip install faiss-cpu --no-cache
-```
-
-Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
+> :warning: If you get `ModuleNotFoundError: No module named '_swigfaiss'` error when running `candidateRanker.py`, one way to solve this issue is by:
+> 
+> ```bash
+> pip install faiss-cpu --no-cache
+> ```
+>
+> Refer to [this page](https://github.com/facebookresearch/faiss/issues/821).
 
 ## Data and directory structure in tutorials
 
