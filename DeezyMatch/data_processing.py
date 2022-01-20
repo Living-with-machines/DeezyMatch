@@ -102,36 +102,43 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
     dataset_split["s2_unicode"] = dataset_split["s2"].apply(normalizeString, args=preproc_steps)
 
     cprint('[INFO]', bc.dgreen, "-- create vocabulary")
-    dataset_split["s1_unicode"] = dataset_split["s1_unicode"].apply(lambda x: string_split(x, 
+    dataset_split["s1_tokenized"] = dataset_split["s1_unicode"].apply(lambda x: string_split(x, 
                                                                                            tokenize=mode["tokenize"], 
                                                                                            min_gram=mode["min_gram"], 
-                                                                                           max_gram=mode["max_gram"]))
-    dataset_split["s2_unicode"] = dataset_split["s2_unicode"].apply(lambda x: string_split(x, 
+                                                                                           max_gram=mode["max_gram"],
+                                                                                           token_sep=mode["token_sep"],
+                                                                                           prefix_suffix=mode["prefix_suffix"]))
+    dataset_split["s2_tokenized"] = dataset_split["s2_unicode"].apply(lambda x: string_split(x, 
                                                                                            tokenize=mode["tokenize"], 
                                                                                            min_gram=mode["min_gram"], 
-                                                                                           max_gram=mode["max_gram"]))
+                                                                                           max_gram=mode["max_gram"],
+                                                                                           token_sep=mode["token_sep"],
+                                                                                           prefix_suffix=mode["prefix_suffix"]))
 
-    s1_s2_flatten = dataset_split[["s1_unicode", "s2_unicode"]].to_numpy().flatten()
+    s1_s2_flatten = dataset_split[["s1_tokenized", "s2_tokenized"]].to_numpy().flatten()
     s1_s2_flatten_all_tokens = np.unique(np.hstack(s1_s2_flatten)).tolist()
 
     cprint('[INFO]', bc.dgreen, "-- convert tokens to indices")
-    s1_unicode = dataset_split['s1_unicode'].to_list()
-    s2_unicode = dataset_split['s2_unicode'].to_list()
+    s1_tokenized = dataset_split['s1_tokenized'].to_list()
+    s2_tokenized = dataset_split['s2_tokenized'].to_list()
     
     if pretrained_vocab_path:
         with open(pretrained_vocab_path, 'rb') as handle:
             dataset_vocab = pickle.load(handle)
         
         # XXX we need to document the following lines
-        s1_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s1_unicode]
-        s2_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s2_unicode]
+        s1_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s1_tokenized]
+        s2_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s2_tokenized]
 
+
+        # Should this be sX_tokenized or sX_unicode??? (same in test tokenize)
         to_be_removed = []
         for i in range(len(s1_indx)-1, -1, -1):
-            if (1 - len(s1_indx[i]) / max(1, len(s1_unicode[i]))) > missing_char_threshold or\
-                    (1 - len(s2_indx[i]) / max(1, len(s2_unicode[i]))) > missing_char_threshold or\
-                    len(s1_unicode[i]) == 0 or\
-                    len(s2_unicode[i]) == 0:
+            if (1 - len(s1_indx[i]) / max(1, len(s1_tokenized[i]))) > missing_char_threshold or\
+                    (1 - len(s2_indx[i]) / max(1, len(s2_tokenized[i]))) > missing_char_threshold or\
+                    len(s1_tokenized[i]) == 0 or\
+                    len(s2_tokenized[i]) == 0:
+                print(i, s1_indx[i], s1_tokenized[i])
                 to_be_removed.append(i)
                 del s1_indx[i]
                 del s2_indx[i]
@@ -153,8 +160,8 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         dataset_vocab.addTokens(s1_s2_flatten_all_tokens)
         cprint('[INFO]', bc.dgreen, f"-- Length of vocabulary: {dataset_vocab.n_tok}") 
 
-        dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_unicode]
-        dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_unicode]
+        dataset_split['s1_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s1_tokenized]
+        dataset_split['s2_indx'] = [[dataset_vocab.tok2index[tok] for tok in seq] for seq in s2_tokenized]
     
     # cleanup the indices
     dataset_split.reset_index(drop=True, inplace=True)
@@ -221,20 +228,35 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     dataset_pd = dataset_pd[:cutoff*2]
     dataset_pd["s1_unicode"] = dataset_pd["s1"].apply(normalizeString, args=preproc_steps)
     dataset_pd["s2_unicode"] = dataset_pd["s2"].apply(normalizeString, args=preproc_steps)
+
+    dataset_pd["s1_tokenized"] = dataset_pd["s1_unicode"].apply(lambda x: string_split(x, 
+                                                                                     tokenize=mode["tokenize"], 
+                                                                                     min_gram=mode["min_gram"], 
+                                                                                     max_gram=mode["max_gram"],
+                                                                                     token_sep=mode["token_sep"],
+                                                                                     prefix_suffix=mode["prefix_suffix"]))
+    dataset_pd["s2_tokenized"] = dataset_pd["s2_unicode"].apply(lambda x: string_split(x, 
+                                                                                     tokenize=mode["tokenize"], 
+                                                                                     min_gram=mode["min_gram"], 
+                                                                                     max_gram=mode["max_gram"],
+                                                                                     token_sep=mode["token_sep"],
+                                                                                     prefix_suffix=mode["prefix_suffix"]))
+
     
-    s1_unicode = dataset_pd['s1_unicode'].to_list()
-    s2_unicode = dataset_pd['s2_unicode'].to_list()
+    s1_tokenized = dataset_pd['s1_tokenized'].to_list()
+    s2_tokenized = dataset_pd['s2_tokenized'].to_list()
+
     # XXX we need to explain why we have an if in the following for loop
-    s1_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s1_unicode]
-    s2_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s2_unicode]
-    # XXX we need to document the following two lines
-    
+    s1_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s1_tokenized]
+    s2_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s2_tokenized]
+
+    # Should this be sX_tokenized or sX_unicode??? (same in fine-tuning)
     to_be_removed = []
     for i in range(len(s1_indx)-1, -1, -1):
-        if (1 - len(s1_indx[i]) / max(1, len(s1_unicode[i]))) > missing_char_threshold or\
-                (1 - len(s2_indx[i]) / max(1, len(s2_unicode[i]))) > missing_char_threshold or\
-                len(s1_unicode[i]) == 0\
-                or len(s2_unicode[i]) == 0:
+        if (1 - len(s1_indx[i]) / max(1, len(s1_tokenized[i]))) > missing_char_threshold or\
+                (1 - len(s2_indx[i]) / max(1, len(s2_tokenized[i]))) > missing_char_threshold or\
+                len(s1_tokenized[i]) == 0\
+                or len(s2_tokenized[i]) == 0:
             to_be_removed.append(i)
             del s1_indx[i]
             del s2_indx[i]
