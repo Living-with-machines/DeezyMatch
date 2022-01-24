@@ -184,6 +184,7 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
                   save_test_class="./test_dc.df",
                   dataframe_input=False,
                   csv_sep="\t",
+                  one_column_inp=False,
                   verbose=True
                   ):
 
@@ -197,13 +198,18 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
         df_list = ds_fio.readlines()
         for i in range(len(df_list)):
             tmp_split_row = df_list[i].split(csv_sep)
-            #if len(tmp_split_row) != 3:
+
+            # If one_column_inp is set to True, extend the row
+            if (len(tmp_split_row) != 3) and (one_column_inp == True):
+                tmp_split_row.extend(["tmp", "true"])
+            
             if str(tmp_split_row[2]).strip().lower() not in ["true", "false", "1", "0"]:
                 print(f"SKIP: {df_list[i]}")
                 # change the label to remove_me, 
                 # we drop the rows with no true|false in the label column
                 tmp_split_row = f"X{csv_sep}X{csv_sep}remove_me".split(csv_sep)
             df_list[i] = tmp_split_row[:3]
+
         dataset_pd = pd.DataFrame(df_list, columns=["s1", "s2", "label"])
         dataset_pd["s1"] = dataset_pd["s1"].str.strip()
         dataset_pd["s2"] = dataset_pd["s2"].str.strip()
