@@ -129,7 +129,9 @@ def csv_split_tokenize(dataset_path, pretrained_vocab_path=None, n_train_example
         s2_indx = [[dataset_vocab.tok2index[tok] for tok in seq if tok in dataset_vocab.tok2index] for seq in s2_tokenized]
 
 
-        # Should this be sX_tokenized or sX_unicode??? (same in test tokenize)
+        # Compute len(s1_indx) / len(s1_tokenized)
+        # If this ratio is 1: all characters (after tokenization) could be found in the pretrained vocabulary
+        # Else: some characters are missing. If "1 - (that ratio) > missing_char_threshold", remove the entry
         to_be_removed = []
         for i in range(len(s1_indx)-1, -1, -1):
             if (1 - len(s1_indx[i]) / max(1, len(s1_tokenized[i]))) > missing_char_threshold or\
@@ -248,7 +250,9 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
     s1_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s1_tokenized]
     s2_indx = [[train_vocab.tok2index[tok] for tok in seq if tok in train_vocab.tok2index] for seq in s2_tokenized]
 
-    # Should this be sX_tokenized or sX_unicode??? (same in fine-tuning)
+    # Compute len(s1_indx) / len(s1_tokenized)
+    # If this ratio is 1: all characters (after tokenization) could be found in the pretrained vocabulary
+    # Else: some characters are missing. If "1 - (that ratio) > missing_char_threshold", remove the entry
     to_be_removed = []
     for i in range(len(s1_indx)-1, -1, -1):
         if (1 - len(s1_indx[i]) / max(1, len(s1_tokenized[i]))) > missing_char_threshold or\
