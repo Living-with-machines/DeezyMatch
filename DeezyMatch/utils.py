@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import copy
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
@@ -95,13 +96,20 @@ def string_split(x, tokenize=["char"], min_gram=1, max_gram=3, token_sep="defaul
     min_gram and max_gram are used only if "ngram" is in tokenize
     """
     tokenized_str = []
-    bounded_x = prefix_suffix[0] + x + prefix_suffix[1]
+
+    x_bounded = copy.deepcopy(x)
+    if isinstance(prefix_suffix, list) and len(prefix_suffix) == 2:
+        if all([isinstance(_i, str) for _i in prefix_suffix]):
+            x_bounded = prefix_suffix[0] + x + prefix_suffix[1]
+
     if "char" in tokenize:
-        tokenized_str += [sub_x for sub_x in bounded_x]
+        tokenized_str += [sub_x for sub_x in x_bounded]
     
     if "ngram" in tokenize:
+        assert min_gram >= 1, "min_gram must be >= 1"
+        assert max_gram >= min_gram, "max_gram must be >= min_gram"
         for ngram in range(min_gram, max_gram+1):
-            tokenized_str += [bounded_x[i:i+ngram] for i in range(len(bounded_x)-ngram+1)] 
+            tokenized_str += [x_bounded[i:i+ngram] for i in range(len(x_bounded)-ngram+1)] 
     
     if "word" in tokenize:
         if token_sep == "default":
