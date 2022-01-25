@@ -200,8 +200,9 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
             tmp_split_row = df_list[i].split(csv_sep)
 
             # If one_column_inp is set to True, extend the row
-            if (len(tmp_split_row) != 3) and (one_column_inp == True):
-                tmp_split_row.extend(["tmp", "true"])
+            if one_column_inp == True:
+                tmp_split_row.insert(1, "tmp")
+                tmp_split_row.insert(2, "true")
             
             if str(tmp_split_row[2]).strip().lower() not in ["true", "false", "1", "0"]:
                 print(f"SKIP: {df_list[i]}")
