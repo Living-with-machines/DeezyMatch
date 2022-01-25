@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import copy
+import collections
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
@@ -98,9 +99,10 @@ def string_split(x, tokenize=["char"], min_gram=1, max_gram=3, token_sep="defaul
     tokenized_str = []
 
     x_bounded = copy.deepcopy(x)
-    if isinstance(prefix_suffix, list) and len(prefix_suffix) == 2:
-        if all([isinstance(_i, str) for _i in prefix_suffix]):
-            x_bounded = prefix_suffix[0] + x + prefix_suffix[1]
+    if isinstance(prefix_suffix, collections.abc.Sequence) and len(prefix_suffix) == 2:
+        prefix = prefix_suffix[0] if isinstance(prefix_suffix[0], str) else ""
+        suffix = prefix_suffix[1] if isinstance(prefix_suffix[1], str) else ""
+        x_bounded = prefix + x + suffix
 
     if "char" in tokenize:
         tokenized_str += [sub_x for sub_x in x_bounded]
