@@ -23,11 +23,16 @@
     <br/>
 </p>
 
-DeezyMatch can be applied as a component of the following tasks:
+DeezyMatch can be used in the following tasks:
 
-- Record linkage
-- Entity linking
+- Fuzzy string matching
+- Candidate ranking/selection
 - Query expansion
+- Toponym matching
+
+Or as a component in tasks requiring fuzzy string matching and candidate ranking, such as:
+- Record linkage
+- Entity linking 
 
 Table of contents
 -----------------
