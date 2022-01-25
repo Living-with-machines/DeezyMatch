@@ -20,12 +20,22 @@ def test_pipeline_one_col_input():
                 pretrained_vocab_path="./models/test003/test003.vocab")
     
     from DeezyMatch import inference as dm_inference
+
+    with pytest.raises(IndexError):
+        # model inference using a model stored at pretrained_model_path and pretrained_vocab_path
+        # This should raise an IndexError as we need three columns during inference
+        dm_inference(input_file_path="./inputs/input_dfm_pytest_003.yaml",
+                     dataset_path="./dataset/dataset-string-similarity_test_one_column.txt",
+                     pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
+                     pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab")
+
     # model inference using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_003.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test_one_column.txt",
+                 dataset_path="./dataset/dataset-string-similarity_test.txt",
                  pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
                  pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab")
-    
+
+    # Create vectors using one column input
     from DeezyMatch import inference as dm_inference
     # generate vectors for queries (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
@@ -36,6 +46,7 @@ def test_pipeline_one_col_input():
                  inference_mode="vect",
                  scenario="queries_003/test")
     
+    # Create vectors using three or more columns input
     from DeezyMatch import inference as dm_inference
     # generate vectors for candidates (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
