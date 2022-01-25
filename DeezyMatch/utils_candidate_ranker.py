@@ -40,8 +40,7 @@ def query_vector_gen(query, model, train_vocab, dl_inputs):
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
-                       dl_inputs["preprocessing"]["only_latin_letters"],
-                       dl_inputs["preprocessing"]["prefix_suffix"],
+                       dl_inputs["preprocessing"]["only_latin_letters"]
                        ),
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],
@@ -87,8 +86,7 @@ def candidate_conf_calc(query_candidate_pd, model, train_vocab, dl_inputs, cutof
         preproc_steps=(dl_inputs["preprocessing"]["uni2ascii"],
                        dl_inputs["preprocessing"]["lowercase"],
                        dl_inputs["preprocessing"]["strip"],
-                       dl_inputs["preprocessing"]["only_latin_letters"],
-                       dl_inputs["preprocessing"]["prefix_suffix"],
+                       dl_inputs["preprocessing"]["only_latin_letters"]
                        ),
         max_seq_len=dl_inputs['gru_lstm']['max_seq_len'],
         mode=dl_inputs['gru_lstm']['mode'],

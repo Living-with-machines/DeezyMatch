@@ -13,8 +13,6 @@ preprocessing:
   # removing both the leading and the trailing empty characters
   strip: True
   only_latin_letters: False
-  # Strings in the inputs will be prefix + string + suffix
-  prefix_suffix: ["|", "|"]
   # Accepted proportion of characters in a string that are not present in our vocabulary, i.e.,
   # String is accepted if:
   # (number of its characters found in the vocabulary)/(total number its characters) >= missing_char_threshold
@@ -28,10 +26,19 @@ gru_lstm:
   mode:    # Tokenization mode
     # choices: "char", "ngram", "word"
     # for example: tokenize: ["char", "ngram", "word"] or ["char", "word"] 
-    tokenize: ["char"]
+    tokenize: ["char", "word"]
+    # ONLY if "char" or "ngram" are slected in tokenize, the following arg will be used:
+    # Strings in the inputs will be prefix + string + suffix:
+    prefix_suffix: ["|", "|"]
     # ONLY if "ngram" is selected in tokenize, the following args will be used:
     min_gram: 2
     max_gram: 3
+    # ONLY if "word" is selected in tokenize, the following arg will be used:
+    # Characters according to which the string will split into tokens:
+    # Accepted inputs are either a string of delimiters (e.g. ", -!?:()" or
+    # "default", in which case delimiters will be the white space and any
+    # punctuation mark):
+    token_sep: "default"
   bidirectional: True    # if True, becomes a bidirectional RNN/GRU/LSTM
   # num_layers
   # number of recurrent layers. e.g., setting num_layers=2 means stacking two 

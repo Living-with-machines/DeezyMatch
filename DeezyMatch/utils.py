@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import copy
+import collections
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +14,7 @@ import socket
 import time
 import unicodedata
 import yaml
+import string
 from argparse import ArgumentParser
 from sklearn.metrics import average_precision_score
 import torch
@@ -19,18 +22,23 @@ from torch.nn.modules.module import _addindent
 
 
 # ------------------- normalizeString --------------------
-def normalizeString(s, uni2ascii=False, lowercase=False, strip=False, only_latin_letters=False, prefix_suffix=["|", "|"]):
+def normalizeString(s, uni2ascii=True, lowercase=True, strip=True, only_latin_letters=False):
+    # Convert input string to ASCII:
     if uni2ascii:
         s = unicodedata.normalize('NFKD', str(s))
+    # Convert input string to lowercase:
     if lowercase:
         s = s.lower()
+    # Remove trailing whitespace:
     if strip:
         s = s.strip()
+    # Remove non-latin letters:
     if only_latin_letters:
         s = re.sub(r"([.!?])", r" \1", s)
         s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
     
-    return prefix_suffix[0] + s + prefix_suffix[1]
+    return s
+
 
 # ------------------- sort_key --------------------
 def sort_key(item):
@@ -83,22 +91,35 @@ def eval_map(list_of_list_of_labels,list_of_list_of_scores,randomize=True):
 
 
 # ------------------- string_split --------------------
-def string_split(x, tokenize=["char"], min_gram=1, max_gram=3):
+def string_split(x, tokenize=["char"], min_gram=1, max_gram=3, token_sep="default", prefix_suffix=["|", "|"]):
     """
     Split a string using various methods.
     min_gram and max_gram are used only if "ngram" is in tokenize
     """
     tokenized_str = []
+
+    x_bounded = copy.deepcopy(x)
+    if isinstance(prefix_suffix, collections.abc.Sequence) and len(prefix_suffix) == 2:
+        prefix = prefix_suffix[0] if isinstance(prefix_suffix[0], str) else ""
+        suffix = prefix_suffix[1] if isinstance(prefix_suffix[1], str) else ""
+        x_bounded = prefix + x + suffix
+
     if "char" in tokenize:
-        tokenized_str += [sub_x for sub_x in x]
+        tokenized_str += [sub_x for sub_x in x_bounded]
     
     if "ngram" in tokenize:
+        assert min_gram >= 1, "min_gram must be >= 1"
+        assert max_gram >= min_gram, "max_gram must be >= min_gram"
         for ngram in range(min_gram, max_gram+1):
-            tokenized_str += [x[i:i+ngram] for i in range(len(x)-ngram+1)] 
+            tokenized_str += [x_bounded[i:i+ngram] for i in range(len(x_bounded)-ngram+1)] 
     
     if "word" in tokenize:
-        tokenized_str += x.split()
+        if token_sep == "default":
+            tokenized_str += re.split(r"[" + string.punctuation + r"\s]", x)
+        else:
+            tokenized_str += re.split("[" + re.escape(token_sep) + "]", x)
     
+    tokenized_str = [t for t in tokenized_str if t]
     return tokenized_str
    
 # ------------------- deezy_mode_detector --------------------
