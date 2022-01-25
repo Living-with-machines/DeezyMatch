@@ -90,6 +90,14 @@ def test_string_split():
             "prefix_suffix": None}
     assert utils.string_split(**kwds) == ['py 001 ', '  ']
 
+    # -------------------
+    # more than one token separator
+    kwds = {"x": "py 001 $  ", 
+            "tokenize": ["word"], 
+            "token_sep": "$ ", 
+            "prefix_suffix": None}
+    assert utils.string_split(**kwds) == ['py', '001']
+
 def test_normalizeString():
     x = " PY _ 001 $ :)  .  .  "
     assert utils.normalizeString(x, lowercase=True, strip=True) == 'py _ 001 $ :)  .  .'
