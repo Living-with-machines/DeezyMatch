@@ -16,7 +16,7 @@ def test_string_split():
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["char"],  
             "prefix_suffix": ["|", None]}
-    assert utils.string_split(**kwds) == ['p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
+    assert utils.string_split(**kwds) == ['|', 'p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
     
     # -------------------
     kwds = {"x": "py 001 $  ", 
@@ -89,6 +89,14 @@ def test_string_split():
             "token_sep": "$", 
             "prefix_suffix": None}
     assert utils.string_split(**kwds) == ['py 001 ', '  ']
+
+    # -------------------
+    # more than one token separator
+    kwds = {"x": "py 001 $  ", 
+            "tokenize": ["word"], 
+            "token_sep": "$ ", 
+            "prefix_suffix": None}
+    assert utils.string_split(**kwds) == ['py', '001']
 
 def test_normalizeString():
     x = " PY _ 001 $ :)  .  .  "
