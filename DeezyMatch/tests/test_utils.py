@@ -16,7 +16,7 @@ def test_string_split():
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["char"],  
             "prefix_suffix": ["|", None]}
-    assert utils.string_split(**kwds) == ['p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
+    assert utils.string_split(**kwds) == ['|', 'p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
     
     # -------------------
     kwds = {"x": "py 001 $  ", 
