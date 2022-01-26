@@ -15,19 +15,19 @@ def test_string_split():
     # -------------------
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["char"],  
-            "prefix_suffix": ["|", None]}
+            "prefix_suffix": ["|", ""]}
     assert utils.string_split(**kwds) == ['|', 'p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
     
     # -------------------
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["char"], 
-            "prefix_suffix": [None]}
+            "prefix_suffix": [""]}
     assert utils.string_split(**kwds) == ['p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
     
     # -------------------
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["char"], 
-            "prefix_suffix": None}
+            "prefix_suffix": ""}
     assert utils.string_split(**kwds) == ['p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
     
     # -------------------
@@ -55,7 +55,7 @@ def test_string_split():
             "tokenize": ["ngram"], 
             "min_gram": 1, 
             "max_gram": 1, 
-            "prefix_suffix": None}
+            "prefix_suffix": ""}
     assert utils.string_split(**kwds) == ['p', 'y', ' ', '0', '0', '1', ' ', '$', ' ', ' ']
     
     # -------------------
@@ -64,7 +64,7 @@ def test_string_split():
             "min_gram": 3, 
             "max_gram": 3, 
             "token_sep": "$", 
-            "prefix_suffix": None}
+            "prefix_suffix": ""}
     assert utils.string_split(**kwds) == ['py ', 'y 0', ' 00', '001', '01 ', '1 $', ' $ ', '$  ', 'py 001 ', '  ']
     
     # -------------------
@@ -80,14 +80,14 @@ def test_string_split():
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["word"], 
             "token_sep": "default", 
-            "prefix_suffix": None}
+            "prefix_suffix": ""}
     assert utils.string_split(**kwds) == ['py', '001']
 
     # -------------------
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["word"], 
             "token_sep": "$", 
-            "prefix_suffix": None}
+            "prefix_suffix": ""}
     assert utils.string_split(**kwds) == ['py 001 ', '  ']
 
     # -------------------
@@ -95,7 +95,7 @@ def test_string_split():
     kwds = {"x": "py 001 $  ", 
             "tokenize": ["word"], 
             "token_sep": "$ ", 
-            "prefix_suffix": None}
+            "prefix_suffix": ""}
     assert utils.string_split(**kwds) == ['py', '001']
 
 def test_normalizeString():
