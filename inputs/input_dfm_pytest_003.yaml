@@ -29,6 +29,9 @@ gru_lstm:
     tokenize: ["ngram", "char"]
     # ONLY if "char" or "ngram" are slected in tokenize, the following arg will be used:
     # Strings in the inputs will be prefix + string + suffix:
+    # NOTE: please use only STRINGS in prefix_suffix list, 
+    #       if you want only prefix or suffix, enter the other as an empty string ""
+    #       e.g., ["|", ""] would add | as prefix and no suffix
     prefix_suffix: ["|", "|"]
     # ONLY if "ngram" is selected in tokenize, the following args will be used:
     min_gram: 2
