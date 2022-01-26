@@ -838,7 +838,10 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
     if inference_mode in ['test']:
         output_state_vectors = False
         path_save_test_class = False
+        one_column_inp = False
     else:
+        # In this case, we only need one column in the input
+        one_column_inp = True
         # Set path
         scenario_path = os.path.abspath(scenario)
         if not os.path.isdir(scenario_path):
@@ -884,7 +887,8 @@ def inference(model_path, dataset_path, train_vocab_path, input_file_path,
         mode=dl_inputs['gru_lstm']['mode'],
         cutoff=test_cutoff, 
         save_test_class=path_save_test_class,
-        csv_sep=dl_inputs['preprocessing']["csv_sep"]
+        csv_sep=dl_inputs['preprocessing']["csv_sep"],
+        one_column_inp=one_column_inp
         )
     
     test_dl = DataLoader(dataset=test_dc, 
