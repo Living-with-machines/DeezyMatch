@@ -18,7 +18,7 @@ preprocessing:
   # (number of its characters found in the vocabulary)/(total number its characters) >= missing_char_threshold
   missing_char_threshold: 0.5
   # read a list of characters and add to the vocabulary
-  read_list_chars: "../dataset/characters_v001.vocab"
+  read_list_chars: "../inputs/characters_v001.vocab"
 
 # --- RNN/GRU/LSTM architecture/misc info
 gru_lstm:
@@ -26,13 +26,13 @@ gru_lstm:
   mode:    # Tokenization mode
     # choices: "char", "ngram", "word"
     # for example: tokenize: ["char", "ngram", "word"] or ["char", "word"] 
-    tokenize: ["char", "word"]
+    tokenize: ["char", "ngram"]
     # ONLY if "char" or "ngram" are slected in tokenize, the following arg will be used:
     # Strings in the inputs will be prefix + string + suffix:
     # NOTE: please use only STRINGS in prefix_suffix list, 
     #       if you want only prefix or suffix, enter the other as an empty string ""
     #       e.g., ["|", ""] would add | as prefix and no suffix
-    prefix_suffix: ["|", "|"]
+    prefix_suffix: ["<", ">"]
     # ONLY if "ngram" is selected in tokenize, the following args will be used:
     min_gram: 2
     max_gram: 3
