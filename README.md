@@ -122,7 +122,7 @@ conda activate py37deezy
           pip install -v -e .
           ```
 
-* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run]((./examples)). To allow the newly created `py37deezy` environment to show up in the notebooks:
+* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run](./examples). To allow the newly created `py37deezy` environment to show up in the notebooks:
 
   ```bash
   python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
@@ -138,9 +138,9 @@ In the tutorials, we assume the following directory structure (i.e. we assume th
 DeezyMatch
    ├── dataset
    │   ├── characters_v001.vocab
-   │   ├── dataset-string-similarity_train.txt
-   │   ├── dataset-string-similarity_finetune.txt
-   │   ├── dataset-string-similarity_test.txt
+   │   ├── dataset-string-matching_train.txt
+   │   ├── dataset-string-matching_finetune.txt
+   │   ├── dataset-string-matching_test.txt
    │   ├── dataset-candidates.txt
    │   └── dataset-queries.txt
    └── inputs
@@ -164,10 +164,10 @@ The vocabulary file (`./inputs/characters_v001.vocab`) file combines all charact
 
 We provide the following minimal sample datasets to showcase the functionality of DeezyMatch. Please note that these are very small files that have been provided just for illustration purposes.
 
-* **String matching datasets:** The `dataset-string-similarity_xxx.txt` files are small subsets from a larger [toponym matching dataset](https://github.com/ruipds/Toponym-Matching). We provide:
-  * `dataset-string-similarity_train.txt`: data used for training a DeezyMatch model from scratch [5000 string pairs].
-  * `dataset-string-similarity_finetune.txt`: data used for fine-tuning an existing DeezyMatch model (this is an optional step) [2500 string pairs].
-  * `dataset-string-similarity_finetune.txt`: data used for assessing the performance of the DeezyMatch model (this is an optional step, as the training step already produces an intrinsic evaluation) [2495 string pairs].
+* **String matching datasets:** The `dataset-string-matching_xxx.txt` files are small subsets from a larger [toponym matching dataset](https://github.com/ruipds/Toponym-Matching). We provide:
+  * `dataset-string-matching_train.txt`: data used for training a DeezyMatch model from scratch [5000 string pairs].
+  * `dataset-string-matching_finetune.txt`: data used for fine-tuning an existing DeezyMatch model (this is an optional step) [2500 string pairs].
+  * `dataset-string-matching_finetune.txt`: data used for assessing the performance of the DeezyMatch model (this is an optional step, as the training step already produces an intrinsic evaluation) [2495 string pairs].
   
   The string matching datasets are composed of an equal number of positive and negative string matches, where:
   * A positive string match is a pair of strings that can refer to the same entity (e.g. "Wādī Qānī" and "Uàdi Gani" are different variations of the same place name).
@@ -250,7 +250,7 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
              scenario="candidates/test")
 ```
 
-* [Assembling candidates vector representations](#candidate-ranker-and-assembling-vector-representations):
+* [Assembling candidates vector representations](#combine-vector-representations):
 
 ```python
 from DeezyMatch import combine_vecs
@@ -277,7 +277,7 @@ dm_inference(input_file_path="./inputs/input_dfm.yaml",
              scenario="queries/test")
 ```
 
-* [Assembling queries vector representations](#candidate-ranker-and-assembling-vector-representations) (not required for on-the-fly DeezyMatch):
+* [Assembling queries vector representations](#combine-vector-representations) (not required for on-the-fly DeezyMatch):
 
 ```python
 from DeezyMatch import combine_vecs
@@ -289,7 +289,7 @@ combine_vecs(rnn_passes=['fwd', 'bwd'],
              print_every=10)
 ```
 
-* [Candidate ranker](#candidate-ranker-and-assembling-vector-representations):
+* [Candidate ranker](#candidate-ranking):
 
 ```python
 from DeezyMatch import candidate_ranker
@@ -619,7 +619,7 @@ For example, in the first row ("ge lan bo er da" and "Грюиссан") the act
 
 ### Generate query and candidate vectors
 
-The `inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for candidate selection and ranking** (which we will [talk about later](#candidate-ranker-and-assembling-vector-representations)).
+The `inference` module can also be used to generate vector representations for a set of strings in a dataset. This is **a required step for candidate selection and ranking** (which we will [discuss later](#candidate-ranking)).
 
 We first create vector representations for **candidate** mentions (we assume the candidate mentions are stored in `dataset/dataset-candidates.txt`):
 
