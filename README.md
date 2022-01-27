@@ -167,7 +167,7 @@ We provide the following minimal sample datasets to showcase the functionality o
 * **String matching datasets:** The `dataset-string-matching_xxx.txt` files are small subsets from a larger [toponym matching dataset](https://github.com/ruipds/Toponym-Matching). We provide:
   * `dataset-string-matching_train.txt`: data used for training a DeezyMatch model from scratch [5000 string pairs].
   * `dataset-string-matching_finetune.txt`: data used for fine-tuning an existing DeezyMatch model (this is an optional step) [2500 string pairs].
-  * `dataset-string-matching_finetune.txt`: data used for assessing the performance of the DeezyMatch model (this is an optional step, as the training step already produces an intrinsic evaluation) [2495 string pairs].
+  * `dataset-string-matching_test.txt`: data used for assessing the performance of the DeezyMatch model (this is an optional step, as the training step already produces an intrinsic evaluation) [2495 string pairs].
   
   The string matching datasets are composed of an equal number of positive and negative string matches, where:
   * A positive string match is a pair of strings that can refer to the same entity (e.g. "Wādī Qānī" and "Uàdi Gani" are different variations of the same place name).
