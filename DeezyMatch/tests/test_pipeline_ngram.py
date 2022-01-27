@@ -8,13 +8,13 @@ def test_pipeline_ngram():
     from DeezyMatch import train as dm_train
     # train a new model
     dm_train(input_file_path="./inputs/input_dfm_pytest_002.yaml",
-             dataset_path="./dataset/dataset-string-similarity_test.txt",
+             dataset_path="./dataset/dataset-string-matching_train.txt",
              model_name="test002")
     
     from DeezyMatch import finetune as dm_finetune
     # fine-tune a pretrained model stored at pretrained_model_path and pretrained_vocab_path
     dm_finetune(input_file_path="./inputs/input_dfm_pytest_002.yaml",
-                dataset_path="./dataset/dataset-string-similarity_test.txt",
+                dataset_path="./dataset/dataset-string-matching_train.txt",
                 model_name="finetuned_test002",
                 pretrained_model_path="./models/test002/test002.model",
                 pretrained_vocab_path="./models/test002/test002.vocab")
@@ -23,7 +23,7 @@ def test_pipeline_ngram():
     
     # model inference using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_002.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-string-matching_train.txt",
                  pretrained_model_path="./models/finetuned_test002/finetuned_test002.model",
                  pretrained_vocab_path="./models/finetuned_test002/finetuned_test002.vocab")
     
@@ -33,7 +33,7 @@ def test_pipeline_ngram():
     # generate vectors for queries (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_002.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-string-matching_train.txt",
                  pretrained_model_path="./models/finetuned_test002/finetuned_test002.model",
                  pretrained_vocab_path="./models/finetuned_test002/finetuned_test002.vocab",
                  inference_mode="vect",
@@ -44,7 +44,7 @@ def test_pipeline_ngram():
     # generate vectors for candidates (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_002.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-string-matching_train.txt",
                  pretrained_model_path="./models/finetuned_test002/finetuned_test002.model",
                  pretrained_vocab_path="./models/finetuned_test002/finetuned_test002.vocab",
                  inference_mode="vect",

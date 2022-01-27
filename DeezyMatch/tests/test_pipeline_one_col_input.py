@@ -8,13 +8,13 @@ def test_pipeline_one_col_input():
     from DeezyMatch import train as dm_train
     # train a new model
     dm_train(input_file_path="./inputs/input_dfm_pytest_003.yaml",
-             dataset_path="./dataset/dataset-string-similarity_test.txt",
+             dataset_path="./dataset/dataset-string-matching_train.txt",
              model_name="test003")
     
     from DeezyMatch import finetune as dm_finetune
     # fine-tune a pretrained model stored at pretrained_model_path and pretrained_vocab_path
     dm_finetune(input_file_path="./inputs/input_dfm_pytest_003.yaml",
-                dataset_path="./dataset/dataset-string-similarity_test.txt",
+                dataset_path="./dataset/dataset-string-matching_finetune.txt",
                 model_name="finetuned_test003",
                 pretrained_model_path="./models/test003/test003.model",
                 pretrained_vocab_path="./models/test003/test003.vocab")
@@ -25,13 +25,13 @@ def test_pipeline_one_col_input():
         # model inference using a model stored at pretrained_model_path and pretrained_vocab_path
         # This should raise an IndexError as we need three columns during inference
         dm_inference(input_file_path="./inputs/input_dfm_pytest_003.yaml",
-                     dataset_path="./dataset/dataset-string-similarity_test_one_column.txt",
+                     dataset_path="./dataset/dataset-candidates.txt",
                      pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
                      pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab")
 
     # model inference using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_003.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-string-matching_test.txt",
                  pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
                  pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab")
 
@@ -40,7 +40,7 @@ def test_pipeline_one_col_input():
     # generate vectors for queries (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_003.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test_one_column.txt",
+                 dataset_path="./dataset/dataset-queries.txt",
                  pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
                  pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab",
                  inference_mode="vect",
@@ -51,7 +51,7 @@ def test_pipeline_one_col_input():
     # generate vectors for candidates (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_003.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-candidates.txt",
                  pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
                  pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab",
                  inference_mode="vect",
@@ -86,7 +86,4 @@ def test_pipeline_one_col_input():
                          pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
                          pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab",
                          number_test_rows=5)
-        
-    for s in candidates_pd["query"].to_list():
-        assert candidates_pd.loc[candidates_pd["query"] == s]["faiss_distance"].iloc[0][s] == pytest.approx(0.0)
     
