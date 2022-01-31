@@ -26,7 +26,7 @@ gru_lstm:
   mode:    # Tokenization mode
     # choices: "char", "ngram", "word"
     # for example: tokenize: ["char", "ngram", "word"] or ["char", "word"] 
-    tokenize: ["char", "word"]
+    tokenize: ["ngram", "char"]
     # ONLY if "char" or "ngram" are slected in tokenize, the following arg will be used:
     # Strings in the inputs will be prefix + string + suffix:
     # NOTE: please use only STRINGS in prefix_suffix list, 

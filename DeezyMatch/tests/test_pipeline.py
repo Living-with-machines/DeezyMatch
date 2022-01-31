@@ -6,14 +6,14 @@ def test_train():
     from DeezyMatch import train as dm_train
     # train a new model
     dm_train(input_file_path="./inputs/input_dfm_pytest_001.yaml",
-             dataset_path="./dataset/dataset-string-similarity_test.txt",
+             dataset_path="./dataset/dataset-string-matching_train.txt",
              model_name="test001")
 
 def test_finetune():
     from DeezyMatch import finetune as dm_finetune
     # fine-tune a pretrained model stored at pretrained_model_path and pretrained_vocab_path
     dm_finetune(input_file_path="./inputs/input_dfm_pytest_001.yaml",
-                dataset_path="./dataset/dataset-string-similarity_test.txt",
+                dataset_path="./dataset/dataset-string-matching_finetune.txt",
                 model_name="finetuned_test001",
                 pretrained_model_path="./models/test001/test001.model",
                 pretrained_vocab_path="./models/test001/test001.vocab")
@@ -23,7 +23,7 @@ def test_inference():
 
     # model inference using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_001.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-string-matching_test.txt",
                  pretrained_model_path="./models/finetuned_test001/finetuned_test001.model",
                  pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab")
     
@@ -33,7 +33,7 @@ def test_generate_query_vecs():
     # generate vectors for queries (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_001.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-queries.txt",
                  pretrained_model_path="./models/finetuned_test001/finetuned_test001.model",
                  pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
                  inference_mode="vect",
@@ -45,7 +45,7 @@ def test_generate_candidate_vecs():
     # generate vectors for candidates (specified in dataset_path)
     # using a model stored at pretrained_model_path and pretrained_vocab_path
     dm_inference(input_file_path="./inputs/input_dfm_pytest_001.yaml",
-                 dataset_path="./dataset/dataset-string-similarity_test.txt",
+                 dataset_path="./dataset/dataset-candidates.txt",
                  pretrained_model_path="./models/finetuned_test001/finetuned_test001.model",
                  pretrained_vocab_path="./models/finetuned_test001/finetuned_test001.vocab",
                  inference_mode="vect",
