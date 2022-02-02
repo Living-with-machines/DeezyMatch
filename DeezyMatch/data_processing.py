@@ -201,7 +201,9 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
 
             # If one_column_inp is set to True, extend the row
             if one_column_inp == True:
-                tmp_split_row.insert(1, "tmp")
+                # Copy the string of the first column into the second column
+                # See issue 109, this way, we do not need to extend the vocabulary
+                tmp_split_row.insert(1, tmp_split_row[0])
                 tmp_split_row.insert(2, "true")
             
             if str(tmp_split_row[2]).strip().lower() not in ["true", "false", "1", "0"]:
