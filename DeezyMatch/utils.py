@@ -359,6 +359,12 @@ def read_command_candidate_ranker():
     parser.add_argument("-sz", "--search_size",
                         help="search size", default=4)
 
+    parser.add_argument("-ld", "--length_diff",
+                        help="max length difference", default=120)
+
+    parser.add_argument("-up", "--use_predict",
+                        help="use predict", default=True)
+
     parser.add_argument("-o", "--output_path",
                         help="path to output file")
 
@@ -384,13 +390,15 @@ def read_command_candidate_ranker():
     query = args.query
     num_candidates = int(args.num_candidates)
     search_size = int(args.search_size)
+    length_diff = args.length_diff
+    use_predict = args.use_predict
     output_path = args.output_path
     model_path = args.model_path
     vocab_path = args.vocab_path
     number_test_rows = int(args.number_test_rows)
 
     return input_file_path, query_scenario, candidate_scenario, ranking_metric, selection_threshold,\
-           query, num_candidates, search_size, output_path, model_path, vocab_path,\
+           query, num_candidates, search_size, length_diff, use_predict, output_path, model_path, vocab_path,\
            number_test_rows
 
 # ------------------- read_input_file --------------------
