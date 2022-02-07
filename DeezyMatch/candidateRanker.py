@@ -201,6 +201,12 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
         sys.exit(f"[ERROR] ranking_metric of {ranking_metric.lower()} is not supported. "\
                   "Current ranking methods are: 'faiss', 'cosine', 'conf'")
     
+    if num_candidates == 0:
+        sys.exit(f"[ERROR] num_candidates must be larger than 0.")
+    
+    if search_size == 0:
+        sys.exit(f"[ERROR] search_size must be larger than 0.")
+    
     # ----- CANDIDATES
     path1_combined = os.path.join(candidate_scenario, "fwd.pt")
     path2_combined = os.path.join(candidate_scenario, "bwd.pt")
@@ -211,8 +217,8 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
     vecs_items_candidates = np.load(path_items_combined, allow_pickle=True)
     vecs1_candidates = torch.load(path1_combined, map_location=dl_inputs['general']['device'])
     vecs2_candidates = torch.load(path2_combined, map_location=dl_inputs['general']['device'])
-    vecs_candidates = torch.cat([vecs1_candidates, vecs2_candidates], dim=1)    
-            
+    vecs_candidates = torch.cat([vecs1_candidates, vecs2_candidates], dim=1)
+           
     if (not pretrained_model_path in [False, None]) or query:
         # --- load torch model, send it to the device (CPU/GPU)
         model = torch.load(pretrained_model_path, map_location=dl_inputs['general']['device'])
@@ -263,7 +269,7 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
         collect_neigh_pd = pd.DataFrame()
         num_found_candidates = 0
         
-        # start with 0:seach_size
+        # start with 0:search_size
         # If the number of selected candidates < num_candidates
         # Increase the search size
         id_0_neigh = 0
@@ -271,7 +277,7 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
 
         # If use_predict is false, the search strategy is skipped
         if use_predict == False:
-            id_1_neigh = len(vecs_candidates)
+            id_1_neigh = search_size
 
         while (num_found_candidates < num_candidates):
             if id_1_neigh > len(vecs_candidates):
