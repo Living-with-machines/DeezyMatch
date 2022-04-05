@@ -360,7 +360,7 @@ def read_command_candidate_ranker():
                         help="search size", default=4)
 
     parser.add_argument("-ld", "--length_diff",
-                        help="max length difference", default=120)
+                        help="max length difference", default=None)
 
     parser.add_argument("-up", "--use_predict",
                         help="use predict", default=True)

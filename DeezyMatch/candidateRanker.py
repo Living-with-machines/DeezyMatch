@@ -196,6 +196,8 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
         sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be >= 0.")
     if (ranking_metric.lower() in ["cosine", "conf"]) and not (0 <= selection_threshold <= 1):
         sys.exit(f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be between 0 and 1.")
+    if (ranking_metric.lower() in ["conf"]) and use_predict == False:
+        sys.exit(f"ranking_metric: {ranking_metric} is selected, but use_predict is set to {use_predict}")
     
     if not ranking_metric.lower() in ["faiss", "cosine", "conf"]:
         sys.exit(f"[ERROR] ranking_metric of {ranking_metric.lower()} is not supported. "\
@@ -275,26 +277,31 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
         id_0_neigh = 0
         id_1_neigh = search_size
 
-        # If use_predict is false, the search strategy is skipped
-        if use_predict == False:
-            id_1_neigh = search_size
-
         while (num_found_candidates < num_candidates):
+            # The current step search size max (id_1_neigh) cannot be greater than number of candidates:
             if id_1_neigh > len(vecs_candidates):
                 id_1_neigh = len(vecs_candidates)
+            # If current step search size min and max (id_0_neigh and id_1_neigh) are the same, end it here:
             if id_0_neigh == id_1_neigh:
                 break
     
+            # Found neighbours by faiss distance within the current step search size (id_1_neigh):
             found_neighbours = faiss_id_candis.search(vecs_query[iq:(iq+1)].detach().cpu().numpy(), id_1_neigh)
-        
-            # Candidates
+            
+            # Selected candidates ids:
             orig_id_candis = found_neighbours[1][0, id_0_neigh:id_1_neigh]
+            # Selected candidates processed spelling:
             all_candidates = vecs_items_candidates[orig_id_candis][:, 0]
+            # Selected candidates original spelling:
             all_candidates_orig = vecs_items_candidates[orig_id_candis][:, 1]
         
-            # Queries
+            # Queries ids:
             orig_id_queries = vecs_ids_query[iq].item()
+
+            # Queries processed spelling:
             all_queries = [vecs_items_query[orig_id_queries][0]]*(id_1_neigh - id_0_neigh)
+
+            # Queries original spelling:
             all_queries_no_preproc = [vecs_items_query[orig_id_queries][1]]*(id_1_neigh - id_0_neigh)
     
             query_candidate_pd = pd.DataFrame(all_queries, columns=['s1'])
@@ -308,17 +315,13 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
                                            vecs_candidates.detach().cpu().numpy()[orig_id_candis])
             cosine_dist = 1. - cosine_sim
     
-            if use_predict == True:
-                if not pretrained_model_path in [False, None]:
-                    all_preds = candidate_conf_calc(query_candidate_pd, 
-                                                    model, 
-                                                    train_vocab, 
-                                                    dl_inputs, 
-                                                    cutoffs=(id_1_neigh - id_0_neigh))
-                    query_candidate_pd['dl_match'] = all_preds.detach().cpu().numpy()
-        
-                else:
-                    query_candidate_pd['dl_match'] = [None]*len(query_candidate_pd)
+            if use_predict and (not pretrained_model_path in [False, None]):
+                all_preds = candidate_conf_calc(query_candidate_pd, 
+                                                model, 
+                                                train_vocab, 
+                                                dl_inputs, 
+                                                cutoffs=(id_1_neigh - id_0_neigh))
+                query_candidate_pd['dl_match'] = all_preds.detach().cpu().numpy()
             else:
                 query_candidate_pd['dl_match'] = [None]*len(query_candidate_pd)
     
@@ -330,15 +333,13 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
             # Filter out candidates that have a larger string length difference than the one allowed:
             if isinstance(length_diff, int):
                 query_candidate_pd = query_candidate_pd[abs(query_candidate_pd["s1"].str.len() - query_candidate_pd["s2"].str.len()) <= length_diff]
-    
+
             if ranking_metric.lower() in ["faiss"]:
                 query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["faiss_dist"] <= selection_threshold]
             elif ranking_metric.lower() in ["cosine"]:
                 query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["cosine_dist"] <= selection_threshold]
             elif ranking_metric.lower() in ["conf"]:
-                if use_predict == False:
-                    sys.exit(f"ranking_metric: {ranking_metric} is selected, but use_predict is set to {use_predict}")
-                elif not pretrained_model_path in [False, None]:
+                if not pretrained_model_path in [False, None]:
                     query_candidate_filtered_pd = query_candidate_pd[query_candidate_pd["dl_match"] >= selection_threshold]
                 else:
                     sys.exit(f"ranking_metric: {ranking_metric} is selected, but --model_path is not specified.")
