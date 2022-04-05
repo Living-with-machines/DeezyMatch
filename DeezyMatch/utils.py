@@ -380,6 +380,10 @@ def read_command_candidate_ranker():
                         help="Only for testing", 
                         default=-1)
     
+    parser.add_argument("-vb", "--verbose",
+                        help="verbose if True (default)", 
+                        default=True)
+    
 
     args = parser.parse_args()
     input_file_path = args.input_file_path
@@ -396,19 +400,21 @@ def read_command_candidate_ranker():
     model_path = args.model_path
     vocab_path = args.vocab_path
     number_test_rows = int(args.number_test_rows)
+    verbose = args.verbose
 
     return input_file_path, query_scenario, candidate_scenario, ranking_metric, selection_threshold,\
            query, num_candidates, search_size, length_diff, use_predict, output_path, model_path, vocab_path,\
-           number_test_rows
+           number_test_rows, verbose
 
 # ------------------- read_input_file --------------------
-def read_input_file(input_file_path):
+def read_input_file(input_file_path, verbose=True):
     """
     read inputs from input_file_path
     :param input_file_path:
     :return:
     """
-    cprint('[INFO]', bc.dgreen, "read input file: {}".format(input_file_path))
+    if verbose:
+        cprint('[INFO]', bc.dgreen, "read input file: {}".format(input_file_path))
     with open(input_file_path, 'r') as input_file_read:
         dl_inputs = yaml.load(input_file_read, Loader=yaml.FullLoader)
         dl_inputs['gru_lstm']['learning_rate'] = float(dl_inputs['gru_lstm']['learning_rate'])
@@ -424,10 +430,12 @@ def read_input_file(input_file_path):
                 device = torch.device(dl_inputs["general"]["gpu_device"])
                 dl_inputs['general']['is_cuda'] = True
             else:
-                cprint('[INFO]', bc.lred, 'GPU was requested but not available.')
+                if verbose:
+                    cprint('[INFO]', bc.lred, 'GPU was requested but not available.')
 
         dl_inputs['general']['device'] = device
-        cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
+        if verbose:
+            cprint('[INFO]', bc.lgreen, 'pytorch will use: {}'.format(dl_inputs['general']['device']))
 
         if not "early_stopping_patience" in dl_inputs["gru_lstm"]:
             dl_inputs["gru_lstm"]["early_stopping_patience"] = False

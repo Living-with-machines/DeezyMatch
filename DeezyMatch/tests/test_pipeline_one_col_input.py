@@ -88,6 +88,24 @@ def test_pipeline_one_col_input():
                          number_test_rows=5)
     
     from DeezyMatch import candidate_ranker
+    # Select candidates based on conf:
+    # find candidates from candidate_scenario
+    # for queries specified in query_scenario
+    # Verbose set as false.
+    candidates_pd = \
+        candidate_ranker(query_scenario="./combined_003/queries_test",
+                         candidate_scenario="./combined_003/candidates_test",
+                         ranking_metric="conf",
+                         selection_threshold=.5,
+                         num_candidates=2,
+                         search_size=10,
+                         output_path="ranker_results_003/test_candidates_deezymatch",
+                         pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
+                         pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab",
+                         number_test_rows=5,
+                         verbose=False)
+    
+    from DeezyMatch import candidate_ranker
     # Select candidates based on L2-norm distance (aka faiss distance):
     # find candidates from candidate_scenario
     # for queries specified in query_scenario
