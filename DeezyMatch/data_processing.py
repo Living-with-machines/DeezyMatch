@@ -193,7 +193,8 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
             cprint('[INFO]', bc.dgreen, 'use a dataframe in test_tokenize.')
         dataset_pd = dataset_path
     else:
-        cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
+        if verbose:
+            cprint('[INFO]', bc.dgreen, 'read CSV file: {}'.format(dataset_path))
         ds_fio = open(dataset_path, "r")
         df_list = ds_fio.readlines()
         for i in range(len(df_list)):
@@ -207,7 +208,8 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
                 tmp_split_row.insert(2, "true")
             
             if str(tmp_split_row[2]).strip().lower() not in ["true", "false", "1", "0"]:
-                print(f"SKIP: {df_list[i]}")
+                if verbose:
+                    print(f"SKIP: {df_list[i]}")
                 # change the label to remove_me, 
                 # we drop the rows with no true|false in the label column
                 tmp_split_row = f"X{csv_sep}X{csv_sep}remove_me".split(csv_sep)
@@ -290,12 +292,13 @@ def test_tokenize(dataset_path, train_vocab,missing_char_threshold=0.5,
         test_dc = DatasetClass(dataset_pd, train_vocab, maxlen=max_seq_len)
 
     if save_test_class:
-        cprint('[INFO]', bc.dgreen, 'save test-data-class: {}'.format(save_test_class))
+        if verbose:
+            cprint('[INFO]', bc.dgreen, 'save test-data-class: {}'.format(save_test_class))
         abs_path = os.path.abspath(save_test_class)
         if not os.path.isdir(os.path.dirname(abs_path)):
             os.makedirs(os.path.dirname(abs_path))
         test_dc.df.to_pickle(save_test_class)
-
+        
     return test_dc 
 
 

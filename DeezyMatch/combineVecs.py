@@ -28,7 +28,8 @@ set_seed_everywhere(1364)
 def combine_vecs(input_file_path="default", rnn_passes=["fwd", "bwd"],
                  input_scenario="test",  
                  output_scenario="test", print_every=500, 
-                 sel_device="default", save_df=True):
+                 sel_device="default", save_df=True,
+                 verbose=True):
     """
     Assemble vectors stored in input_scenario and save them in
     output_scenario.
@@ -50,6 +51,8 @@ def combine_vecs(input_file_path="default", rnn_passes=["fwd", "bwd"],
         if "default", the device will be read from the input file.
     save_df
         save strings of the first column in queries/candidates files (default: True)
+    verbose
+        verbose if True (default)
     """
     
     if type(rnn_passes) in [str]:
@@ -97,33 +100,37 @@ def combine_vecs(input_file_path="default", rnn_passes=["fwd", "bwd"],
             dl_inputs = read_input_file(input_file_path)
             sel_device = dl_inputs['general']['device'] 
         
-        print("\n\n-- Combine vectors")
-        print(f"Reading vectors from {path2vecs}")
+        if verbose:
+            print("\n\n-- Combine vectors")
+            print(f"Reading vectors from {path2vecs}")
         list_files = glob.glob(os.path.join(path2vecs))
         list_files.sort(key=sort_key)
         vecs = []
         for i, lfile in enumerate(list_files):
-            if i % print_every == 0: print("%07i" % i, lfile)
+            if verbose:
+                if i % print_every == 0: print("%07i" % i, lfile)
             if len(vecs) == 0:
                 vecs = torch.load(f"{lfile}", map_location=sel_device)
             else:
                 vecs = torch.cat((vecs, torch.load(f"{lfile}", map_location=sel_device)))
-        print()
+        
         # Save combined vectors
         torch.save(vecs, path_vec_combined)
         del vecs
         
-        print("\n-- Combine IDs")
+        if verbose:
+            print("\n\n-- Combine IDs\n")
         list_files = glob.glob(os.path.join(path2ids))
         list_files.sort(key=sort_key)
         vecs_ids = []
         for i, lfile in enumerate(list_files): 
-            if i % print_every == 0: print("%07i" % i, lfile)
+            if verbose:
+                if i % print_every == 0: print("%07i" % i, lfile)
             if len(vecs_ids) == 0:
                 vecs_ids = torch.load(f"{lfile}", map_location=sel_device)
             else:
                 vecs_ids = torch.cat((vecs_ids, torch.load(f"{lfile}", sel_device)))
-        print()
+        
         # Save combined IDs
         torch.save(vecs_ids, path_id_combined)
         del vecs_ids
@@ -134,7 +141,8 @@ def combine_vecs(input_file_path="default", rnn_passes=["fwd", "bwd"],
             vecs_items = mydf[['s1_unicode', "s1"]].to_numpy()
             np.save(path_items_combined, vecs_items)
     
-    print("--- %s seconds ---" % (time.time() - start_time))
+    if verbose:
+        print("--- %s seconds ---" % (time.time() - start_time))
 
 def main():
     # --- read args from the command line

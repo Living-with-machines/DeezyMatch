@@ -11,7 +11,7 @@ from .data_processing import test_tokenize
 from .rnn_networks import test_model
 from .combineVecs import combine_vecs 
 
-def query_vector_gen(query, model, train_vocab, dl_inputs):
+def query_vector_gen(query, model, train_vocab, dl_inputs, verbose=True):
     """Generate query vectors on the fly
 
     Args:
@@ -46,7 +46,7 @@ def query_vector_gen(query, model, train_vocab, dl_inputs):
         mode=dl_inputs['gru_lstm']['mode'],
         save_test_class=os.path.join(tmp_dirname, "query", "dataframe.df"),
         dataframe_input=True,
-        verbose=False
+        verbose=verbose
         )
     
     test_dl = DataLoader(dataset=test_dc, 
@@ -74,7 +74,8 @@ def query_vector_gen(query, model, train_vocab, dl_inputs):
                  output_scenario=os.path.join(tmp_dirname, "combined", "query_on_fly"),  
                  print_every=10,
                  sel_device=dl_inputs["general"]["device"],
-                 save_df=False) 
+                 save_df=False,
+                 verbose=verbose) 
     
     return tmp_dirname
 
