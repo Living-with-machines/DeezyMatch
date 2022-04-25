@@ -1,18 +1,31 @@
 name: Continuous integration
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  build-linux:
+
+  run-tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.8]
+      fail-fast: false
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Update pip
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
 
     - name: Install dependencies
       run: |
@@ -29,5 +42,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        python -m pip install .
         python -m pytest ./DeezyMatch/tests

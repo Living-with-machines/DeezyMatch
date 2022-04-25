@@ -64,13 +64,13 @@ We strongly recommend installation via Anaconda (refer to [Anaconda website and 
 * Create a new environment for DeezyMatch
 
 ```bash
-conda create -n py37deezy python=3.7
+conda create -n py38deezy python=3.8
 ```
 
 * Activate the environment:
 
 ```bash
-conda activate py37deezy
+conda activate py38deezy
 ```
 
 * DeezyMatch can be installed in different ways:
@@ -122,10 +122,10 @@ conda activate py37deezy
           pip install -v -e .
           ```
 
-* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run](./examples). To allow the newly created `py37deezy` environment to show up in the notebooks:
+* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run](./examples). To allow the newly created `py38deezy` environment to show up in the notebooks:
 
   ```bash
-  python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+  python -m ipykernel install --user --name py38deezy --display-name "Python (py38deezy)"
   ```
 
 ## Data and directory structure in tutorials
