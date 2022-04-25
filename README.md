@@ -17,8 +17,8 @@
     <a href="https://mybinder.org/v2/gh/Living-with-machines/DeezyMatch/HEAD?filepath=examples">
         <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
     </a>
-    <a href="https://github.com/Living-with-machines/DeezyMatch/workflows/Continuous%20integration/badge.svg">
-        <img alt="Continuous integration badge" src="https://github.com/Living-with-machines/DeezyMatch/workflows/Continuous%20integration/badge.svg">
+    <a href="https://github.com/Living-with-machines/DeezyMatch/actions/workflows/dm_ci.yml/badge.svg">
+        <img alt="Integration Tests badge" src="https://github.com/Living-with-machines/DeezyMatch/actions/workflows/dm_ci.yml/badge.svg">
     </a>
     <br/>
 </p>
@@ -64,13 +64,13 @@ We strongly recommend installation via Anaconda (refer to [Anaconda website and 
 * Create a new environment for DeezyMatch
 
 ```bash
-conda create -n py37deezy python=3.7
+conda create -n py38deezy python=3.8
 ```
 
 * Activate the environment:
 
 ```bash
-conda activate py37deezy
+conda activate py38deezy
 ```
 
 * DeezyMatch can be installed in different ways:
@@ -122,10 +122,10 @@ conda activate py37deezy
           pip install -v -e .
           ```
 
-* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run](./examples). To allow the newly created `py37deezy` environment to show up in the notebooks:
+* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run](./examples). To allow the newly created `py38deezy` environment to show up in the notebooks:
 
   ```bash
-  python -m ipykernel install --user --name py37deezy --display-name "Python (py37deezy)"
+  python -m ipykernel install --user --name py38deezy --display-name "Python (py38deezy)"
   ```
 
 ## Data and directory structure in tutorials
@@ -804,10 +804,9 @@ Summary of the arguments/flags:
 
 Candidate ranker uses the vector representations, generated and assembled in the previous sections, to find a set of candidates (from a dataset or knowledge base) for a given set of queries.
 
-In the following example, for queries stored in `query_scenario`, 
-we want to find 2 candidates (specified by `num_candidates`) from the candidates stored in `candidate_scenario` (i.e. `candidate_scenario` and `query_scenario` point to the outputs from the combining vector representations step).
+In the following example, for queries stored in `query_scenario`, we want to find 2 candidates (specified by `num_candidates`) from the candidates stored in `candidate_scenario` (i.e. `candidate_scenario` and `query_scenario` point to the outputs from combining vector representations).
 
-:warning: As mentioned, it is also possible to do candidate ranking on-the-fly in which query vectors are not read from a dataset (instead, they are generated on-the-fly). This is described [in the next subsection](#candidate-ranking-on-the-fly).
+> :warning: As mentioned, it is also possible to do candidate ranking on-the-fly in which query vectors are not read from a dataset (instead, they are generated on-the-fly). This is described [in the next subsection](#candidate-ranking-on-the-fly).
 
 ```python
 from DeezyMatch import candidate_ranker
@@ -828,30 +827,9 @@ candidates_pd = \
                      number_test_rows=20)
 ```
 
-`query_scenario` is the directory that contains all the assembled query vectors (see the [section on combining vector representations](#combine-vector-representations)) while `candidate_scenario` contains the assembled candidate vectors.
+In this example, `query_scenario` points to the directory that contains all the assembled query vectors (see previous section on [combining vector representations](#combine-vector-representations)) while `candidate_scenario` points to the directory that contains the assembled candidate vectors.
 
-`ranking_metric`: choices are `faiss` (used here, L2-norm distance), `cosine` (cosine distance), `conf` (confidence as measured by DeezyMatch prediction outputs).
-
-`selection_threshold`: changes according to the `ranking_metric`:
-
-```
-A candidate will be selected if:
-    faiss-distance <= selection_threshold
-    cosine-distance <= selection_threshold
-    prediction-confidence >= selection_threshold
-```
-
-:bangbang: In `conf` (i.e., prediction-confidence), the threshold corresponds to the **minimum** accepted value, while in `faiss` and `cosine` metrics, the threshold is the **maximum** accepted value.
-
-:bangbang: The `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;). 
-
-`search_size`: for a given query, DeezyMatch searches for candidates iteratively. At each iteration, the selected ranking metric between a query and candidates (with the size of `search_size`) are computed, and if the number of desired candidates (specified by `num_candidates`) is not reached, a new batch of candidates with the size of `search_size` is tested in the next iteration. This continues until candidates with the size of `num_candidates` are found or all the candidates are tested. If the role of `search_size` argument is not clear, refer to [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities). 
-
-The DeezyMatch model and its vocabulary are specified by `pretrained_model_path` and `pretrained_vocab_path`, respectively. 
-
-`number_test_rows`: **only for testing**. It specifies the number of queries to be used for testing.
-
-The results can be accessed directly from `candidates_pd` variable (see the above command). Also, they are saved in `output_path` which is in a pandas dataframe fromat. The first few rows are:
+The retrieval of candidates is performed based on several parameters (`ranking_metric`, `num_candidates`, `selection_threshold` and `search_size` in the example), and using the DeezyMatch model specified in `pretrained_model_path` and using the vocabulary specified in `pretrained_vocab_path`. The output (a dataframe) is saved in the directory specified in `output_path`, but can also be accessed directly from the `candidates_pd` variable. The first few rows of the resulting dataframe are:
 
 ```bash
                                 query                                         pred_score                                       1-pred_score  ...                             candidate_original_ids query_original_id num_all_searches
@@ -864,7 +842,26 @@ id                                                                              
 5   Rongrian Ban Huai Huak Chom Thong  {'rongreiyn ban hnxngbawdæng': 0.4975, 'rongre...  {'rongreiyn ban hnxngbawdæng': 0.5025, 'rongre...  ...  {'rongreiyn ban hnxngbawdæng': 35, 'rongreiyn ...                 5                2
 ```
 
-Similarly, the above results can be generated via command line:
+As mentioned, the retrieval of candidates is based on several parameters:
+* **Ranking metric** (`ranking_metric`): The metric used to rank the candidates based on their vectors. Choices are:
+  * `faiss`: L2-norm distance, as implemented in the `faiss` library.
+  * `cosine`: cosine distance.
+  * `conf`: confidence as measured by DeezyMatch prediction outputs.
+* **Selection threshold** (`threshold`): Selection threshold, which changes according to the ranking metric that has been specified. A candidate will be selected in the following cases:
+  ```text
+  faiss-distance <= selection_threshold
+  cosine-distance <= selection_threshold
+  prediction-confidence >= selection_threshold
+  ```
+  :bangbang: In `conf` (i.e., prediction-confidence), the threshold corresponds to the **minimum** accepted value, while in `faiss` and `cosine` metrics, the threshold is the **maximum** accepted value.
+  :bangbang: The `cosine` and `conf` scores are between [0, 1] while `faiss` distance can take any values from [0, +&#8734;).
+* **Use prediction** (`use_predict`): If the selected ranking metric is `faiss` or `cosine`, you can choose to skip prediction (by setting it to `False`), therefore speeding up the ranking significantly.
+* **Search size** (`search_size`): Unless `use_predict` is set to `False` (and therefore the prediction step is skipped during ranking), for a given query, DeezyMatch searches for candidates iteratively. At each iteration, the selected ranking metric between a query and candidates (with the size of `search_size`) is computed, and if the number of desired candidates (specified by `num_candidates`) is not reached, a new batch of candidates with the size of `search_size` is tested in the next iteration. This continues until candidates with the size of `num_candidates` are found or all the candidates are tested. If the role of `search_size` argument is not clear, refer to [Tips / Suggestions on DeezyMatch functionalities](#tips--suggestions-on-deezymatch-functionalities).
+* **Maximum length difference** (`length_diff`): Finally, you can also specify the maximum length difference allowed between the query and the retrieved candidate strings, which may be a useful feature for certain applications.
+
+Finally, **only for testing**, you can use `number_test_rows`. It specifies the number of queries to be used for testing.
+
+The above results can be generated via command line as well:
 
 ```bash
 DeezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combined/candidates_test -rm faiss -t 5 -n 2 -sz 2 -o ranker_results/test_candidates_deezymatch -mp ./models/finetuned_test001/finetuned_test001.model -v ./models/finetuned_test001/finetuned_test001.vocab -tn 20
@@ -874,20 +871,22 @@ DeezyMatch --deezy_mode candidate_ranker -qs ./combined/queries_test -cs ./combi
 
 Summary of the arguments/flags:
 
-| Func. argument            | Command-line flag     | Description                                                                                                                                                                   |
-|-----------------------    |-------------------    |-------------------------------------------------------------------------------------------------  |
-| query_scenario            | -qs                   | directory that contains all the assembled query vectors                                                                                                                       |
-| candidate_scenario        | -cs                   | directory that contains all the assembled candidate vectors                                                                                                                   |
-| ranking_metric            | -rm                   | choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine distance),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                              |
-| selection_threshold       | -t                    | changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= selection_threshold,<br>cosine-distance <= selection_threshold,<br>prediction-confidence >= selection_threshold  |
-| query                     | -q                    | one string or a list of strings to be used in candidate ranking on-the-fly                                                                                                    |
-| num_candidates            | -n                    | number of desired candidates                                                                                                                                                  |
-| search_size               | -sz                   | number of candidates to be tested at each iteration                                                                                                                           |
-| output_path               | -o                    | path to the output file                                                                                                                                                       |
-| pretrained_model_path     | -mp                   | path to the pretrained model                                                                                                                                                  |
-| pretrained_vocab_path     | -v                    | path to the pretrained vocabulary                                                                                                                                             |
-| input_file_path           | -i                    | path to the input file. "default": read input file in `candidate_scenario`                                        |
-| number_test_rows          | -tn                   | number of examples to be used (optional, normally for testing)                                                                                                                |
+| Func. argument        	| Command-line flag 	| Description                                                                                                                                                                 	|
+|-----------------------	|-------------------	|-------------------------------------------------------------------------------------------------	|
+| query_scenario        	| -qs               	| directory that contains all the assembled query vectors                                                                                                                     	|
+| candidate_scenario    	| -cs               	| directory that contains all the assembled candidate vectors                                                                                                                 	|
+| ranking_metric        	| -rm               	| choices are<br>`faiss` (used here, L2-norm distance),<br>`cosine` (cosine distance),<br>`conf` (confidence as measured by DeezyMatch prediction outputs)                           	|
+| selection_threshold   	| -t                	| changes according to the `ranking_metric`, a candidate will be selected if:<br>faiss-distance <= selection_threshold,<br>cosine-distance <= selection_threshold,<br>prediction-confidence >= selection_threshold 	|
+| query                 	| -q                	| one string or a list of strings to be used in candidate ranking on-the-fly                                                                                                  	|
+| num_candidates        	| -n                	| number of desired candidates                                                                                                                                                	|
+| search_size           	| -sz               	| number of candidates to be tested at each iteration                                                                                                                         	|
+| length_diff           	| -ld               	| max length difference allowed between query and candidate strings                                                                                                                         	|
+| use_predict           	| -up               	| whether to use prediction in ranking or not                                                                                                                         	|
+| output_path           	| -o                	| path to the output file                                                                                                                                                     	|
+| pretrained_model_path 	| -mp               	| path to the pretrained model                                                                                                                                                	|
+| pretrained_vocab_path 	| -v                	| path to the pretrained vocabulary                                                                                                                                           	|
+| input_file_path       	| -i                	| path to the input file. "default": read input file in `candidate_scenario`                                    	|
+| number_test_rows      	| -tn               	| number of examples to be used (optional, normally for testing)                                                                                                              	|
 
 ---
 
