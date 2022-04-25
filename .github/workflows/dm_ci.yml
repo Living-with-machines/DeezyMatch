@@ -1,4 +1,5 @@
-name: Continuous integration
+---
+name: Integration Tests
 
 on: [push]
 
