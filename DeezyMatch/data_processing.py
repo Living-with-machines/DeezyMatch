@@ -109,7 +109,8 @@ def csv_split_tokenize(
                 rows_one_label["split"] == "not_assigned", "split"
             ] = "train"
 
-        dataset_split = dataset_split.append(rows_one_label)
+        #dataset_split = dataset_split.append(rows_one_label)
+        dataset_split = pd.concat([dataset_split, rows_one_label])
     cprint(
         "[INFO]",
         bc.dgreen,

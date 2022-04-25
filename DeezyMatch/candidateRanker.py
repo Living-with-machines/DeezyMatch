@@ -468,7 +468,8 @@ def candidate_ranker(
             ]
 
             if len(query_candidate_filtered_pd) > 0:
-                collect_neigh_pd = collect_neigh_pd.append(query_candidate_filtered_pd)
+                #collect_neigh_pd = collect_neigh_pd.append(query_candidate_filtered_pd)
+                collect_neigh_pd = pd.concat([collect_neigh_pd, query_candidate_filtered_pd])
                 collect_neigh_pd = collect_neigh_pd[
                     ~collect_neigh_pd.duplicated(["s2_orig"])
                 ]
@@ -509,7 +510,8 @@ def candidate_ranker(
                 "query_original_id": orig_id_queries,
                 "num_all_searches": id_1_neigh,
             }
-            output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
+            #output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
+            output_pd = pd.concat([output_pd, pd.DataFrame.from_dict(one_row)])
             continue
         if ranking_metric.lower() in ["faiss"]:
             collect_neigh_pd = collect_neigh_pd.sort_values(by="faiss_dist")[
@@ -544,7 +546,8 @@ def candidate_ranker(
             "query_original_id": orig_id_queries,
             "num_all_searches": id_1_neigh,
         }
-        output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
+        #output_pd = output_pd.append(pd.DataFrame.from_dict(one_row))
+        output_pd = pd.concat([output_pd, pd.DataFrame.from_dict(one_row)])
 
     if len(output_pd) == 0:
         return None
