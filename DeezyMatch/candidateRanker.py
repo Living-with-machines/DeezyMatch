@@ -405,12 +405,8 @@ def candidate_ranker(input_file_path="default", query_scenario=None, candidate_s
     
         for i_row, row in collect_neigh_pd.iterrows():
             if use_predict == True:
-                if not pretrained_model_path in [False, None]:
-                    mydict_dl_match[row["s2_orig"]] = round(row["dl_match"], 4)
-                    mydict_dl_1_minus_match[row["s2_orig"]] = 1. - round(row["dl_match"], 4)
-                else:
-                    mydict_dl_match[row["s2_orig"]] = row["dl_match"]
-                    mydict_dl_1_minus_match[row["s2_orig"]] = 1. - row["dl_match"]
+                mydict_dl_match[row["s2_orig"]] = round(row["dl_match"], 4)
+                mydict_dl_1_minus_match[row["s2_orig"]] = 1. - round(row["dl_match"], 4)
             mydict_faiss_dist[row["s2_orig"]] = round(row["faiss_dist"], 4)
             mydict_cosine_dist[row["s2_orig"]] = round(row["cosine_dist"], 4)
             mydict_candid_id[row["s2_orig"]] = row["s2_orig_ids"]
