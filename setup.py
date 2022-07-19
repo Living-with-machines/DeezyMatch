@@ -16,7 +16,7 @@ setuptools.setup(
     packages = setuptools.find_packages(),
     include_package_data = True,
     platforms="OS Independent",
-    python_requires='>=3.7',
+    python_requires='>=3.9',
     install_requires=[
         "torch>=1.5.0",
         "torchvision>=0.6.0",
@@ -36,8 +36,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
