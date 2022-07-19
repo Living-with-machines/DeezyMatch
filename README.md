@@ -11,6 +11,9 @@
     <a href="https://pypi.org/project/DeezyMatch/">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/DeezyMatch">
     </a>
+    <a href="https://www.python.org/downloads/">
+        <img alt="PyPI" src="https://img.shields.io/badge/python-3.9+-orange.svg">
+    </a>
     <a href="https://github.com/Living-with-machines/DeezyMatch/blob/master/LICENSE">
         <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
     </a>
@@ -64,13 +67,13 @@ We strongly recommend installation via Anaconda (refer to [Anaconda website and 
 * Create a new environment for DeezyMatch
 
 ```bash
-conda create -n py38deezy python=3.8
+conda create -n py39deezy python=3.9
 ```
 
 * Activate the environment:
 
 ```bash
-conda activate py38deezy
+conda activate py39deezy
 ```
 
 * DeezyMatch can be installed in different ways:
@@ -122,10 +125,10 @@ conda activate py38deezy
           pip install -v -e .
           ```
 
-* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run](./examples). To allow the newly created `py38deezy` environment to show up in the notebooks:
+* We have provided some [Jupyter Notebooks to show how different components in DeezyMatch can be run](./examples). To allow the newly created `py39deezy` environment to show up in the notebooks:
 
   ```bash
-  python -m ipykernel install --user --name py38deezy --display-name "Python (py38deezy)"
+  python -m ipykernel install --user --name py39deezy --display-name "Python (py39deezy)"
   ```
 
 ## Data and directory structure in tutorials
