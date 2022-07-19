@@ -11,6 +11,9 @@
     <a href="https://pypi.org/project/DeezyMatch/">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/DeezyMatch">
     </a>
+    <a href="https://www.python.org/downloads/">
+        <img alt="PyPI" src="https://img.shields.io/badge/python-3.9+-orange.svg">
+    </a>
     <a href="https://github.com/Living-with-machines/DeezyMatch/blob/master/LICENSE">
         <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
     </a>
