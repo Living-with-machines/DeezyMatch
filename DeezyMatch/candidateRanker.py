@@ -55,7 +55,8 @@ class candidate_ranker_init:
         num_candidates=10,
         search_size=4,
         length_diff=None,
-        use_predict=True,
+        calc_predict=False,
+        calc_cosine=False,
         output_path="ranker_output",
         pretrained_model_path=None,
         pretrained_vocab_path=None,
@@ -72,7 +73,8 @@ class candidate_ranker_init:
         self.num_candidates = num_candidates
         self.search_size = search_size
         self.length_diff = length_diff
-        self.use_predict = use_predict
+        self.calc_predict = calc_predict
+        self.calc_cosine = calc_cosine
         self.output_path = output_path
         self.pretrained_model_path = pretrained_model_path
         self.pretrained_vocab_path = pretrained_vocab_path
@@ -91,7 +93,8 @@ class candidate_ranker_init:
             num_candidates=self.num_candidates,
             search_size=self.search_size,
             length_diff=self.length_diff,
-            use_predict=self.use_predict,
+            calc_predict=self.calc_predict,
+            calc_cosine=self.calc_cosine,
             output_path=self.output_path,
             pretrained_model_path=self.pretrained_model_path,
             pretrained_vocab_path=self.pretrained_vocab_path,
@@ -108,7 +111,8 @@ class candidate_ranker_init:
         num_candidates=None,
         search_size=None,
         length_diff=None,
-        use_predict=True,
+        calc_predict=False,
+        calc_cosine=False,
         number_test_rows=None,
         output_path=None,
     ):
@@ -126,8 +130,10 @@ class candidate_ranker_init:
             self.search_size = search_size
         if length_diff:
             self.length_diff = length_diff
-        if use_predict:
-            self.use_predict = use_predict
+        if calc_predict:
+            self.calc_predict = calc_predict
+        if calc_cosine:
+            self.calc_cosine = calc_cosine
         if number_test_rows:
             self.number_test_rows = number_test_rows
         if output_path:
@@ -162,7 +168,8 @@ class candidate_ranker_init:
         msg += f"selection_threshold:\t{self.selection_threshold}\n"
         msg += f"search_size:\t\t{self.search_size}\n"
         msg += f"length_diff:\t\t{self.length_diff}\n"
-        msg += f"use_predict:\t\t{self.use_predict}\n"
+        msg += f"calc_predict:\t\t{self.calc_predict}\n"
+        msg += f"calc_cosine:\t\t{self.calc_cosine}\n"
         msg += f"number_test_rows:\t{self.number_test_rows}\n"
         msg += f"---I/O---\n"
         if self.input_file_path in ["default"]:
@@ -186,7 +193,8 @@ def candidate_ranker(
     num_candidates=10,
     search_size=4,
     length_diff=None,
-    use_predict=True,
+    calc_predict=False,
+    calc_cosine=False,
     output_path="ranker_output",
     pretrained_model_path=None,
     pretrained_vocab_path=None,
@@ -222,8 +230,10 @@ def candidate_ranker(
         number of candidates to be tested at each iteration
     length_diff
         max length difference allowed between query and candidate strings
-    use_predict
-        boolean on whether to use prediction in ranking or not
+    calc_predict
+        boolean on whether to calculate prediction (i.e. model inference) or not
+    calc_cosine
+        boolean on whether to calculate cosine similarity or not
     output_path
         path to the output file
     pretrained_model_path
@@ -254,6 +264,11 @@ def candidate_ranker(
     # read input file
     dl_inputs = read_input_file(input_file_path, verbose)
 
+    if not ranking_metric.lower() in ["faiss", "cosine", "conf"]:
+        sys.exit(
+            f"[ERROR] ranking_metric of {ranking_metric.lower()} is not supported. "
+            "Current ranking methods are: 'faiss', 'cosine', 'conf'"
+        )
     if (ranking_metric.lower() in ["faiss"]) and (selection_threshold < 0):
         sys.exit(
             f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be >= 0."
@@ -264,16 +279,14 @@ def candidate_ranker(
         sys.exit(
             f"[ERROR] Threshold for the selected metric: '{ranking_metric}' should be between 0 and 1."
         )
-    if (ranking_metric.lower() in ["conf"]) and use_predict == False:
-        sys.exit(
-            f"ranking_metric: {ranking_metric} is selected, but use_predict is set to {use_predict}"
-        )
-
-    if not ranking_metric.lower() in ["faiss", "cosine", "conf"]:
-        sys.exit(
-            f"[ERROR] ranking_metric of {ranking_metric.lower()} is not supported. "
-            "Current ranking methods are: 'faiss', 'cosine', 'conf'"
-        )
+    if (ranking_metric.lower() in ["conf"]) and calc_predict == False:
+        print(f"[WARNING] ranking_metric: {ranking_metric} is selected, but calc_predict is set to {calc_predict}")
+        print(f"[WARNING] calc_predict will be set to True.")
+        calc_predict = True
+    if (ranking_metric.lower() in ["cosine"]) and calc_cosine == False:
+        print(f"[WARNING] ranking_metric: {ranking_metric} is selected, but calc_cosine is set to {calc_cosine}")
+        print(f"[WARNING] calc_cosine will be set to True.")
+        calc_cosine = True
 
     if num_candidates == 0:
         sys.exit(f"[ERROR] num_candidates must be larger than 0.")
@@ -404,14 +417,18 @@ def candidate_ranker(
 
             query_candidate_pd["label"] = "False"
 
-            # Compute cosine similarity
-            cosine_sim = cosine_similarity(
-                vecs_query[iq : (iq + 1)].detach().cpu().numpy(),
-                vecs_candidates.detach().cpu().numpy()[orig_id_candis],
-            )
-            cosine_dist = 1.0 - cosine_sim
+            if calc_cosine:
+                # Compute cosine similarity
+                cosine_sim = cosine_similarity(
+                    vecs_query[iq : (iq + 1)].detach().cpu().numpy(),
+                    vecs_candidates.detach().cpu().numpy()[orig_id_candis],
+                )
+                cosine_dist = 1.0 - cosine_sim
+                cosine_dist = cosine_dist[0]
+            else:
+                cosine_dist = [None] * len(query_candidate_pd)
 
-            if use_predict and (not pretrained_model_path in [False, None]):
+            if calc_predict and (not pretrained_model_path in [False, None]):
                 all_preds = candidate_conf_calc(
                     query_candidate_pd,
                     model,
@@ -426,7 +443,7 @@ def candidate_ranker(
             query_candidate_pd["faiss_dist"] = found_neighbours[0][
                 0, id_0_neigh:id_1_neigh
             ]
-            query_candidate_pd["cosine_dist"] = cosine_dist[0]
+            query_candidate_pd["cosine_dist"] = cosine_dist
             query_candidate_pd["s1_orig_ids"] = orig_id_queries
             query_candidate_pd["s2_orig_ids"] = orig_id_candis
 
@@ -527,13 +544,16 @@ def candidate_ranker(
             )[:num_candidates]
 
         for i_row, row in collect_neigh_pd.iterrows():
-            if use_predict == True:
+            if calc_predict == True:
                 mydict_dl_match[row["s2_orig"]] = round(row["dl_match"], 4)
                 mydict_dl_1_minus_match[row["s2_orig"]] = 1.0 - round(
                     row["dl_match"], 4
                 )
             mydict_faiss_dist[row["s2_orig"]] = round(row["faiss_dist"], 4)
-            mydict_cosine_dist[row["s2_orig"]] = round(row["cosine_dist"], 4)
+            if calc_cosine:
+                mydict_cosine_dist[row["s2_orig"]] = round(row["cosine_dist"], 4)
+            else:
+                mydict_cosine_dist[row["s2_orig"]] = row["cosine_dist"]
             mydict_candid_id[row["s2_orig"]] = row["s2_orig_ids"]
         one_row = {
             "id": orig_id_queries,
@@ -574,7 +594,8 @@ def main():
         num_candidates,
         search_size,
         length_diff,
-        use_predict,
+        calc_predict,
+        calc_cosine,
         output_path,
         pretrained_model_path,
         pretrained_vocab_path,
@@ -593,7 +614,8 @@ def main():
         num_candidates=num_candidates,
         search_size=search_size,
         length_diff=length_diff,
-        use_predict=use_predict,
+        calc_predict=calc_predict,
+        calc_cosine=calc_cosine,
         output_path=output_path,
         pretrained_model_path=pretrained_model_path,
         pretrained_vocab_path=pretrained_vocab_path,
