@@ -446,7 +446,9 @@ def read_command_candidate_ranker():
         "-ld", "--length_diff", help="max length difference", default=None
     )
 
-    parser.add_argument("-up", "--use_predict", help="use predict", default=True)
+    parser.add_argument("-up", "--calc_predict", help="calculate predict", default=False)
+
+    parser.add_argument("-cc", "--calc_cosine", help="calculate cosine", default=False)
 
     parser.add_argument("-o", "--output_path", help="path to output file")
 

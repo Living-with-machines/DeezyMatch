@@ -143,7 +143,6 @@ def test_pipeline_one_col_input():
         selection_threshold=5.0,
         num_candidates=2,
         search_size=10,
-        use_predict=False,
         output_path="ranker_results_003/test_candidates_deezymatch",
         pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
         pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab",
@@ -153,7 +152,7 @@ def test_pipeline_one_col_input():
     from DeezyMatch import candidate_ranker
 
     # Select candidates based on L2-norm distance (aka faiss distance)
-    # where ranking_metric is conf and use_prediction is false:
+    # where ranking_metric is conf and calc_predict is false:
     candidates_pd_predfalse = candidate_ranker(
         query_scenario="./combined_003/queries_test",
         candidate_scenario="./combined_003/candidates_test",
@@ -161,14 +160,13 @@ def test_pipeline_one_col_input():
         selection_threshold=5.0,
         num_candidates=2,
         search_size=10,
-        use_predict=True,
         output_path="ranker_results_003/test_candidates_deezymatch",
         pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
         pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab",
         number_test_rows=5,
     )
 
-    # Same candidates and faiss scores should be retrieved independently of use_predict value:
+    # Same candidates and faiss scores should be retrieved independently of calc_predict value:
     candidates_pd_predtrue.faiss_distance == candidates_pd_predfalse.faiss_distance
 
     from DeezyMatch import candidate_ranker
@@ -184,7 +182,7 @@ def test_pipeline_one_col_input():
         num_candidates=2,
         search_size=10,
         length_diff=2,
-        use_predict=True,
+        calc_predict=True,
         output_path="ranker_results_003/test_candidates_deezymatch",
         pretrained_model_path="./models/finetuned_test003/finetuned_test003.model",
         pretrained_vocab_path="./models/finetuned_test003/finetuned_test003.vocab",
